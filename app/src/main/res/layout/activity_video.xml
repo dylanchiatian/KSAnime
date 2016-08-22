@@ -1,0 +1,15 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+    android:keepScreenOn="true"
+    android:layout_height="match_parent"
+    tools:context="com.daose.anime.VideoActivity">
+
+    <com.devbrackets.android.exomedia.ui.widget.EMVideoView
+        android:id="@+id/video"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        EMVideoView:useDefaultControls="true"/>
+
+</FrameLayout>
