@@ -11,6 +11,7 @@ public class Browser {
     private static Browser ourInstance;
     public static final String BASE_URL = "http://kissanime.to/";
     public static final String SEARCH_URL = "http://kissanime.to/Search/Anime/";
+    public static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
 
     private WebView webView;
     private HtmlHandler htmlHandler;
@@ -36,6 +37,11 @@ public class Browser {
             }
         };
         new Handler(ctx.getMainLooper()).post(reset);
+    }
+
+    public void load(String url, HtmlListener listener){
+        htmlHandler.setListener(listener);
+        webView.loadUrl(url);
     }
 
     public void setListener(HtmlListener listener){

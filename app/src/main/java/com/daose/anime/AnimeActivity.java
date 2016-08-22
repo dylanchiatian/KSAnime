@@ -30,7 +30,7 @@ import io.realm.Sort;
 
 public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
-    private static final String LOG_TAG = AnimeActivity.class.getSimpleName();
+    private static final String TAG = AnimeActivity.class.getSimpleName();
 
     private Anime anime;
     private RecyclerView rv;
@@ -48,10 +48,10 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anime);
+
+        setupDatabase();
+
         String animeTitle = getIntent().getStringExtra("anime");
-
-        setupRealm();
-
         this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
         assert anime != null;
 
@@ -66,7 +66,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         realm.close();
     }
 
-    private void setupRealm() {
+    private void setupDatabase() {
         realm = Realm.getDefaultInstance();
     }
 
@@ -98,7 +98,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
     @Override
     public void onPageLoaded(final String html) {
-        Log.d(LOG_TAG, "onPageLoaded");
+        Log.d(TAG, "onPageLoaded");
         if (isFetching) return;
         Runnable stopLoad = new Runnable() {
             @Override
@@ -125,7 +125,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                         elements = doc.select(Selector.ANIME_DESCRIPTION);
                         //TODO:: crashes if page returns error
                         anime.summary = elements.get(elements.size() - 2).text();
-                        Log.d(LOG_TAG, elements.get(elements.size() - 2).text());
+                        Log.d(TAG, elements.get(elements.size() - 2).text());
                     }
                 });
 

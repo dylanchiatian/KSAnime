@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,19 +14,18 @@ import android.widget.TextView;
 
 import com.daose.anime.Anime.Anime;
 import com.daose.anime.AnimeActivity;
+import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
 import com.squareup.picasso.Picasso;
 
-import io.realm.Realm;
 import io.realm.RealmList;
+import io.realm.RealmRecyclerViewAdapter;
 
-/**
- * Created by STUDENT on 2016-08-16.
- */
-public class AnimeAdapter extends RecyclerView.Adapter<AnimeAdapter.ViewHolder> {
+public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.ViewHolder> {
 
     private RealmList<Anime> animeList;
-    private Context ctx;
+    private final Context ctx;
+    private final HomeActivity activity;
 
     private static final String TAG = AnimeAdapter.class.getSimpleName();
 
@@ -39,7 +39,7 @@ public class AnimeAdapter extends RecyclerView.Adapter<AnimeAdapter.ViewHolder> 
     public void onBindViewHolder(ViewHolder holder, int position) {
         Anime anime = animeList.get(position);
         holder.title.setText(anime.title);
-        Picasso.with(ctx).load(anime.coverURL).into(holder.imageView);
+        Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).into(holder.imageView);
     }
 
     @Override
@@ -101,9 +101,10 @@ public class AnimeAdapter extends RecyclerView.Adapter<AnimeAdapter.ViewHolder> 
         }
     }
 
-
-    public AnimeAdapter(Context ctx, RealmList<Anime> animeList) {
-        this.ctx = ctx;
+    public AnimeAdapter(HomeActivity activity, RealmList<Anime> animeList) {
+        super(activity, animeList, true);
+        this.activity = activity;
+        this.ctx = activity.getBaseContext();
         this.animeList = animeList;
     }
 }

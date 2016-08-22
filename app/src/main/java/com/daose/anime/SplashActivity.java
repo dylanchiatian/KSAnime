@@ -37,7 +37,6 @@ public class SplashActivity extends AppCompatActivity implements HtmlListener {
 
     private Realm realm;
 
-    //TODO:: replace loading with FAB Loader (github/trello)
     //TODO:: only get popular/hot list here, image loading in homeactivity?
     //TODO:: only need realmlist, dont need individual transactions of anime
 
@@ -45,14 +44,7 @@ public class SplashActivity extends AppCompatActivity implements HtmlListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setupLayout();
-        //Realm.setDefaultConfiguration(new RealmConfiguration.Builder(this).build());
         load(Browser.BASE_URL);
-    }
-
-    private void setupLayout() {
-        //debug
-        //addContentView(Browser.getInstance(this).getWebView(), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     private void load(String url) {
@@ -96,7 +88,6 @@ public class SplashActivity extends AppCompatActivity implements HtmlListener {
                     animeList.add(anime);
                     break;
                 case 2:
-                    //useless image
                     break;
                 default:
                     break;
@@ -161,9 +152,8 @@ public class SplashActivity extends AppCompatActivity implements HtmlListener {
 
         private void getURL(Anime anime) {
             try {
-                final Document doc = Jsoup.connect("http://myanimelist.net/anime.php?q=" + anime.title).userAgent("Mozilla/5.0").get();
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent("Mozilla/5.0").get();
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
-                System.out.println("uri: " + rawUrl);
                 URLBuilder.delete(0, URLBuilder.length());
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();
