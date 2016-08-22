@@ -40,11 +40,9 @@ import io.realm.RealmList;
 public class HomeActivity extends AppCompatActivity implements TextView.OnEditorActionListener, HtmlListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
+
     private Realm realm;
-
     private AnimeList hotList, popularList;
-    private RealmList<Anime> rHotList, rPopularList;
-
     private ViewPager viewPager;
 
     //TODO:: get rid of splash activity and just load here
