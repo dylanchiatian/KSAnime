@@ -1,12 +1,10 @@
 package com.daose.anime;
 
-import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,8 +15,6 @@ import com.daose.anime.Anime.Episode;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -73,27 +69,10 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     private void initUI() {
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-        adapter = new EpisodeAdapter(this, anime.episodes.sort("name", Sort.DESCENDING));
+//        adapter = new EpisodeAdapter(this, anime.episodes.sort("name", Sort.DESCENDING));
+        adapter = new EpisodeAdapter(this, anime);
         rv.setAdapter(adapter);
 
-        title = (TextView) findViewById(R.id.title);
-        title.setText(anime.title);
-        summary = (TextView) findViewById(R.id.description);
-        summary.setMovementMethod(new ScrollingMovementMethod());
-        cover = (ImageView) findViewById(R.id.cover);
-        cover.post(new Runnable() {
-            @Override
-            public void run() {
-                summary.setMaxHeight(cover.getHeight() - title.getHeight());
-            }
-        });
-        if(anime.coverURL != null) {
-            Picasso.with(this).load(anime.coverURL).placeholder(R.drawable.placeholder).into(cover);
-        }
-
-        if (anime.summary != null) {
-            summary.setText(anime.summary);
-        }
     }
 
     @Override
@@ -123,9 +102,10 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                             }
                         }
                         elements = doc.select(Selector.ANIME_DESCRIPTION);
-                        //TODO:: crashes if page returns error
-                        anime.summary = elements.get(elements.size() - 2).text();
-                        Log.d(TAG, elements.get(elements.size() - 2).text());
+                        //TODO:: crashes if page returns error, some anime have link at very bottom (Fun Facts)
+                        if (elements.size() > 1) {
+                            anime.summary = elements.get(elements.size() - 2).text();
+                        }
                     }
                 });
 
@@ -137,9 +117,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
             @Override
             public void run() {
                 adapter.setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
-                summary.setMaxHeight(cover.getHeight() - title.getHeight());
-                summary.setText(anime.summary);
-                summary.invalidate();
+
             }
         });
         isFetching = true;

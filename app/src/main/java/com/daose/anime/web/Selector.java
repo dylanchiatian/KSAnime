@@ -15,7 +15,7 @@ public class Selector {
 
     public static final String EPISODE_LIST = "table.listing tbody tr td a";
 
-    public static final String ANIME_DESCRIPTION = "div.barContent div p";
+    public static final String ANIME_DESCRIPTION = "div.barContent div p:not(:has(a))";
     public static final String VIDEO = "div#divContentVideo video";
 
     public static final String SEARCH_LIST = "table.listing tr td:eq(0) a";
