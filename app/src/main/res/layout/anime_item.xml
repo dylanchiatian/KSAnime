@@ -4,8 +4,8 @@
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    card_view:cardCornerRadius="4dp"
+    android:layout_margin="4dp"
+    card_view:cardCornerRadius="2dp"
     card_view:cardElevation="4dp">
 
     <LinearLayout
@@ -25,8 +25,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:layout_margin="2dp"
+            android:ellipsize="end"
             android:gravity="center"
-            android:text="TEST" />
+            android:maxLines="1"
+            android:textSize="12sp" />
 
     </LinearLayout>
 

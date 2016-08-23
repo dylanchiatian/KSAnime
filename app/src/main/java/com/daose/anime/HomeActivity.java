@@ -3,26 +3,21 @@ package com.daose.anime;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.v4.view.PagerAdapter;
+import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.daose.anime.Adapter.AnimeAdapter;
+import com.daose.anime.Adapter.HomePagerAdapter;
 import com.daose.anime.Anime.Anime;
 import com.daose.anime.Anime.AnimeList;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
-import com.daose.anime.widgets.AutofitRecyclerView;
 import com.gigamole.navigationtabbar.ntb.NavigationTabBar;
 
 import org.jsoup.Jsoup;
@@ -94,51 +89,10 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
         search.setOnEditorActionListener(this);
 
         viewPager = (ViewPager) findViewById(R.id.view_pager);
-        viewPager.setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return 3;
-            }
-
-            @Override
-            public boolean isViewFromObject(View view, Object object) {
-                return view.equals(object);
-            }
-
-            @Override
-            public void destroyItem(final View container, final int position, final Object object) {
-                ((ViewPager) container).removeView((View) object);
-            }
-
-            @Override
-            public Object instantiateItem(final ViewGroup container, final int position) {
-                final View view = LayoutInflater.from(getBaseContext()).inflate(R.layout.anime_list, null, false);
-                final AutofitRecyclerView rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
-                rv.setHasFixedSize(true);
-
-                switch (position) {
-                    case 0:
-                        //TODO:: replace with favourite list
-                        rv.setAdapter(new AnimeAdapter(HomeActivity.this, new RealmList<Anime>()));
-                        break;
-                    case 1:
-                        rv.setAdapter(new AnimeAdapter(HomeActivity.this, hotList.animeList));
-                        break;
-                    case 2:
-                        rv.setAdapter(new AnimeAdapter(HomeActivity.this, popularList.animeList));
-                        break;
-                    default:
-                        rv.setAdapter(new AnimeAdapter(HomeActivity.this, new RealmList<Anime>()));
-                        break;
-                }
-                container.addView(view);
-                return view;
-            }
-        });
+        viewPager.setAdapter(new HomePagerAdapter(this));
 
         final String[] colors = getResources().getStringArray(R.array.nav_colors);
         final NavigationTabBar ntb = (NavigationTabBar) findViewById(R.id.ntb);
-        assert ntb != null;
         final ArrayList<NavigationTabBar.Model> models = new ArrayList<NavigationTabBar.Model>();
         models.add(
                 new NavigationTabBar.Model.Builder(
@@ -161,7 +115,6 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
                         .title("Popular")
                         .build()
         );
-
         ntb.setModels(models);
         ntb.setViewPager(viewPager, 1);
     }
@@ -182,6 +135,7 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
         final Document doc = Jsoup.parse(html);
         Log.d(TAG, "title: " + doc.title());
         if (doc.title().contains("Please wait")) return;
+        if (doc.title().isEmpty()) return;
 
         runOnUiThread(new Runnable() {
             @Override

@@ -18,5 +18,5 @@ public class Selector {
     public static final String ANIME_DESCRIPTION = "div.barContent div p";
     public static final String VIDEO = "div#divContentVideo video";
 
-    public static final String SEARCH_LIST = "table.listing a";
+    public static final String SEARCH_LIST = "table.listing tr td:eq(0) a";
 }
