@@ -1,12 +1,10 @@
 package com.daose.anime.Anime;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import io.realm.RealmList;
-import io.realm.RealmModel;
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 /**
@@ -23,6 +21,9 @@ public class Anime extends RealmObject implements Serializable {
     public String summary;
     public String coverURL;
     public String summaryURL;
+
+    @Index
+    public boolean isStarred;
 
     public Anime(){
         episodes = new RealmList<Episode>();

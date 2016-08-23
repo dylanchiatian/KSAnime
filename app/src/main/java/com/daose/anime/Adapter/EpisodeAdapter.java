@@ -78,6 +78,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
             headerViewHolder.title.setText(anime.title);
             headerViewHolder.summary.setText(anime.summary);
+            headerViewHolder.star.setSelected(anime.isStarred);
             Picasso.with(ctx).load(anime.coverURL).fit().transform(new BlurTransformation(ctx)).into(headerViewHolder.background);
         } else {
             Episode episode = episodeList.get(position - 1);
@@ -125,12 +126,11 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     starAnimation.startAnimation(buttonAnim);
                     if(star.isSelected()){
                         star.setSelected(false);
-                        star.setImageDrawable(ctx.getResources().getDrawable(R.drawable.ic_star_border_black_24dp));
+                        activity.toggleStar(false);
                     } else {
                         star.setSelected(true);
-                        star.setImageDrawable(ctx.getResources().getDrawable(R.drawable.ic_star_black_24dp));
+                        activity.toggleStar(true);
                     }
-                    activity.toggleStar();
                 }
             });
         }

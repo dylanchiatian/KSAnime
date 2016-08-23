@@ -14,6 +14,7 @@ import com.daose.anime.widgets.AutofitRecyclerView;
 
 import io.realm.Realm;
 import io.realm.RealmList;
+import io.realm.RealmResults;
 
 /**
  * Created by billch on 8/22/2016.
@@ -21,14 +22,15 @@ import io.realm.RealmList;
 public class HomePagerAdapter extends PagerAdapter {
 
     private final HomeActivity activity;
-    private RealmList<Anime> hotList, popularList, starredList;
+    private RealmList<Anime> hotList, popularList;
+    private RealmResults<Anime> starredList;
 
     public HomePagerAdapter(HomeActivity activity){
         this.activity = activity;
         Realm realm = Realm.getDefaultInstance();
         hotList = realm.where(AnimeList.class).equalTo("key", "hotList").findFirst().animeList;
         popularList = realm.where(AnimeList.class).equalTo("key", "popularList").findFirst().animeList;
-        starredList = new RealmList<Anime>();
+        starredList = realm.where(Anime.class).equalTo("isStarred", true).findAll();
         realm.close();
     }
 

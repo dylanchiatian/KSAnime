@@ -61,7 +61,7 @@
         android:layout_margin="12dp"
         android:background="@android:color/transparent"
         android:scaleType="fitXY"
-        android:src="@drawable/ic_star_border_black_24dp"
+        android:src="@drawable/star"
         android:tint="#FFAABB" />
 
     <ImageButton

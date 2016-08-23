@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +17,12 @@ import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
 import com.squareup.picasso.Picasso;
 
-import io.realm.RealmList;
+import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
 
 public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.ViewHolder> {
 
-    private RealmList<Anime> animeList;
+    private OrderedRealmCollection<Anime> animeList;
     private final Context ctx;
     private final HomeActivity activity;
 
@@ -101,7 +100,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.V
         }
     }
 
-    public AnimeAdapter(HomeActivity activity, RealmList<Anime> animeList) {
+    public AnimeAdapter(HomeActivity activity, OrderedRealmCollection<Anime> animeList) {
         super(activity, animeList, true);
         this.activity = activity;
         this.ctx = activity.getBaseContext();

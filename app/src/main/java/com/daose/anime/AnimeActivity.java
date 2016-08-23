@@ -57,7 +57,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         realm.close();
     }
@@ -123,7 +123,12 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         isFetching = true;
     }
 
-    public void toggleStar(){
-        Log.d(TAG, "toggleStar");
+    public void toggleStar(final boolean isStarred) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                anime.isStarred = isStarred;
+            }
+        });
     }
 }
