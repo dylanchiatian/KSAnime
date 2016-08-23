@@ -10,11 +10,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daose.anime.Anime.Anime;
 import com.daose.anime.Anime.Episode;
+import com.daose.anime.AnimeActivity;
 import com.daose.anime.FullScreenVideoPlayerActivity;
 import com.daose.anime.R;
 import com.daose.anime.web.Browser;
@@ -39,6 +42,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private Anime anime;
     private RealmResults<Episode> episodeList;
     private Context ctx;
+    private AnimeActivity activity;
 
     private int num = -1;
     //TODO:: num will be all wrong
@@ -98,25 +102,37 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    public class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class HeaderViewHolder extends RecyclerView.ViewHolder {
 
+        private Animation buttonAnim;
         private ImageView background;
         private TextView title;
         private TextView summary;
         private ImageView star;
+        private ImageView starAnimation;
 
         public HeaderViewHolder(View itemView) {
             super(itemView);
+            buttonAnim = AnimationUtils.loadAnimation(ctx, R.anim.anim_button);
             title = (TextView) itemView.findViewById(R.id.title);
             summary = (TextView) itemView.findViewById(R.id.summary);
             star = (ImageView) itemView.findViewById(R.id.star);
             background = (ImageView) itemView.findViewById(R.id.background);
-            star.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.d(TAG, "clicked");
+            starAnimation = (ImageView) itemView.findViewById(R.id.star_animation);
+            starAnimation.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    starAnimation.startAnimation(buttonAnim);
+                    if(star.isSelected()){
+                        star.setSelected(false);
+                        star.setImageDrawable(ctx.getResources().getDrawable(R.drawable.ic_star_border_black_24dp));
+                    } else {
+                        star.setSelected(true);
+                        star.setImageDrawable(ctx.getResources().getDrawable(R.drawable.ic_star_black_24dp));
+                    }
+                    activity.toggleStar();
+                }
+            });
         }
     }
 
@@ -200,13 +216,9 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ctx.startActivity(intent);
     }
 
-    public EpisodeAdapter(Context ctx, RealmResults<Episode> episodeList) {
-        this.ctx = ctx;
-        this.episodeList = episodeList;
-    }
-
-    public EpisodeAdapter(Context ctx, Anime anime) {
-        this.ctx = ctx;
+    public EpisodeAdapter(AnimeActivity activity, Anime anime) {
+        this.activity = activity;
+        this.ctx = activity.getBaseContext();
         this.anime = anime;
         this.episodeList = anime.episodes.sort("name", Sort.DESCENDING);
     }

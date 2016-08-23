@@ -122,4 +122,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         });
         isFetching = true;
     }
+
+    public void toggleStar(){
+        Log.d(TAG, "toggleStar");
+    }
 }
