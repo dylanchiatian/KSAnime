@@ -5,7 +5,7 @@ Still in development...but currently functional!
 
 ##Features
 - Star your favourite animes to get back to it faster
-- Dark themed for all the night owl population
+- Dark themed for all you night owls
 
 ## Screenshots
 <img src="/screenshots/home.png" alt="Screenshot" width="256"/>
@@ -15,4 +15,4 @@ Still in development...but currently functional!
 - Save videos
 - Recently watched feature
 - Loading indicators
-- Improve UI
+- Service running in background to notify new episodes

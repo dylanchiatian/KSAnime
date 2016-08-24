@@ -8,7 +8,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.daose.anime.Adapter.EpisodeAdapter;
 import com.daose.anime.Anime.Anime;
@@ -16,6 +15,7 @@ import com.daose.anime.Anime.Episode;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
+import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,6 +27,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.Sort;
+import jp.wasabeef.picasso.transformations.BlurTransformation;
 
 public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
@@ -34,7 +35,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
     private Anime anime;
     private RecyclerView rv;
-    private TextView title, summary;
     private ImageView cover;
     private EpisodeAdapter adapter;
 
@@ -71,12 +71,15 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     }
 
     private void initUI() {
+        cover = (ImageView) findViewById(R.id.background);
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         adapter = new EpisodeAdapter(this, anime);
         rv.setAdapter(adapter);
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             realm.executeTransactionAsync(new GetCoverURL(anime.title));
+        } else {
+            Picasso.with(this).load(anime.coverURL).fit().transform(new BlurTransformation(this)).into(cover);
         }
     }
 
@@ -147,7 +150,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         @Override
         public void execute(Realm realm) {
             try {
-                StringBuilder URLBuilder = new StringBuilder();
+                final StringBuilder URLBuilder = new StringBuilder();
                 Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
                 final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent("Mozilla/5.0").get();
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
@@ -163,7 +166,12 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                     }
                 }
                 anime.coverURL = URLBuilder.toString();
-                Log.d(TAG, "GOT IT: " + anime.coverURL);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Picasso.with(AnimeActivity.this).load(URLBuilder.toString()).fit().transform(new BlurTransformation(AnimeActivity.this)).into(cover);
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }

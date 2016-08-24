@@ -23,7 +23,6 @@ import com.daose.anime.R;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
-import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -32,7 +31,6 @@ import org.jsoup.nodes.Element;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
-import jp.wasabeef.picasso.transformations.BlurTransformation;
 
 public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -78,16 +76,15 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             headerViewHolder.title.setText(anime.title);
             headerViewHolder.summary.setText(anime.summary);
             headerViewHolder.star.setSelected(anime.isStarred);
-            Picasso.with(ctx).load(anime.coverURL).fit().transform(new BlurTransformation(ctx)).into(headerViewHolder.background);
         } else {
             int offsetPosition = position - 1;
             Episode episode = episodeList.get(offsetPosition);
             if (episode.hasWatched) {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base4));
+//                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base4));
             } else if (offsetPosition % 2 == 0) {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base3));
+//                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base3));
             } else {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base2));
+//                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base2));
             }
             ((ViewHolder) holder).title.setText(episode.name);
         }
@@ -110,7 +107,6 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public class HeaderViewHolder extends RecyclerView.ViewHolder {
 
         private Animation buttonAnim;
-        private ImageView background;
         private TextView title;
         private TextView summary;
         private ImageView star;
@@ -122,7 +118,6 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             title = (TextView) itemView.findViewById(R.id.title);
             summary = (TextView) itemView.findViewById(R.id.summary);
             star = (ImageView) itemView.findViewById(R.id.star);
-            background = (ImageView) itemView.findViewById(R.id.background);
             starAnimation = (ImageView) itemView.findViewById(R.id.star_animation);
             starAnimation.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -166,7 +161,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         @Override
                         public void onAnimationEnd(View view) {
                             num = getLayoutPosition() - 1;
-                            title.setBackgroundColor(ctx.getResources().getColor(R.color.colorPrimaryDark));
+                            //title.setBackgroundColor(ctx.getResources().getColor(R.color.colorPrimaryDark));
                             if ((episodeList.get(num).videoURL != null) && (!episodeList.get(num).videoURL.isEmpty())) {
                                 startVideo(episodeList.get(num).videoURL);
                                 return;

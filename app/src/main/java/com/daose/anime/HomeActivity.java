@@ -1,5 +1,6 @@
 package com.daose.anime;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -174,6 +175,13 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         });
     }
 
+    public void onAnimeSelected(String title) {
+        if (loadingBar.isShown()) loadingBar.dismiss();
+        Intent intent = new Intent(this, AnimeActivity.class);
+        intent.putExtra("anime", title);
+        startActivity(intent);
+    }
+
     @Override
     public void onSearchStateChanged(boolean b) {
         Log.d(TAG, "onSearchStateChanged: " + b);
@@ -182,13 +190,15 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     @Override
     public void onSearchConfirmed(CharSequence charSequence) {
         Log.d(TAG, "onSearchConfirmed: " + charSequence);
+        //TODO:: breaks if they try to search the same thing twice (first time internet bad or something), use onSearchStateChanged to determine
+        //onSearchConfirmed gets called twice in a row (bug)
+        if (previousQuery != null && previousQuery.equals(charSequence.toString())) return;
         search(charSequence);
     }
 
     private void search(CharSequence query) {
         //TODO:: snack bar for search loading
         if (loadingBar.isShown()) loadingBar.dismiss();
-        if (previousQuery != null && previousQuery.equals(query.toString())) return;
         Browser.getInstance(this).load(Browser.SEARCH_URL + query, new HtmlListener() {
             @Override
             public void onPageLoaded(String html) {

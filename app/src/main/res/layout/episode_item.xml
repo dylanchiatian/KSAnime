@@ -4,6 +4,7 @@
     android:layout_height="wrap_content">
 
     <TextView
+        android:background="@color/trans_base4"
         android:padding="12dp"
         android:id="@+id/episode"
         android:layout_width="match_parent"

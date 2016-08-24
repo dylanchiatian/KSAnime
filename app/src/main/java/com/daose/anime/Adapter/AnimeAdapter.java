@@ -1,7 +1,6 @@
 package com.daose.anime.Adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daose.anime.Anime.Anime;
-import com.daose.anime.AnimeActivity;
 import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
 import com.squareup.picasso.Picasso;
@@ -84,10 +82,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.V
 
                         @Override
                         public void onAnimationEnd(View view) {
-                            Intent intent = new Intent(ctx, AnimeActivity.class);
-                            intent.putExtra("anime", animeList.get(getLayoutPosition()).title);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            ctx.startActivity(intent);
+                            activity.onAnimeSelected(animeList.get(getLayoutPosition()).title);
                         }
 
                         @Override

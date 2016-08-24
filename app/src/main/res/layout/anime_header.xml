@@ -4,11 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -43,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start|center_vertical"
                 android:layout_weight="1"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorAccent"
                 android:textSize="36sp"
                 android:textStyle="bold" />
 
@@ -55,24 +50,24 @@
 
     <ImageButton
         android:id="@+id/star"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="top|right"
         android:layout_margin="12dp"
         android:background="@android:color/transparent"
         android:scaleType="fitXY"
         android:src="@drawable/star"
-        android:tint="#FFAABB" />
+        android:tint="@color/colorAccent" />
 
     <ImageButton
         android:id="@+id/star_animation"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="top|right"
         android:layout_margin="12dp"
         android:background="@android:color/transparent"
         android:scaleType="fitXY"
         android:src="@drawable/ic_star_border_black_24dp"
-        android:tint="#FFAABB" />
+        android:tint="@color/colorAccent" />
 
 </FrameLayout>
