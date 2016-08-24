@@ -2,6 +2,8 @@ package com.daose.anime.Adapter;
 
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,21 +13,25 @@ import com.daose.anime.Anime.AnimeList;
 import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
 import com.daose.anime.widgets.AutofitRecyclerView;
+import com.mancj.materialsearchbar.MaterialSearchBar;
 
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
-/**
- * Created by billch on 8/22/2016.
- */
 public class HomePagerAdapter extends PagerAdapter {
+
+    private enum Page {
+        STARRED, HOT, POPULAR, SEARCH
+    }
 
     private final HomeActivity activity;
     private RealmList<Anime> hotList, popularList;
     private RealmResults<Anime> starredList;
+    private RecyclerView searchView;
+    private static final String TAG = HomePagerAdapter.class.getSimpleName();
 
-    public HomePagerAdapter(HomeActivity activity){
+    public HomePagerAdapter(HomeActivity activity) {
         this.activity = activity;
         Realm realm = Realm.getDefaultInstance();
         hotList = realm.where(AnimeList.class).equalTo("key", "hotList").findFirst().animeList;
@@ -36,7 +42,7 @@ public class HomePagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -46,29 +52,49 @@ public class HomePagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(final ViewGroup container, final int position) {
-        Realm realm = Realm.getDefaultInstance();
-        final View view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
-        final AutofitRecyclerView rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
-        rv.setHasFixedSize(true);
+        View view;
+        AutofitRecyclerView rv;
+        Page pageType = Page.values()[position];
 
-        switch (position) {
-            case 0:
-                //TODO:: replace with favourite list
-                rv.setAdapter(new AnimeAdapter(activity, starredList));
+        switch (pageType) {
+            case STARRED:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.star_list, null, false);
+                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                rv.setHasFixedSize(true);
+                rv.setAdapter(new StarAdapter(activity, starredList));
                 break;
-            case 1:
+            case HOT:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
+                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                rv.setHasFixedSize(true);
                 rv.setAdapter(new AnimeAdapter(activity, hotList));
                 break;
-            case 2:
+            case POPULAR:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
+                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                rv.setHasFixedSize(true);
                 rv.setAdapter(new AnimeAdapter(activity, popularList));
                 break;
+            case SEARCH:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
+                searchView = (RecyclerView) view.findViewById(R.id.recycler_view);
+                MaterialSearchBar searchBar = (MaterialSearchBar) view.findViewById(R.id.search_bar);
+                searchBar.setOnSearchActionListener(activity);
+                searchView.setLayoutManager(new LinearLayoutManager(activity));
+                break;
             default:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
+                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                rv.setHasFixedSize(true);
                 rv.setAdapter(new AnimeAdapter(activity, new RealmList<Anime>()));
                 break;
         }
         container.addView(view);
-        realm.close();
         return view;
+    }
+
+    public RecyclerView getSearchView() {
+        return searchView;
     }
 
     @Override

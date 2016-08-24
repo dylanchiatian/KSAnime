@@ -1,24 +1,23 @@
 package com.daose.anime;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.view.View;
 
 import com.daose.anime.Adapter.HomePagerAdapter;
+import com.daose.anime.Adapter.SearchAdapter;
 import com.daose.anime.Anime.Anime;
 import com.daose.anime.Anime.AnimeList;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
 import com.gigamole.navigationtabbar.ntb.NavigationTabBar;
+import com.mancj.materialsearchbar.MaterialSearchBar;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -32,15 +31,20 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmList;
 
-public class HomeActivity extends AppCompatActivity implements TextView.OnEditorActionListener, HtmlListener {
+public class HomeActivity extends AppCompatActivity implements HtmlListener, MaterialSearchBar.OnSearchActionListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
 
     private Realm realm;
     private AnimeList hotList, popularList;
     private ViewPager viewPager;
+    private HomePagerAdapter adapter;
+    private NavigationTabBar ntb;
 
-    //TODO:: get rid of splash activity and just load here
+    private String previousQuery;
+
+    private Snackbar loadingBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +53,9 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
         hotList = getList("hotList");
         popularList = getList("popularList");
         initUI();
-        Browser.getInstance(this).load(Browser.BASE_URL, this);
+        if (Browser.getInstance(this).isNetworkAvailable()) {
+            Browser.getInstance(this).load(Browser.BASE_URL, this);
+        }
     }
 
     private AnimeList getList(final String list) {
@@ -69,54 +75,46 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
         realm = Realm.getDefaultInstance();
     }
 
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            search(v.getText().toString());
-        }
-        return false;
-    }
-
-    private void search(String query) {
-        Intent intent = new Intent(this, SearchActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("query", query);
-        startActivity(intent);
-    }
-
     private void initUI() {
-        EditText search = (EditText) findViewById(R.id.search);
-        search.setOnEditorActionListener(this);
 
         viewPager = (ViewPager) findViewById(R.id.view_pager);
-        viewPager.setAdapter(new HomePagerAdapter(this));
+        adapter = new HomePagerAdapter(this);
+        viewPager.setAdapter(adapter);
 
         final String[] colors = getResources().getStringArray(R.array.nav_colors);
-        final NavigationTabBar ntb = (NavigationTabBar) findViewById(R.id.ntb);
+        ntb = (NavigationTabBar) findViewById(R.id.ntb);
         final ArrayList<NavigationTabBar.Model> models = new ArrayList<NavigationTabBar.Model>();
         models.add(
                 new NavigationTabBar.Model.Builder(
                         getResources().getDrawable(R.drawable.ic_star_border_black_24dp),
                         Color.parseColor(colors[0]))
-                        .title("Starred")
                         .build()
         );
         models.add(
                 new NavigationTabBar.Model.Builder(
                         getResources().getDrawable(R.drawable.ic_whatshot_black_24dp),
                         Color.parseColor(colors[1]))
-                        .title("Hot")
                         .build()
         );
         models.add(
                 new NavigationTabBar.Model.Builder(
                         getResources().getDrawable(R.drawable.ic_trending_up_black_24dp),
                         Color.parseColor(colors[2]))
-                        .title("Popular")
+                        .build()
+        );
+        models.add(
+                new NavigationTabBar.Model.Builder(
+                        getResources().getDrawable(R.drawable.ic_search_black_24dp),
+                        Color.parseColor(colors[3]))
                         .build()
         );
         ntb.setModels(models);
+        ntb.setBehaviorEnabled(true);
         ntb.setViewPager(viewPager, 1);
+
+        loadingBar = Snackbar.make(ntb, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
+        loadingBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+        loadingBar.show();
     }
 
     @Override
@@ -135,7 +133,28 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
         final Document doc = Jsoup.parse(html);
         Log.d(TAG, "title: " + doc.title());
         if (doc.title().contains("Please wait")) return;
-        if (doc.title().isEmpty()) return;
+        if (doc.title().isEmpty()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    loadingBar.dismiss();
+                    Browser.getInstance(HomeActivity.this).reset();
+                    Snackbar retryBar = Snackbar
+                            .make(ntb, "Refresh Failed", Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Browser.getInstance(HomeActivity.this).load(Browser.BASE_URL, HomeActivity.this);
+                                    loadingBar.show();
+                                }
+                            })
+                            .setActionTextColor(HomeActivity.this.getResources().getColor(R.color.colorAccent));
+                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+                    retryBar.show();
+                }
+            });
+            return;
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -150,8 +169,61 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
                 });
 
                 realm.executeTransactionAsync(new GetCoverURL());
+                loadingBar.dismiss();
             }
         });
+    }
+
+    @Override
+    public void onSearchStateChanged(boolean b) {
+        Log.d(TAG, "onSearchStateChanged: " + b);
+    }
+
+    @Override
+    public void onSearchConfirmed(CharSequence charSequence) {
+        Log.d(TAG, "onSearchConfirmed: " + charSequence);
+        search(charSequence);
+    }
+
+    private void search(CharSequence query) {
+        //TODO:: snack bar for search loading
+        if (loadingBar.isShown()) loadingBar.dismiss();
+        if (previousQuery != null && previousQuery.equals(query.toString())) return;
+        Browser.getInstance(this).load(Browser.SEARCH_URL + query, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                Browser.getInstance(HomeActivity.this).reset();
+                final Document doc = Jsoup.parse(html);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Elements animeElements = doc.select(Selector.SEARCH_LIST);
+                        final ArrayList<String> searchList = new ArrayList<String>();
+                        for (final Element animeElement : animeElements) {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
+                                    if (anime == null) {
+                                        anime = realm.createObject(Anime.class);
+                                        anime.title = animeElement.text();
+                                        anime.summaryURL = Browser.BASE_URL + animeElement.attributes().get("href");
+                                    }
+                                    Log.d(TAG, "summaryURL: " + anime.summaryURL);
+                                    searchList.add(anime.title);
+                                }
+                            });
+                        }
+                        adapter.getSearchView().setAdapter(new SearchAdapter(HomeActivity.this, searchList));
+                    }
+                });
+            }
+        });
+        previousQuery = query.toString();
+    }
+
+    @Override
+    public void onButtonClicked(int i) {
     }
 
     private class GetCoverURL implements Realm.Transaction {
@@ -167,14 +239,14 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
             RealmList<Anime> asyncPopularList = realm.where(AnimeList.class).equalTo("key", "popularList").findFirst().animeList;
             RealmList<Anime> asyncHotList = realm.where(AnimeList.class).equalTo("key", "hotList").findFirst().animeList;
             for (final Anime anime : asyncPopularList) {
-                if(anime.coverURL == null) {
+                if (anime.coverURL == null) {
                     getURL(anime);
                     realm.copyToRealmOrUpdate(anime);
                 }
             }
 
             for (final Anime anime : asyncHotList) {
-                if(anime.coverURL == null) {
+                if (anime.coverURL == null) {
                     getURL(anime);
                     realm.copyToRealmOrUpdate(anime);
                 }
@@ -221,7 +293,7 @@ public class HomeActivity extends AppCompatActivity implements TextView.OnEditor
                     break;
                 case 1:
                     Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
-                    if(anime == null){
+                    if (anime == null) {
                         anime = realm.createObject(Anime.class);
                         anime.title = animeElement.text();
                         anime.summaryURL = Browser.BASE_URL + animeElement.parentNode().attributes().get("href");

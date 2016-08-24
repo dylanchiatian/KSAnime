@@ -1,6 +1,8 @@
 package com.daose.anime.web;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.webkit.WebView;
 
@@ -62,5 +64,27 @@ public class Browser {
         htmlHandler = new HtmlHandler();
         webView.setWebViewClient(new CustomWebClient());
         webView.addJavascriptInterface(htmlHandler, "HtmlHandler");
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager connectivity = (ConnectivityManager) ctx
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity == null) {
+            return false;
+        }
+
+        NetworkInfo[] info = connectivity.getAllNetworkInfo();
+
+        // make sure that there is at least one interface to test against
+        if (info != null) {
+            // iterate through the interfaces
+            for (int i = 0; i < info.length; i++) {
+                // check this interface for a connected state
+                if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

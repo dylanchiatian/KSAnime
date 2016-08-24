@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/base1</item>
+        <item name="colorPrimaryDark">@color/base2</item>
+        <item name="colorAccent">@color/base0</item>
+        <item name="android:colorBackground">@color/base4</item>
+        <item name="android:colorForeground">@color/base0</item>
+        <item name="android:textColorPrimary">@color/base0</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+    </style>
+</resources>

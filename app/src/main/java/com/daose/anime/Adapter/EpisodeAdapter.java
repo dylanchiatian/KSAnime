@@ -34,9 +34,6 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 
-/**
- * Created by STUDENT on 2016-08-17.
- */
 public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Anime anime;
@@ -45,7 +42,6 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private AnimeActivity activity;
 
     private int num = -1;
-    //TODO:: num will be all wrong
 
     private static final String TAG = "EpisodeAdapter";
 
