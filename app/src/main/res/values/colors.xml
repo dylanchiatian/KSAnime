@@ -10,7 +10,9 @@
     <color name="base3">#172d38</color>
     <color name="base4">#161a1b</color>
 
-    <color name="trans_base4">#CC161A1B</color>
+    <color name="trans_base3">#DD172d38</color>
+    <color name="trans_base4">#CC161a1b</color>
+    <color name="trans_base4_inactive">#EE161a1b</color>
 
     <color name="black_overlay">#66000000</color>
 </resources>

@@ -80,7 +80,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             int offsetPosition = position - 1;
             Episode episode = episodeList.get(offsetPosition);
             if (episode.hasWatched) {
-//                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base4));
+                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
             } else if (offsetPosition % 2 == 0) {
 //                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base3));
             } else {
@@ -161,7 +161,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         @Override
                         public void onAnimationEnd(View view) {
                             num = getLayoutPosition() - 1;
-                            //title.setBackgroundColor(ctx.getResources().getColor(R.color.colorPrimaryDark));
+                            title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
                             if ((episodeList.get(num).videoURL != null) && (!episodeList.get(num).videoURL.isEmpty())) {
                                 startVideo(episodeList.get(num).videoURL);
                                 return;
@@ -198,6 +198,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         @Override
                         public void execute(Realm realm) {
                             episodeList.get(num).videoURL = videoEle.attr("abs:src");
+                            //TODO:: set hasWatched in startVideo instead
                             episodeList.get(num).hasWatched = true;
                             startVideo(episodeList.get(num).videoURL);
                         }

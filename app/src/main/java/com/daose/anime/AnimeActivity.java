@@ -79,7 +79,11 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             realm.executeTransactionAsync(new GetCoverURL(anime.title));
         } else {
-            Picasso.with(this).load(anime.coverURL).fit().transform(new BlurTransformation(this)).into(cover);
+            Picasso.with(this).load(anime.coverURL)
+                    .fit()
+                    .centerCrop()
+                    .transform(new BlurTransformation(this))
+                    .into(cover);
         }
     }
 
@@ -169,7 +173,12 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Picasso.with(AnimeActivity.this).load(URLBuilder.toString()).fit().transform(new BlurTransformation(AnimeActivity.this)).into(cover);
+                        Picasso.with(AnimeActivity.this).
+                                load(URLBuilder.toString())
+                                .fit()
+                                .centerCrop()
+                                .transform(new BlurTransformation(AnimeActivity.this))
+                                .into(cover);
                     }
                 });
             } catch (IOException e) {
