@@ -47,12 +47,14 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private class Type {
         public static final int HEADER = 0;
-        public static final int NORMAL = 1;
+        public static final int ODD = 1;
+        public static final int EVEN = 2;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return (position == 0) ? Type.HEADER : Type.NORMAL;
+        if (position == 0) return Type.HEADER;
+        return (position % 2 == 0) ? Type.EVEN : Type.ODD;
     }
 
     @Override
@@ -70,6 +72,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        //TODO:: might be better to just have even/odd layout
         if (holder instanceof HeaderViewHolder) {
             HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
             headerViewHolder.title.setText(anime.title);
@@ -77,9 +80,14 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             headerViewHolder.star.setSelected(anime.isStarred);
             Picasso.with(ctx).load(anime.coverURL).fit().transform(new BlurTransformation(ctx)).into(headerViewHolder.background);
         } else {
-            Episode episode = episodeList.get(position - 1);
+            int offsetPosition = position - 1;
+            Episode episode = episodeList.get(offsetPosition);
             if (episode.hasWatched) {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.colorPrimaryDark));
+                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base4));
+            } else if (offsetPosition % 2 == 0) {
+                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base3));
+            } else {
+                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.base2));
             }
             ((ViewHolder) holder).title.setText(episode.name);
         }
