@@ -55,6 +55,7 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         initUI();
         if (Browser.getInstance(this).isNetworkAvailable()) {
             Browser.getInstance(this).load(Browser.BASE_URL, this);
+            loadingBar.show();
         }
     }
 
@@ -103,7 +104,6 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
 
         loadingBar = Snackbar.make(ntb, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
         loadingBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
-        loadingBar.show();
     }
 
     public void onAnimeSelected(String title) {
