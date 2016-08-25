@@ -1,13 +1,20 @@
 package com.daose.anime;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.daose.anime.Adapter.EpisodeAdapter;
 import com.daose.anime.Anime.Anime;
@@ -34,13 +41,15 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
     private Anime anime;
-    private RecyclerView rv;
-    private ImageView cover;
+    private ImageView cover, star, starAnimation;
     private EpisodeAdapter adapter;
 
     private Realm realm;
 
     private boolean isFetching = false;
+    private Snackbar loadingBar;
+
+    private ProgressBar videoLoad;
 
     //TODO:: loading here as well
 
@@ -53,10 +62,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
         String animeTitle = getIntent().getStringExtra("anime");
         this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
-        assert anime != null;
 
-        Browser.getInstance(this).setListener(this);
-        Browser.getInstance(this).loadUrl(anime.summaryURL);
+        Browser.getInstance(this).load(anime.summaryURL, this);
         initUI();
     }
 
@@ -72,7 +79,30 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        rv = (RecyclerView) findViewById(R.id.recycler_view);
+        videoLoad = (ProgressBar) findViewById(R.id.load);
+        loadingBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
+        loadingBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
+        loadingBar.show();
+
+        final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
+        star = (ImageView) findViewById(R.id.star);
+        star.setSelected(anime.isStarred);
+        starAnimation = (ImageView) findViewById(R.id.star_animation);
+        starAnimation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                starAnimation.startAnimation(buttonAnim);
+                if (star.isSelected()) {
+                    star.setSelected(false);
+                    toggleStar(false);
+                } else {
+                    star.setSelected(true);
+                    toggleStar(true);
+                }
+            }
+        });
+
+        RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         adapter = new EpisodeAdapter(this, anime);
         rv.setAdapter(adapter);
@@ -128,6 +158,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (loadingBar.isShown()) loadingBar.dismiss();
                 adapter.setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
             }
         });
@@ -139,6 +170,66 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
             @Override
             public void execute(Realm realm) {
                 anime.isStarred = isStarred;
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Browser.getInstance(this).reset();
+    }
+
+    public void requestVideo(final Episode episode) {
+        videoLoad.setVisibility(View.VISIBLE);
+        if (loadingBar.isShown()) loadingBar.dismiss();
+        if ((episode.videoURL != null) && (!episode.videoURL.isEmpty())) {
+            startVideo(episode.videoURL);
+        } else {
+            Browser.getInstance(this).load(episode.url, new HtmlListener() {
+                @Override
+                public void onPageLoaded(String html) {
+                    Browser.getInstance(AnimeActivity.this).reset();
+                    Document doc = Jsoup.parse(html);
+                    final Element videoEle = doc.select(Selector.VIDEO).first();
+                    if (videoEle == null) {
+                        Log.d(TAG, "couldn't find div");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                videoLoad.setVisibility(View.GONE);
+                                Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        return;
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    episode.videoURL = videoEle.attr("abs:src");
+                                    episode.hasWatched = true;
+                                    startVideo(episode.videoURL);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private void startVideo(final String url) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                videoLoad.setVisibility(View.GONE);
+                Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
+                intent.putExtra("url", url);
+                startActivity(intent);
             }
         });
     }

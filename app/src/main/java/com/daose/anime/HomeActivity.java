@@ -89,6 +89,7 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                 new NavigationTabBar.Model.Builder(
                         getResources().getDrawable(R.drawable.ic_star_border_black_24dp),
                         Color.parseColor(colors[0]))
+                        .selectedIcon(getResources().getDrawable(R.drawable.ic_star_black_24dp))
                         .build()
         );
         models.add(

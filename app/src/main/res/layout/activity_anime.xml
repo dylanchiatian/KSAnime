@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_view"
     tools:context="com.daose.anime.AnimeActivity">
+
 
     <ImageView
         android:id="@+id/background"
@@ -13,7 +15,49 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent" />
 
-    </android.support.v7.widget.RecyclerView>
-</FrameLayout>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="11dp"
+        android:layout_marginTop="13dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/star"
+        android:tint="@color/base4" />
+
+    <ImageButton
+        android:id="@+id/star"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="12dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/star"
+        android:tint="@color/colorAccent" />
+
+    <ProgressBar
+        android:id="@+id/load"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:indeterminate="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/star_animation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="12dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_star_border_black_24dp"
+        android:tint="@color/colorAccent" />
+</RelativeLayout>
