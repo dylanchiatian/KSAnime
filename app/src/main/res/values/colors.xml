@@ -15,4 +15,8 @@
     <color name="trans_base4_inactive">#EE161a1b</color>
 
     <color name="black_overlay">#66000000</color>
+
+    <color name="spots_dialog_color">@color/base0</color>
+
+    <color name="text">#B9BBBC</color>
 </resources>

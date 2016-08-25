@@ -7,9 +7,6 @@ import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-/**
- * Created by STUDENT on 2016-08-16.
- */
 public class Anime extends RealmObject implements Serializable {
 
     @PrimaryKey

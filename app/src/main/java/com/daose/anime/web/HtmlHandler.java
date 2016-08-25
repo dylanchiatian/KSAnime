@@ -1,15 +1,10 @@
 package com.daose.anime.web;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
-/**
- * Created by STUDENT on 2016-08-16.
- */
 public class HtmlHandler {
-    private static final String LOG_TAG = "HtmlHandler";
+    private static final String TAG = HtmlHandler.class.getSimpleName();
 
     private HtmlListener listener;
 
@@ -26,7 +21,7 @@ public class HtmlHandler {
 
     @JavascriptInterface
     public void handleHtml(String html){
-        Log.d(LOG_TAG, "got html");
+        Log.d(TAG, "got html with listener: " + listener);
         if(listener != null) {
             listener.onPageLoaded(html);
         }

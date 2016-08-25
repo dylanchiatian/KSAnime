@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/main_view"
     tools:context="com.daose.anime.AnimeActivity">
 
-
-    <ImageView
-        android:id="@+id/background"
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        <ImageView
+            android:id="@+id/background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </android.support.design.widget.CoordinatorLayout>
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -40,14 +45,6 @@
         android:scaleType="fitXY"
         android:src="@drawable/star"
         android:tint="@color/colorAccent" />
-
-    <ProgressBar
-        android:id="@+id/load"
-        android:visibility="gone"
-        android:layout_centerInParent="true"
-        android:indeterminate="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
     <ImageButton
         android:id="@+id/star_animation"

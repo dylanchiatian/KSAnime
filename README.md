@@ -2,8 +2,8 @@
 Android app to watch anime
 
 ##Features
-- Star your favourite animes to get back to it faster
-- Dark themed for all you night owls
+- Star favourite animes to get back to it faster
+- Dark themed for all the night owls
 
 ## Screenshots
 <img src="/screenshots/home.png" alt="Screenshot" width="256"/>
@@ -11,11 +11,14 @@ Android app to watch anime
 <br></br>
 <img src="/screenshots/video.png" alt="Screenshot" width="455"/>
 
-## Future Features
+## TODO list and Future Features
 - Different layout for phone/tablet/orientation
+- Find where I can place description/genres/related anime that will look good
 - Save videos
 - Recently watched feature
+- Better navigation for animes with hundreds of episodes
 - Service running in background to notify new episodes
+- Better search with search suggestions
 
 ## Known Issues
 - Search doesn't have a loading indicator

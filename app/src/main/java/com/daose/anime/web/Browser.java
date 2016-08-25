@@ -4,12 +4,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.util.Log;
 import android.webkit.WebView;
 
-/**
- * Created by STUDENT on 2016-08-17.
- */
 public class Browser {
+
+    private static final String TAG = Browser.class.getSimpleName();
+
     private static Browser ourInstance;
     public static final String BASE_URL = "http://kissanime.to/";
     public static final String SEARCH_URL = "http://kissanime.to/Search/Anime/";
@@ -54,6 +55,7 @@ public class Browser {
     }
 
     public void loadUrl(String url){
+        Log.d(TAG, "load: " + url);
         webView.loadUrl(url);
     }
 

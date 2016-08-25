@@ -1,5 +1,6 @@
 package com.daose.anime;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.daose.anime.Adapter.EpisodeAdapter;
@@ -32,11 +32,12 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.List;
 
+import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 
-public class AnimeActivity extends AppCompatActivity implements HtmlListener {
+public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener {
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
@@ -46,10 +47,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
     private Realm realm;
 
-    private boolean isFetching = false;
     private Snackbar loadingBar;
-
-    private ProgressBar videoLoad;
+    private SpotsDialog loadDialog;
 
     //TODO:: loading here as well
 
@@ -79,7 +78,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        videoLoad = (ProgressBar) findViewById(R.id.load);
+        loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
+        loadDialog.setOnCancelListener(this);
         loadingBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
         loadingBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         loadingBar.show();
@@ -120,7 +120,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     @Override
     public void onPageLoaded(final String html) {
         Log.d(TAG, "onPageLoaded");
-        if (isFetching) return;
+        final Document doc = Jsoup.parse(html);
+        if(doc.title().isEmpty()) return;
         Runnable stopLoad = new Runnable() {
             @Override
             public void run() {
@@ -129,7 +130,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        final Document doc = Jsoup.parse(html);
                         Elements elements = doc.select(Selector.EPISODE_LIST);
 
                         for (Element episodeElement : elements) {
@@ -162,7 +162,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                 adapter.setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
             }
         });
-        isFetching = true;
     }
 
     public void toggleStar(final boolean isStarred) {
@@ -181,7 +180,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
     }
 
     public void requestVideo(final Episode episode) {
-        videoLoad.setVisibility(View.VISIBLE);
+        loadDialog.show();
         if (loadingBar.isShown()) loadingBar.dismiss();
         if ((episode.videoURL != null) && (!episode.videoURL.isEmpty())) {
             startVideo(episode.videoURL);
@@ -197,7 +196,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                videoLoad.setVisibility(View.GONE);
+                                loadDialog.dismiss();
                                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
                             }
                         });
@@ -226,12 +225,18 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                videoLoad.setVisibility(View.GONE);
+                loadDialog.dismiss();
                 Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
                 intent.putExtra("url", url);
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        Log.d(TAG, "video load cancelled");
+        Browser.getInstance(this).reset();
     }
 
     private class GetCoverURL implements Realm.Transaction {

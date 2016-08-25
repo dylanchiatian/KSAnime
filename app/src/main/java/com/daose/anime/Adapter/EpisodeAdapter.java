@@ -59,8 +59,10 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             Episode episode = episodeList.get(offsetPosition);
             if (episode.hasWatched) {
                 ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
+                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.base2));
             } else {
                 ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4));
+                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text));
             }
             ((ViewHolder) holder).title.setText(episode.name);
         }
@@ -97,6 +99,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public void onClick(View v) {
             int num = getLayoutPosition() - 1;
             title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
+            title.setTextColor(ctx.getResources().getColor(R.color.base2));
             activity.requestVideo(episodeList.get(num));
         }
     }

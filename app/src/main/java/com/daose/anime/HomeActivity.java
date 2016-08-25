@@ -41,7 +41,6 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     private ViewPager viewPager;
     private HomePagerAdapter adapter;
     private NavigationTabBar ntb;
-
     private String previousQuery;
 
     private Snackbar loadingBar;
@@ -59,31 +58,19 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         }
     }
 
-    private AnimeList getList(final String list) {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                if (realm.where(AnimeList.class).equalTo("key", list).findFirst() == null) {
-                    AnimeList animeList = realm.createObject(AnimeList.class);
-                    animeList.key = list;
-                }
-            }
-        });
-        return realm.where(AnimeList.class).equalTo("key", list).findFirst();
-    }
-
-    private void setupDatabase() {
-        realm = Realm.getDefaultInstance();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        realm.close();
     }
 
     private void initUI() {
-
         viewPager = (ViewPager) findViewById(R.id.view_pager);
         adapter = new HomePagerAdapter(this);
         viewPager.setAdapter(adapter);
 
-        final String[] colors = getResources().getStringArray(R.array.nav_colors);
         ntb = (NavigationTabBar) findViewById(R.id.ntb);
+        final String[] colors = getResources().getStringArray(R.array.nav_colors);
         final ArrayList<NavigationTabBar.Model> models = new ArrayList<NavigationTabBar.Model>();
         models.add(
                 new NavigationTabBar.Model.Builder(
@@ -119,22 +106,19 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         loadingBar.show();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        realm.close();
+    public void onAnimeSelected(String title) {
+        if (loadingBar.isShown()) loadingBar.dismiss();
+        Intent intent = new Intent(this, AnimeActivity.class);
+        intent.putExtra("anime", title);
+        startActivity(intent);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
+    //Connected to http://kissanime.to
     @Override
     public void onPageLoaded(String html) {
         final Document doc = Jsoup.parse(html);
         Log.d(TAG, "title: " + doc.title());
-        if (doc.title().contains("Please wait")) return;
+        if (doc.title().contains("Please wait") || doc.title().contains("not available")) return;
         if (doc.title().isEmpty()) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -176,13 +160,7 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         });
     }
 
-    public void onAnimeSelected(String title) {
-        if (loadingBar.isShown()) loadingBar.dismiss();
-        Intent intent = new Intent(this, AnimeActivity.class);
-        intent.putExtra("anime", title);
-        startActivity(intent);
-    }
-
+    //region search
     @Override
     public void onSearchStateChanged(boolean b) {
         Log.d(TAG, "onSearchStateChanged: " + b);
@@ -234,7 +212,25 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     }
 
     @Override
-    public void onButtonClicked(int i) {
+    public void onButtonClicked(int i) {}
+    //endregion
+
+    //region Helper functions
+    private AnimeList getList(final String list) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                if (realm.where(AnimeList.class).equalTo("key", list).findFirst() == null) {
+                    AnimeList animeList = realm.createObject(AnimeList.class);
+                    animeList.key = list;
+                }
+            }
+        });
+        return realm.where(AnimeList.class).equalTo("key", list).findFirst();
+    }
+
+    private void setupDatabase() {
+        realm = Realm.getDefaultInstance();
     }
 
     private class GetCoverURL implements Realm.Transaction {
@@ -320,4 +316,5 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         }
         return animeList;
     }
+    //endregion
 }

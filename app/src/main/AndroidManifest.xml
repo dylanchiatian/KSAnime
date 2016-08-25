@@ -23,8 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AnimeActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
+            android:name=".AnimeActivity"/>
         <activity
             android:name=".FullScreenVideoPlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
