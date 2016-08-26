@@ -13,7 +13,7 @@ Android app to watch anime
 
 ## TODO list and Future Features
 - Different layout for phone/tablet/orientation
-- Find where I can place description/genres/related anime that will look good
+- Where can I place description/genre/related info that will look good?
 - Save videos
 - Recently watched feature
 - Better navigation for animes with hundreds of episodes
@@ -22,5 +22,4 @@ Android app to watch anime
 
 ## Known Issues
 - Search doesn't have a loading indicator
-- Episodes take way too long to start
 - Open an [issue](https://github.com/daose/KissAnime/issues) and tell me!
