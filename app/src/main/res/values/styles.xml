@@ -9,6 +9,7 @@
         <item name="android:colorBackground">@color/base4</item>
         <item name="android:colorForeground">@color/base0</item>
         <item name="android:textColorPrimary">@color/base0</item>
+        <item name="android:windowBackground">@color/base4</item>
     </style>
 
     <style name="FullscreenTheme" parent="AppTheme">
@@ -27,6 +28,7 @@
         <item name="DialogTitleAppearance">@style/TextAppearance.AppCompat.Medium</item>
         <item name="DialogTitleText">Loading…</item>
         <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="DialogSpotColor">@color/base0</item>
         <item name="DialogSpotCount">4</item>
     </style>

@@ -179,6 +179,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Browser.getInstance(AnimeActivity.this).reset();
                 if(loadingBar.isShown()) loadingBar.dismiss();
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
@@ -246,6 +247,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                         @Override
                         public void run() {
                             if (loadDialog.isShowing()) loadDialog.dismiss();
+                            Browser.getInstance(AnimeActivity.this).reset();
                             Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
                         }
                     });

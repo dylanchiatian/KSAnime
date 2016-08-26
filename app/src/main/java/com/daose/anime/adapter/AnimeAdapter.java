@@ -17,6 +17,7 @@ import com.squareup.picasso.Picasso;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 
 public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.ViewHolder> {
 
@@ -39,7 +40,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.V
         if(anime.coverURL == null || anime.coverURL.isEmpty()){
             Picasso.with(ctx).load(R.drawable.placeholder).into(holder.imageView);
         } else {
-            Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).into(holder.imageView);
+            Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).transform(new RoundedCornersTransformation(4, 2, RoundedCornersTransformation.CornerType.ALL)).into(holder.imageView);
         }
     }
 
