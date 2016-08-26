@@ -108,7 +108,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public void onClick(View v) {
             int num = getLayoutPosition() - 1;
             title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
-            title.setTextColor(ctx.getResources().getColor(R.color.base2));
+            title.setTextColor(ctx.getResources().getColor(R.color.text_inactive));
             activity.requestVideo(episodeList.get(num));
         }
     }
