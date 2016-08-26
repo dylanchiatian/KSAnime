@@ -1,5 +1,6 @@
 package com.daose.anime.adapter;
 
+import android.app.ProgressDialog;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -7,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
@@ -29,6 +31,7 @@ public class HomePagerAdapter extends PagerAdapter {
     private RealmList<Anime> hotList, popularList;
     private RealmResults<Anime> starredList;
     private RecyclerView searchView;
+    private ProgressBar searchIndicator;
     private static final String TAG = HomePagerAdapter.class.getSimpleName();
 
     public HomePagerAdapter(HomeActivity activity) {
@@ -78,6 +81,7 @@ public class HomePagerAdapter extends PagerAdapter {
             case SEARCH:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
                 searchView = (RecyclerView) view.findViewById(R.id.recycler_view);
+                searchIndicator = (ProgressBar) view.findViewById(R.id.search_indicator);
                 MaterialSearchBar searchBar = (MaterialSearchBar) view.findViewById(R.id.search_bar);
                 searchBar.setOnSearchActionListener(activity);
                 searchView.setLayoutManager(new LinearLayoutManager(activity));
@@ -95,6 +99,9 @@ public class HomePagerAdapter extends PagerAdapter {
 
     public RecyclerView getSearchView() {
         return searchView;
+    }
+    public ProgressBar getSearchIndicator(){
+        return searchIndicator;
     }
 
     @Override

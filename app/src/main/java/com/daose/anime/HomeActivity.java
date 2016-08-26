@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.daose.anime.adapter.HomePagerAdapter;
 import com.daose.anime.adapter.SearchAdapter;
@@ -114,35 +115,9 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         startActivity(intent);
     }
 
-    //Connected to http://kissanime.to
     @Override
     public void onPageLoaded(String html) {
         final Document doc = Jsoup.parse(html);
-        Log.d(TAG, "title: " + doc.title());
-        if (doc.title().contains("Please wait") || doc.title().contains("not available")) return;
-        if (doc.title().isEmpty()) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    loadingBar.dismiss();
-                    Browser.getInstance(HomeActivity.this).reset();
-                    Snackbar retryBar = Snackbar
-                            .make(ntb, "Refresh Failed", Snackbar.LENGTH_LONG)
-                            .setAction("Retry", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    Browser.getInstance(HomeActivity.this).load(Browser.BASE_URL, HomeActivity.this);
-                                    loadingBar.show();
-                                }
-                            })
-                            .setActionTextColor(HomeActivity.this.getResources().getColor(R.color.colorAccent));
-                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
-                    retryBar.show();
-                }
-            });
-            return;
-        }
-
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -164,7 +139,33 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                         new GetCoverURL().execute(anime.title);
                     }
                 }
-                loadingBar.dismiss();
+                if (loadingBar.isShown()) loadingBar.dismiss();
+            }
+        });
+    }
+
+    @Override
+    public void onPageFailed() {
+        Log.d(TAG, "onPageFailed: HomeActivity");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (loadingBar.isShown()) {
+                    loadingBar.dismiss();
+                    Browser.getInstance(HomeActivity.this).reset();
+                    Snackbar retryBar = Snackbar
+                            .make(ntb, "Refresh Failed", Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Browser.getInstance(HomeActivity.this).load(Browser.BASE_URL, HomeActivity.this);
+                                    loadingBar.show();
+                                }
+                            })
+                            .setActionTextColor(HomeActivity.this.getResources().getColor(R.color.colorAccent));
+                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+                    retryBar.show();
+                }
             }
         });
     }
@@ -185,8 +186,8 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     }
 
     private void search(CharSequence query) {
-        //TODO:: snack bar for search loading
         if (loadingBar.isShown()) loadingBar.dismiss();
+        adapter.getSearchIndicator().setVisibility(View.VISIBLE);
         Browser.getInstance(this).load(Browser.SEARCH_URL + query, new HtmlListener() {
             @Override
             public void onPageLoaded(String html) {
@@ -195,12 +196,13 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        adapter.getSearchIndicator().setVisibility(View.GONE);
                         final Elements animeElements = doc.select(Selector.SEARCH_LIST);
                         final ArrayList<String> searchList = new ArrayList<String>();
-                        for (final Element animeElement : animeElements) {
-                            realm.executeTransaction(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
+                        realm.executeTransactionAsync(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                for (final Element animeElement : animeElements) {
                                     Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
                                     if (anime == null) {
                                         anime = realm.createObject(Anime.class);
@@ -209,9 +211,27 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                                     }
                                     searchList.add(anime.title);
                                 }
-                            });
+                            }
+                        }, new Realm.Transaction.OnSuccess() {
+                            @Override
+                            public void onSuccess() {
+                                adapter.getSearchView().setAdapter(new SearchAdapter(HomeActivity.this, searchList));
+                            }
+                        });
+                    }
+                });
+            }
+
+            @Override
+            public void onPageFailed() {
+                Log.e(TAG, "onPageFailed: Search");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (adapter.getSearchIndicator().getVisibility() == View.VISIBLE) {
+                            adapter.getSearchIndicator().setVisibility(View.GONE);
+                            Toast.makeText(HomeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
                         }
-                        adapter.getSearchView().setAdapter(new SearchAdapter(HomeActivity.this, searchList));
                     }
                 });
             }

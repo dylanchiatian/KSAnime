@@ -21,5 +21,5 @@ Android app to watch anime
 - Better search with search suggestions
 
 ## Known Issues
-- Search doesn't have a loading indicator
+- Searching the same thing twice in a row doesn't do anything (bad if first time network fails)
 - Open an [issue](https://github.com/daose/KissAnime/issues) and tell me!

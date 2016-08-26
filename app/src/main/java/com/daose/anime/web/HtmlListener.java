@@ -5,4 +5,5 @@ package com.daose.anime.web;
  */
 public interface HtmlListener {
     void onPageLoaded(String html);
+    void onPageFailed();
 }

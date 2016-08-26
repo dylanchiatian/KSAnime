@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daose.anime.AnimeActivity;
@@ -22,7 +23,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private Context ctx;
     private AnimeActivity activity;
 
-    private static final String TAG = "EpisodeAdapter";
+    private static final String TAG = EpisodeAdapter.class.getSimpleName();
 
     private class Type {
         public static final int HEADER = 0;
@@ -59,7 +60,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             Episode episode = episodeList.get(offsetPosition);
             if (episode.hasWatched) {
                 ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
-                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.base2));
+                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text_inactive));
             } else {
                 ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4));
                 ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text));
@@ -73,15 +74,23 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return episodeList.size() + 1;
     }
 
-    public class HeaderViewHolder extends RecyclerView.ViewHolder {
+    public class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private TextView title;
+        private ImageView arrowButton;
         private TextView summary;
 
         public HeaderViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
+            arrowButton = (ImageView) itemView.findViewById(R.id.arrow);
+            arrowButton.setOnClickListener(this);
             //summary = (TextView) itemView.findViewById(R.id.summary);
+        }
+
+        @Override
+        public void onClick(View v){
+            activity.onArrowClick();
         }
     }
 

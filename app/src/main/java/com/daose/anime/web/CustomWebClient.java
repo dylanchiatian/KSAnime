@@ -13,7 +13,14 @@ public class CustomWebClient extends WebViewClient {
     private static final WebResourceResponse dud = new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
 
     private static HashSet<String> ignoreUrls;
-    private static String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
+    private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
+    private static final String javascript = "javascript:" +
+            "if(document.documentElement == null){" +
+            "HtmlHandler.handleError(); " +
+            "}else if(document.title === \"Please wait 5 seconds...\")" +
+            "{}else{" +
+            "HtmlHandler.handleHtml(document.documentElement.innerHTML);" +
+            "}";
 
     public CustomWebClient() {
         super();
@@ -22,14 +29,13 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        //get past cloudflare, please wait 5 seconds
-        Log.d(TAG, "shouldOverrideUrlLoading: " + url);
         return false;
     }
 
     @Override
     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
         Log.e(TAG, "onReceivedError: " + errorCode + " -> " + description + " \nURL: " + failingUrl);
+        view.loadUrl("about:blank");
     }
 
     @Override
@@ -63,6 +69,6 @@ public class CustomWebClient extends WebViewClient {
         Log.d(TAG, "onPageFinished: " + url);
 
         //get post-javascript html and pass it to HtmlHandler.handleHtml()
-        view.loadUrl("javascript:HtmlHandler.handleHtml(document.documentElement.outerHTML);");
+        view.loadUrl(javascript);
     }
 }

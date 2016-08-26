@@ -43,7 +43,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     private Anime anime;
     private ImageView cover, star, starAnimation;
-    private EpisodeAdapter adapter;
+    private RecyclerView rv;
 
     private Realm realm;
 
@@ -102,10 +102,9 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             }
         });
 
-        RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
-        rv.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-        adapter = new EpisodeAdapter(this, anime);
-        rv.setAdapter(adapter);
+        rv = (RecyclerView) findViewById(R.id.recycler_view);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(new EpisodeAdapter(this, anime));
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             realm.executeTransactionAsync(new GetCoverURL(anime.title));
         } else {
@@ -117,11 +116,18 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         }
     }
 
+    public void onArrowClick() {
+        //TODO:: smooth scroll maybe 2-3 if possible or else to max
+        if (rv.getAdapter().getItemCount() > 1) {
+            rv.getLayoutManager().scrollToPosition(1);
+        }
+    }
+
     @Override
     public void onPageLoaded(final String html) {
         Log.d(TAG, "onPageLoaded");
         final Document doc = Jsoup.parse(html);
-        if(doc.title().isEmpty()) return;
+        if (doc.title().isEmpty()) return;
         Runnable stopLoad = new Runnable() {
             @Override
             public void run() {
@@ -158,8 +164,23 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loadingBar.isShown()) loadingBar.dismiss();
-                adapter.setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
+                if (loadingBar.isShownOrQueued()) {
+                    Log.d(TAG, "Dismiss loading bar");
+                    loadingBar.dismiss();
+                }
+                ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
+            }
+        });
+    }
+
+    @Override
+    public void onPageFailed(){
+        Log.e(TAG, "onPageFailed: AnimeActivity");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(loadingBar.isShown()) loadingBar.dismiss();
+                Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -192,7 +213,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                     Document doc = Jsoup.parse(html);
                     final Element videoEle = doc.select(Selector.VIDEO).first();
                     if (videoEle == null) {
-                        Log.d(TAG, "couldn't find div");
+                        Log.e(TAG, "couldn't find div");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -217,6 +238,18 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                         }
                     });
                 }
+
+                @Override
+                public void onPageFailed() {
+                    Log.e(TAG, "onPageFailed: requestVideo");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (loadDialog.isShowing()) loadDialog.dismiss();
+                            Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             });
         }
     }
@@ -225,7 +258,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                loadDialog.dismiss();
+                if (loadDialog.isShowing()) loadDialog.dismiss();
                 Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
                 intent.putExtra("url", url);
                 startActivity(intent);

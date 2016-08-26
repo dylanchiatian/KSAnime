@@ -15,9 +15,6 @@ import com.daose.anime.R;
 
 import java.util.ArrayList;
 
-/**
- * Created by STUDENT on 2016-08-21.
- */
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
 
     private ArrayList<String> searchList;
