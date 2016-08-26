@@ -1,4 +1,4 @@
-package com.daose.anime.Anime;
+package com.daose.anime.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;

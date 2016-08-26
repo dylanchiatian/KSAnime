@@ -10,10 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
-import com.daose.anime.Adapter.HomePagerAdapter;
-import com.daose.anime.Adapter.SearchAdapter;
-import com.daose.anime.Anime.Anime;
-import com.daose.anime.Anime.AnimeList;
+import com.daose.anime.adapter.HomePagerAdapter;
+import com.daose.anime.adapter.SearchAdapter;
+import com.daose.anime.model.Anime;
+import com.daose.anime.model.AnimeList;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;

@@ -1,4 +1,4 @@
-package com.daose.anime.Adapter;
+package com.daose.anime.adapter;
 
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -8,11 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.daose.anime.Anime.Anime;
-import com.daose.anime.Anime.AnimeList;
 import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
-import com.daose.anime.widgets.AutofitRecyclerView;
+import com.daose.anime.model.Anime;
+import com.daose.anime.model.AnimeList;
+import com.daose.anime.widget.AutofitRecyclerView;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 
 import io.realm.Realm;

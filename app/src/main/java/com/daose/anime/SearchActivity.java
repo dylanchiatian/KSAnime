@@ -6,8 +6,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
-import com.daose.anime.Adapter.SearchAdapter;
-import com.daose.anime.Anime.Anime;
+import com.daose.anime.adapter.SearchAdapter;
+import com.daose.anime.model.Anime;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;

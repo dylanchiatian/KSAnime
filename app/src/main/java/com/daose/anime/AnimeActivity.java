@@ -16,9 +16,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.daose.anime.Adapter.EpisodeAdapter;
-import com.daose.anime.Anime.Anime;
-import com.daose.anime.Anime.Episode;
+import com.daose.anime.adapter.EpisodeAdapter;
+import com.daose.anime.model.Anime;
+import com.daose.anime.model.Episode;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
