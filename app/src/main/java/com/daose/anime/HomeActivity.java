@@ -3,6 +3,7 @@ package com.daose.anime;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewPager;
@@ -153,8 +154,12 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                         hotList.animeList = getAnimeList(doc, Selector.HOT_IMAGE + "," + Selector.HOT_TITLE);
                     }
                 });
-
-                realm.executeTransactionAsync(new GetCoverURL());
+                for (Anime anime : hotList.animeList) {
+                    new GetCoverURL().execute(anime.title);
+                }
+                for (Anime anime : popularList.animeList) {
+                    new GetCoverURL().execute(anime.title);
+                }
                 loadingBar.dismiss();
             }
         });
@@ -198,7 +203,6 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                                         anime.title = animeElement.text();
                                         anime.summaryURL = Browser.BASE_URL + animeElement.attributes().get("href");
                                     }
-                                    Log.d(TAG, "summaryURL: " + anime.summaryURL);
                                     searchList.add(anime.title);
                                 }
                             });
@@ -212,7 +216,8 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     }
 
     @Override
-    public void onButtonClicked(int i) {}
+    public void onButtonClicked(int i) {
+    }
     //endregion
 
     //region Helper functions
@@ -233,53 +238,50 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         realm = Realm.getDefaultInstance();
     }
 
-    private class GetCoverURL implements Realm.Transaction {
+    private class GetCoverURL extends AsyncTask<String, Void, String> {
 
         private StringBuilder URLBuilder;
+        private String title;
 
-        public GetCoverURL() {
+        @Override
+        protected void onPreExecute() {
+            URLBuilder = new StringBuilder();
+
         }
 
         @Override
-        public void execute(Realm realm) {
-            URLBuilder = new StringBuilder();
-            RealmList<Anime> asyncPopularList = realm.where(AnimeList.class).equalTo("key", "popularList").findFirst().animeList;
-            RealmList<Anime> asyncHotList = realm.where(AnimeList.class).equalTo("key", "hotList").findFirst().animeList;
-            for (final Anime anime : asyncPopularList) {
-                if (anime.coverURL == null) {
-                    getURL(anime);
-                    realm.copyToRealmOrUpdate(anime);
-                }
-            }
-
-            for (final Anime anime : asyncHotList) {
-                if (anime.coverURL == null) {
-                    getURL(anime);
-                    realm.copyToRealmOrUpdate(anime);
-                }
-            }
-        }
-
-        private void getURL(Anime anime) {
+        protected String doInBackground(String... titles) {
+            String url = "";
             try {
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent("Mozilla/5.0").get();
+                this.title = titles[0];
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + title).userAgent("Mozilla/5.0").get();
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
-                URLBuilder.delete(0, URLBuilder.length());
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();
                 if (rawUrl.getPathSegments().size() < 3) {
-                    anime.coverURL = "";
-                    return;
+                    return url;
                 } else {
                     for (int i = 2; i < pathSegments.size(); i++) {
                         URLBuilder.append("/");
                         URLBuilder.append(pathSegments.get(i));
                     }
                 }
-                anime.coverURL = URLBuilder.toString();
+                url = URLBuilder.toString();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            return url;
+        }
+
+        @Override
+        protected void onPostExecute(final String url) {
+            final Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    anime.coverURL = url;
+                }
+            });
         }
     }
 
