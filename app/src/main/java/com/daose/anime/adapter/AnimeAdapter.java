@@ -36,7 +36,11 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, AnimeAdapter.V
     public void onBindViewHolder(ViewHolder holder, int position) {
         Anime anime = animeList.get(position);
         holder.title.setText(anime.title);
-        Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).into(holder.imageView);
+        if(anime.coverURL == null || anime.coverURL.isEmpty()){
+            Picasso.with(ctx).load(R.drawable.placeholder).into(holder.imageView);
+        } else {
+            Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).into(holder.imageView);
+        }
     }
 
     @Override
