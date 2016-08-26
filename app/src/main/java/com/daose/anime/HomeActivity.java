@@ -155,10 +155,14 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
                     }
                 });
                 for (Anime anime : hotList.animeList) {
-                    new GetCoverURL().execute(anime.title);
+                    if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                        new GetCoverURL().execute(anime.title);
+                    }
                 }
                 for (Anime anime : popularList.animeList) {
-                    new GetCoverURL().execute(anime.title);
+                    if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                        new GetCoverURL().execute(anime.title);
+                    }
                 }
                 loadingBar.dismiss();
             }
@@ -275,10 +279,10 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
 
         @Override
         protected void onPostExecute(final String url) {
-            final Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
+                    final Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
                     anime.coverURL = url;
                 }
             });
