@@ -140,7 +140,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     @Override
     public void onPageLoaded(final String html) {
-        Log.d(TAG, "onPageLoaded");
+        //Log.d(TAG, "onPageLoaded");
         final Document doc = Jsoup.parse(html);
         if (doc.title().isEmpty()) return;
         Runnable stopLoad = new Runnable() {
@@ -181,7 +181,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             @Override
             public void run() {
                 if (updateBar.isShownOrQueued()) {
-                    Log.d(TAG, "Dismiss loading bar");
                     updateBar.dismiss();
                 }
                 ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
@@ -286,7 +285,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     @Override
     public void onCancel(DialogInterface dialog) {
-        Log.d(TAG, "video load cancelled");
         Browser.getInstance(this).reset();
     }
 

@@ -66,7 +66,6 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        Log.d(TAG, "onPageFinished: " + url);
 
         //get post-javascript html and pass it to HtmlHandler.handleHtml()
         view.loadUrl(javascript);

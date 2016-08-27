@@ -78,7 +78,6 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         AppLovinSdk.getInstance(this).getNativeAdService().loadNativeAds(1, new AppLovinNativeAdLoadListener() {
             @Override
             public void onNativeAdsLoaded(List list) {
-                Log.d(TAG, "onNativeAdsLoaded");
                 nativeAds = (List<AppLovinNativeAd>) list;
                 AppLovinSdk.getInstance(getApplicationContext()).getPostbackService().dispatchPostbackAsync(
                         nativeAds.get(0).getImpressionTrackingUrl(), new AppLovinPostbackListener() {
@@ -183,7 +182,6 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
 
     @Override
     public void onPageFailed() {
-        Log.d(TAG, "onPageFailed: HomeActivity");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -210,19 +208,16 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     //region ads
     public void onNativeAdClick(AppLovinNativeAd ad) {
         ad.launchClickTarget(this);
-        Log.d(TAG, "registered click");
     }
     //endregion
 
     //region search
     @Override
     public void onSearchStateChanged(boolean b) {
-        Log.d(TAG, "onSearchStateChanged: " + b);
     }
 
     @Override
     public void onSearchConfirmed(CharSequence charSequence) {
-        Log.d(TAG, "onSearchConfirmed: " + charSequence);
         //TODO:: breaks if they try to search the same thing twice (first time internet bad or something), use onSearchStateChanged to determine
         //onSearchConfirmed gets called twice in a row (bug)
         if (previousQuery != null && previousQuery.equals(charSequence.toString())) return;

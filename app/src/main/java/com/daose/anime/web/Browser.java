@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.WebView;
 
 public class Browser {
@@ -55,7 +54,6 @@ public class Browser {
     }
 
     public void loadUrl(String url){
-        Log.d(TAG, "load: " + url);
         webView.loadUrl(url);
     }
 
