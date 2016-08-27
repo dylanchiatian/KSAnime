@@ -6,7 +6,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "com.daose.anime"
+        applicationId "com.daose.ksanime"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
