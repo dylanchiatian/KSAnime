@@ -50,12 +50,12 @@ public class CustomWebClient extends WebViewClient {
         if (url.contains("kissanime")) {
             for (String key : ignoreKeys) {
                 if (url.contains(key)) {
-                    Log.d(TAG, "IGNORE: " + url);
+                    //Log.d(TAG, "IGNORE: " + url);
                     ignoreUrls.add(url);
                     return dud;
                 }
             }
-            Log.d(TAG, "PASS: " + url);
+            //Log.d(TAG, "PASS: " + url);
             return null;
         } else {
             ignoreUrls.add(url);

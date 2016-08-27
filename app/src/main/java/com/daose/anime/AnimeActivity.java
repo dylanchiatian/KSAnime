@@ -16,6 +16,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.applovin.adview.AppLovinInterstitialAd;
 import com.daose.anime.adapter.EpisodeAdapter;
 import com.daose.anime.model.Anime;
 import com.daose.anime.model.Episode;
@@ -47,7 +48,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     private Realm realm;
 
-    private Snackbar loadingBar;
+    private Snackbar updateBar;
     private SpotsDialog loadDialog;
 
     //TODO:: loading here as well
@@ -57,13 +58,25 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anime);
 
+        initAds();
         setupDatabase();
-
-        String animeTitle = getIntent().getStringExtra("anime");
-        this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
-
-        Browser.getInstance(this).load(anime.summaryURL, this);
         initUI();
+        showUpdateIndicator(anime.episodes.isEmpty());
+        Browser.getInstance(this).load(anime.summaryURL, this);
+    }
+
+    private void showUpdateIndicator(boolean show) {
+        if (show) {
+            updateBar.show();
+        }
+    }
+
+    private void initAds() {
+        if (AppLovinInterstitialAd.isAdReadyToDisplay(this)) {
+            if (Math.random() > 0.5) {
+                AppLovinInterstitialAd.show(this);
+            }
+        }
     }
 
     @Override
@@ -74,15 +87,17 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
+        String animeTitle = getIntent().getStringExtra("anime");
+        this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
     }
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
+        updateBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
+        updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
         loadDialog.setOnCancelListener(this);
-        loadingBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
-        loadingBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
-        loadingBar.show();
+
 
         final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
         star = (ImageView) findViewById(R.id.star);
@@ -136,6 +151,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
+
                         Elements elements = doc.select(Selector.EPISODE_LIST);
 
                         for (Element episodeElement : elements) {
@@ -164,9 +180,9 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loadingBar.isShownOrQueued()) {
+                if (updateBar.isShownOrQueued()) {
                     Log.d(TAG, "Dismiss loading bar");
-                    loadingBar.dismiss();
+                    updateBar.dismiss();
                 }
                 ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
             }
@@ -174,13 +190,13 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     }
 
     @Override
-    public void onPageFailed(){
+    public void onPageFailed() {
         Log.e(TAG, "onPageFailed: AnimeActivity");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Browser.getInstance(AnimeActivity.this).reset();
-                if(loadingBar.isShown()) loadingBar.dismiss();
+                if (updateBar.isShown()) updateBar.dismiss();
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
         });
@@ -203,7 +219,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     public void requestVideo(final Episode episode) {
         loadDialog.show();
-        if (loadingBar.isShown()) loadingBar.dismiss();
+        if (updateBar.isShown()) updateBar.dismiss();
         if ((episode.videoURL != null) && (!episode.videoURL.isEmpty())) {
             startVideo(episode.videoURL);
         } else {

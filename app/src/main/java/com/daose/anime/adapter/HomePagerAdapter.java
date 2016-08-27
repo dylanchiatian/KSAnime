@@ -1,6 +1,5 @@
 package com.daose.anime.adapter;
 
-import android.app.ProgressDialog;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,12 +9,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.anime.HomeActivity;
 import com.daose.anime.R;
 import com.daose.anime.model.Anime;
 import com.daose.anime.model.AnimeList;
 import com.daose.anime.widget.AutofitRecyclerView;
 import com.mancj.materialsearchbar.MaterialSearchBar;
+
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -59,24 +61,29 @@ public class HomePagerAdapter extends PagerAdapter {
         AutofitRecyclerView rv;
         Page pageType = Page.values()[position];
 
+        List<AppLovinNativeAd> nativeAds = activity.getNativeAds();
         switch (pageType) {
             case STARRED:
-                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.star_list, null, false);
-                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
-                rv.setHasFixedSize(true);
-                rv.setAdapter(new StarAdapter(activity, starredList));
+                if (starredList.isEmpty()) {
+                    view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.star_list_default, null, false);
+                } else {
+                    view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.star_list, null, false);
+                    rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                    rv.setHasFixedSize(true);
+                    rv.setAdapter(new StarAdapter(activity, starredList));
+                }
                 break;
             case HOT:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, hotList));
+                rv.setAdapter(new AnimeAdapter(activity, hotList, nativeAds));
                 break;
             case POPULAR:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, popularList));
+                rv.setAdapter(new AnimeAdapter(activity, popularList, null));
                 break;
             case SEARCH:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
@@ -90,7 +97,7 @@ public class HomePagerAdapter extends PagerAdapter {
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, new RealmList<Anime>()));
+                rv.setAdapter(new AnimeAdapter(activity, new RealmList<Anime>(), null));
                 break;
         }
         container.addView(view);

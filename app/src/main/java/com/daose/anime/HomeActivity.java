@@ -12,6 +12,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.applovin.nativeAds.AppLovinNativeAd;
+import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
+import com.applovin.sdk.AppLovinPostbackListener;
+import com.applovin.sdk.AppLovinSdk;
 import com.daose.anime.adapter.HomePagerAdapter;
 import com.daose.anime.adapter.SearchAdapter;
 import com.daose.anime.model.Anime;
@@ -45,6 +49,8 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     private NavigationTabBar ntb;
     private String previousQuery;
 
+    private List<AppLovinNativeAd> nativeAds;
+
     private Snackbar loadingBar;
 
     @Override
@@ -55,6 +61,7 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
         hotList = getList("hotList");
         popularList = getList("popularList");
         initUI();
+        initAds();
         if (Browser.getInstance(this).isNetworkAvailable()) {
             Browser.getInstance(this).load(Browser.BASE_URL, this);
             loadingBar.show();
@@ -65,6 +72,36 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     public void onDestroy() {
         super.onDestroy();
         realm.close();
+    }
+
+    private void initAds() {
+        AppLovinSdk.getInstance(this).getNativeAdService().loadNativeAds(1, new AppLovinNativeAdLoadListener() {
+            @Override
+            public void onNativeAdsLoaded(List list) {
+                Log.d(TAG, "onNativeAdsLoaded");
+                nativeAds = (List<AppLovinNativeAd>) list;
+                AppLovinSdk.getInstance(getApplicationContext()).getPostbackService().dispatchPostbackAsync(
+                        nativeAds.get(0).getImpressionTrackingUrl(), new AppLovinPostbackListener() {
+                            @Override
+                            public void onPostbackSuccess(String s) {
+                            }
+
+                            @Override
+                            public void onPostbackFailure(String s, int i) {
+                            }
+                        }
+                );
+            }
+
+            @Override
+            public void onNativeAdsFailedToLoad(int i) {
+                Log.e(TAG, "onNativeAdsFailedToLoad: " + i);
+            }
+        });
+    }
+
+    public List<AppLovinNativeAd> getNativeAds() {
+        return nativeAds;
     }
 
     private void initUI() {
@@ -169,6 +206,13 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
             }
         });
     }
+
+    //region ads
+    public void onNativeAdClick(AppLovinNativeAd ad) {
+        ad.launchClickTarget(this);
+        Log.d(TAG, "registered click");
+    }
+    //endregion
 
     //region search
     @Override
