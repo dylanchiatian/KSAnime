@@ -77,13 +77,13 @@ public class HomePagerAdapter extends PagerAdapter {
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, popularList, null));
+                rv.setAdapter(new AnimeAdapter(activity, popularList, nativeAds));
                 break;
             case HOT:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, hotList, nativeAds));
+                rv.setAdapter(new AnimeAdapter(activity, hotList, null));
                 break;
             case SEARCH:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
