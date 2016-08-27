@@ -20,6 +20,7 @@ import com.applovin.adview.AppLovinInterstitialAd;
 import com.daose.anime.adapter.EpisodeAdapter;
 import com.daose.anime.model.Anime;
 import com.daose.anime.model.Episode;
+import com.daose.anime.util.Utils;
 import com.daose.anime.web.Browser;
 import com.daose.anime.web.HtmlListener;
 import com.daose.anime.web.Selector;
@@ -32,6 +33,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
@@ -156,12 +158,16 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
                         for (Element episodeElement : elements) {
                             String name = episodeElement.text();
-                            String URL = Browser.BASE_URL + episodeElement.attributes().get("href");
-                            Episode episode = realm.where(Episode.class).equalTo("url", URL).findFirst();
+                            String url = Browser.BASE_URL + episodeElement.attributes().get("href");
+
+                            //GOOGLE PLAY
+                            if (Utils.containsIgnoreCase(name, "censored")) continue;
+
+                            Episode episode = realm.where(Episode.class).equalTo("url", url).findFirst();
                             if (episode == null) {
                                 episode = realm.createObject(Episode.class);
                                 episode.name = name;
-                                episode.url = URL;
+                                episode.url = Browser.BASE_URL + episodeElement.attributes().get("href");
                                 anime.episodes.add(episode);
                             }
                         }
@@ -187,6 +193,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             }
         });
     }
+
 
     @Override
     public void onPageFailed() {

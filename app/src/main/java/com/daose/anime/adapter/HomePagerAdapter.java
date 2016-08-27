@@ -26,7 +26,7 @@ import io.realm.RealmResults;
 public class HomePagerAdapter extends PagerAdapter {
 
     private enum Page {
-        STARRED, HOT, POPULAR, SEARCH
+        STARRED, POPULAR, HOT, SEARCH
     }
 
     private final HomeActivity activity;
@@ -73,17 +73,17 @@ public class HomePagerAdapter extends PagerAdapter {
                     rv.setAdapter(new StarAdapter(activity, starredList));
                 }
                 break;
-            case HOT:
-                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
-                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
-                rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, hotList, nativeAds));
-                break;
             case POPULAR:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
                 rv.setAdapter(new AnimeAdapter(activity, popularList, null));
+                break;
+            case HOT:
+                view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
+                rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
+                rv.setHasFixedSize(true);
+                rv.setAdapter(new AnimeAdapter(activity, hotList, nativeAds));
                 break;
             case SEARCH:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
