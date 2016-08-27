@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KS Anime</string>
+    <string name="app_name">KSAnime</string>
 
     <string name="title_activity_video">VideoActivity</string>
 </resources>
