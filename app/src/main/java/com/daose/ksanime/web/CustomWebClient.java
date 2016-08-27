@@ -1,4 +1,4 @@
-package com.daose.anime.web;
+package com.daose.ksanime.web;
 
 import android.util.Log;
 import android.webkit.WebResourceResponse;

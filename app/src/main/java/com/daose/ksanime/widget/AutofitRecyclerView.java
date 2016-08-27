@@ -1,4 +1,4 @@
-package com.daose.anime.widget;
+package com.daose.ksanime.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;

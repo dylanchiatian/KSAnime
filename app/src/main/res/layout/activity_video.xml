@@ -4,7 +4,7 @@
     xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
     android:keepScreenOn="true"
     android:layout_height="match_parent"
-    tools:context="com.daose.anime.VideoActivity">
+    tools:context="com.daose.ksanime.VideoActivity">
 
     <com.devbrackets.android.exomedia.ui.widget.EMVideoView
         android:id="@+id/video"

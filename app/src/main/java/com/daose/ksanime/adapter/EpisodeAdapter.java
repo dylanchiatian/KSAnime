@@ -1,4 +1,4 @@
-package com.daose.anime.adapter;
+package com.daose.ksanime.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,10 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.daose.anime.AnimeActivity;
-import com.daose.anime.R;
-import com.daose.anime.model.Anime;
-import com.daose.anime.model.Episode;
+import com.daose.ksanime.AnimeActivity;
+import com.daose.ksanime.R;
+import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.model.Episode;
 
 import io.realm.RealmResults;
 import io.realm.Sort;

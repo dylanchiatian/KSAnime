@@ -1,4 +1,4 @@
-package com.daose.anime;
+package com.daose.ksanime;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,13 +17,13 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.applovin.adview.AppLovinInterstitialAd;
-import com.daose.anime.adapter.EpisodeAdapter;
-import com.daose.anime.model.Anime;
-import com.daose.anime.model.Episode;
-import com.daose.anime.util.Utils;
-import com.daose.anime.web.Browser;
-import com.daose.anime.web.HtmlListener;
-import com.daose.anime.web.Selector;
+import com.daose.ksanime.adapter.EpisodeAdapter;
+import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.model.Episode;
+import com.daose.ksanime.util.Utils;
+import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.HtmlListener;
+import com.daose.ksanime.web.Selector;
 import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
@@ -33,7 +33,6 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;

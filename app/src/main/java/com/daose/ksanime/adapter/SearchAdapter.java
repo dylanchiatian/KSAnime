@@ -1,4 +1,4 @@
-package com.daose.anime.adapter;
+package com.daose.ksanime.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,8 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.daose.anime.AnimeActivity;
-import com.daose.anime.R;
+import com.daose.ksanime.AnimeActivity;
+import com.daose.ksanime.R;
 
 import java.util.ArrayList;
 

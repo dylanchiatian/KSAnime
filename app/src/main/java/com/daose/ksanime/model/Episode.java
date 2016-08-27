@@ -1,4 +1,4 @@
-package com.daose.anime.model;
+package com.daose.ksanime.model;
 
 import io.realm.RealmObject;
 import io.realm.annotations.Index;

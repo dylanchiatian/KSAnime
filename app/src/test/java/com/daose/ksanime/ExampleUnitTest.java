@@ -1,4 +1,4 @@
-package com.daose.anime;
+package com.daose.ksanime;
 
 import org.junit.Test;
 

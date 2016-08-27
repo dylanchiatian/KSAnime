@@ -1,4 +1,4 @@
-package com.daose.anime;
+package com.daose.ksanime;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -16,13 +16,13 @@ import com.applovin.nativeAds.AppLovinNativeAd;
 import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
 import com.applovin.sdk.AppLovinPostbackListener;
 import com.applovin.sdk.AppLovinSdk;
-import com.daose.anime.adapter.HomePagerAdapter;
-import com.daose.anime.adapter.SearchAdapter;
-import com.daose.anime.model.Anime;
-import com.daose.anime.model.AnimeList;
-import com.daose.anime.web.Browser;
-import com.daose.anime.web.HtmlListener;
-import com.daose.anime.web.Selector;
+import com.daose.ksanime.adapter.HomePagerAdapter;
+import com.daose.ksanime.adapter.SearchAdapter;
+import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.model.AnimeList;
+import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.HtmlListener;
+import com.daose.ksanime.web.Selector;
 import com.gigamole.navigationtabbar.ntb.NavigationTabBar;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 

@@ -1,4 +1,4 @@
-package com.daose.anime.adapter;
+package com.daose.ksanime.adapter;
 
 import android.content.Context;
 import android.support.v4.view.ViewCompat;
@@ -11,9 +11,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
-import com.daose.anime.HomeActivity;
-import com.daose.anime.R;
-import com.daose.anime.model.Anime;
+import com.daose.ksanime.HomeActivity;
+import com.daose.ksanime.R;
+import com.daose.ksanime.model.Anime;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

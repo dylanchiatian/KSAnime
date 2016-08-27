@@ -1,4 +1,4 @@
-package com.daose.anime.util;
+package com.daose.ksanime.util;
 
 /**
  * Created by student on 27/08/16.
