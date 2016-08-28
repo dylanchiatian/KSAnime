@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AnimeListFragment.OnFragmentInteractionListener, DrawerLayout.DrawerListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private boolean isNewMenuItem = false;
     private DrawerLayout drawer;
 
     @Override
@@ -38,7 +39,10 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setCheckedItem(R.id.nav_popular);
+        setTitle(navigationView.getMenu().getItem(0).getTitle());
         navigationView.setNavigationItemSelectedListener(this);
+
         //TODO:: search function
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -65,9 +69,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -81,25 +82,8 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-
+        isNewMenuItem = true;
         AnimeListFragment fragment = null;
-
-        /*
-        switch (item.getItemId()) {
-            case R.id.nav_popular:
-            case R.id.nav_trending:
-            case R.id.nav_starred:
-                fragment = AnimeListFragment.newInstance(item.getTitle().toString());
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
-                break;
-            case R.id.nav_downloaded:
-                //TODO:: fragment downloaded
-                break;
-            default:
-                break;
-        }
-        */
-
         setTitle(item.getTitle());
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -127,8 +111,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDrawerClosed(View drawerView) {
-        Fragment fragment = AnimeListFragment.newInstance(getTitle().toString());
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        if (isNewMenuItem) {
+            Fragment fragment = AnimeListFragment.newInstance(getTitle().toString());
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        }
+        isNewMenuItem = false;
     }
 
     @Override

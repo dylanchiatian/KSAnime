@@ -282,6 +282,10 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             @Override
             public void run() {
                 if (loadDialog.isShowing()) loadDialog.dismiss();
+                Anime prevAnime = realm.where(Anime.class).equalTo("isLastWatched", true).findFirst();
+                if (prevAnime != null) prevAnime.isLastWatched = false;
+                anime.isLastWatched = true;
+
                 Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
                 intent.putExtra("url", url);
                 startActivity(intent);

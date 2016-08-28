@@ -357,7 +357,8 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         if (elements == null || elements.size() == 0) {
             Log.d(TAG, "doc is wrong");
             Log.d(TAG, "html: " + doc.html());
-            return (RealmList<Anime>) animeList;
+            Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
+            return new RealmList<Anime>();
         }
 
         RealmList<Anime> animeList = new RealmList<Anime>();

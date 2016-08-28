@@ -24,4 +24,5 @@ Android app to watch anime
 
 ## Known Issues
 - Searching the same thing twice in a row doesn't do anything (bad if first time network fails)
+- Refresh fails when changing orientation
 - Open an [issue](https://github.com/daose/KissAnime/issues) and tell me!
