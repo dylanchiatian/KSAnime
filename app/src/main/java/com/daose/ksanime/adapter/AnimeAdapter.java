@@ -67,7 +67,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
                     fragment.onNativeAdClick(v, ad);
                 }
             });
-            Picasso.with(ctx).load(ad.getIconUrl()).into(vh.iconImg);
+            Picasso.with(ctx).load(ad.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
         } else {
             int offsetPosition = position - offset;
             final Anime anime = animeList.get(offsetPosition);
