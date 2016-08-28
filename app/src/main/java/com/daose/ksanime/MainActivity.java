@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.fragment.AnimeListFragment;
+import com.daose.ksanime.fragment.SearchFragment;
 import com.lapism.searchview.SearchAdapter;
 import com.lapism.searchview.SearchItem;
 import com.lapism.searchview.SearchView;
@@ -25,13 +26,19 @@ import com.lapism.searchview.SearchView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AnimeListFragment.OnFragmentInteractionListener, DrawerLayout.DrawerListener {
+public class MainActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener,
+        AnimeListFragment.OnFragmentInteractionListener,
+        SearchFragment.OnFragmentInteractionListener,
+        DrawerLayout.DrawerListener,
+        SearchView.OnQueryTextListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private boolean isNewMenuItem = false;
     private DrawerLayout drawer;
     private SearchView searchView;
+
+    //TODO:: request native ads from somewhere global and inflate with old native ad then replace so there's no unnecessary shifting
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +64,7 @@ public class MainActivity extends AppCompatActivity
 
     private void setupDrawer() {
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        //               this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        //      drawer.addDrawerListener(toggle);
         drawer.addDrawerListener(this);
-        //     toggle.syncState();
     }
 
     private void setupNavigationView() {
@@ -83,20 +86,7 @@ public class MainActivity extends AppCompatActivity
             searchView.setTheme(SearchView.THEME_DARK);
             searchView.setAnimationDuration(SearchView.ANIMATION_DURATION);
             searchView.setShadowColor(ContextCompat.getColor(this, R.color.search_shadow_layout));
-            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                @Override
-                public boolean onQueryTextSubmit(String query) {
-                    // mSearchView.close(false);
-                    Log.d(TAG, "query: " + query);
-                    return true;
-                }
-
-                @Override
-                public boolean onQueryTextChange(String newText) {
-                    Log.d(TAG, "onQueryTextChange: " + newText);
-                    return false;
-                }
-            });
+            searchView.setOnQueryTextListener(this);
             searchView.setOnOpenCloseListener(new SearchView.OnOpenCloseListener() {
                 @Override
                 public void onOpen() {
@@ -150,18 +140,15 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_search:
-                Log.d(TAG, "action_search selected");
                 searchView.open(true, item);
                 return true;
             case android.R.id.home:
-                Log.d(TAG, "android.R.id.home selected");
                 drawer.openDrawer(GravityCompat.START);
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         isNewMenuItem = true;
@@ -201,5 +188,22 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDrawerStateChanged(int newState) {
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        Log.d(TAG, "onQueryTextChange: " + newText);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        searchView.close(true);
+        Log.d(TAG, "onQueryTextSubmit: " + query);
+        isNewMenuItem = true;
+        setTitle("Search Results");
+        Fragment fragment = SearchFragment.newInstance(query);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        return false;
     }
 }
