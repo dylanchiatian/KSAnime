@@ -10,33 +10,36 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
+import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.SearchFragment;
-import com.lapism.searchview.SearchAdapter;
-import com.lapism.searchview.SearchItem;
+import com.daose.ksanime.model.Anime;
 import com.lapism.searchview.SearchView;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import io.realm.Case;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
         AnimeListFragment.OnFragmentInteractionListener,
         SearchFragment.OnFragmentInteractionListener,
         DrawerLayout.DrawerListener,
-        SearchView.OnQueryTextListener {
+        SearchView.OnQueryTextListener,
+        SearchView.OnOpenCloseListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private boolean isNewMenuItem = false;
     private DrawerLayout drawer;
     private SearchView searchView;
+    private ArrayList<String> searchList;
 
     //TODO:: request native ads from somewhere global and inflate with old native ad then replace so there's no unnecessary shifting
 
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("Popular"));
         ft.commit();
+
     }
 
     private void setupToolbar() {
@@ -75,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupSearchView() {
+        searchList = new ArrayList<String>();
         searchView = (SearchView) findViewById(R.id.search_view);
         if (searchView != null) {
             searchView.setVersion(SearchView.VERSION_MENU_ITEM);
@@ -83,40 +88,12 @@ public class MainActivity extends AppCompatActivity implements
             searchView.setHint("Search");
             searchView.setDivider(false);
             searchView.setVoice(false);
+            searchView.setAdapter(new SearchAdapter(this, searchList));
             searchView.setTheme(SearchView.THEME_DARK);
             searchView.setAnimationDuration(SearchView.ANIMATION_DURATION);
             searchView.setShadowColor(ContextCompat.getColor(this, R.color.search_shadow_layout));
             searchView.setOnQueryTextListener(this);
-            searchView.setOnOpenCloseListener(new SearchView.OnOpenCloseListener() {
-                @Override
-                public void onOpen() {
-                    Log.d(TAG, "onOpen");
-                }
-
-                @Override
-                public void onClose() {
-                    Log.d(TAG, "onClose");
-                }
-            });
-
-            if (searchView.getAdapter() == null) {
-                List<SearchItem> suggestionsList = new ArrayList<>();
-                suggestionsList.add(new SearchItem("search1"));
-                suggestionsList.add(new SearchItem("search2"));
-                suggestionsList.add(new SearchItem("search3"));
-
-                SearchAdapter searchAdapter = new SearchAdapter(this, suggestionsList);
-                searchAdapter.addOnItemClickListener(new SearchAdapter.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        TextView textView = (TextView) view.findViewById(R.id.textView_item_text);
-                        String query = textView.getText().toString();
-                        Log.d(TAG, "query: " + query);
-                        // mSearchView.close(false);
-                    }
-                });
-                searchView.setAdapter(searchAdapter);
-            }
+            searchView.setOnOpenCloseListener(this);
         }
     }
 
@@ -192,18 +169,50 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        Log.d(TAG, "onQueryTextChange: " + newText);
+        if (newText.length() < 1) return false;
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<Anime> queryResult = realm.where(Anime.class).beginsWith("title", newText, Case.INSENSITIVE).findAll();
+        int searchSize = searchList.size();
+        int querySize = queryResult.size();
+        int minSize = (searchSize > querySize) ? querySize : searchSize;
+        for (int i = 0; i < minSize; i++) {
+            if (!searchList.get(i).equals(queryResult.get(i).title)) {
+                searchList.set(i, queryResult.get(i).title);
+                searchView.getAdapter().notifyItemChanged(i);
+            }
+        }
+        if (querySize > searchSize) {
+            for (int i = minSize; i < querySize; i++) {
+                searchList.add(queryResult.get(i).title);
+            }
+            searchView.getAdapter().notifyItemRangeInserted(minSize, querySize - minSize);
+        } else {
+            for (int i = minSize; i < searchSize; i++) {
+                searchList.remove(minSize);
+            }
+            searchView.getAdapter().notifyItemRangeRemoved(minSize, searchSize - minSize);
+        }
+        realm.close();
         return false;
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
         searchView.close(true);
-        Log.d(TAG, "onQueryTextSubmit: " + query);
         isNewMenuItem = true;
         setTitle("Search Results");
         Fragment fragment = SearchFragment.newInstance(query);
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        searchList.clear();
+    }
+
+    @Override
+    public void onOpen() {
+        searchList.clear();
     }
 }
