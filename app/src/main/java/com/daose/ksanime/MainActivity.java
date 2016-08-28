@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
@@ -20,6 +21,7 @@ import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.model.Anime;
 import com.lapism.searchview.SearchView;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements
     private DrawerLayout drawer;
     private SearchView searchView;
     private ArrayList<String> searchList;
+    private ImageView headerImage;
     public static List<AppLovinNativeAd> nativeAds;
 
     //TODO:: request native ads from somewhere global and inflate with old native ad then replace so there's no unnecessary shifting
@@ -58,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("Popular"));
         ft.commit();
-
     }
 
     private void setupToolbar() {
@@ -75,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private void setupNavigationView() {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        headerImage = (ImageView) navigationView.getHeaderView(0);
+        Picasso.with(this).load(R.drawable.icon_landscape).fit().centerInside().into(headerImage);
         navigationView.getMenu().getItem(0).setChecked(true);
         setTitle(navigationView.getMenu().getItem(0).getTitle());
         navigationView.setNavigationItemSelectedListener(this);
