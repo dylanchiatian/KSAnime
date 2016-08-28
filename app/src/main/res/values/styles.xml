@@ -13,8 +13,6 @@
     </style>
 
     <style name="AppBar" parent="AppTheme.AppBarOverlay">
-        <item name="android:colorBackground">@color/base4</item>
-        <item name="android:windowBackground">@color/base4</item>
         <item name="android:textColorSecondary">@color/colorAccent</item>
         <item name="android:textColorPrimary">@color/colorAccent</item>
     </style>
