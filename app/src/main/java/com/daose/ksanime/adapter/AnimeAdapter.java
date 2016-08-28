@@ -1,8 +1,6 @@
 package com.daose.ksanime.adapter;
 
 import android.content.Context;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
-import com.daose.ksanime.HomeActivity;
 import com.daose.ksanime.R;
+import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.model.Anime;
 import com.squareup.picasso.Picasso;
 
@@ -25,8 +23,8 @@ import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.ViewHolder> {
 
     private OrderedRealmCollection<Anime> animeList;
-    private final Context ctx;
-    private final HomeActivity activity;
+    private AnimeListFragment fragment;
+    private Context ctx;
     private List<AppLovinNativeAd> nativeAds;
 
     private static final String TAG = AnimeAdapter.class.getSimpleName();
@@ -58,17 +56,29 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof AdViewHolder) {
-            AppLovinNativeAd ad = nativeAds.get(position);
+            final AppLovinNativeAd ad = nativeAds.get(position);
             AdViewHolder vh = (AdViewHolder) holder;
             vh.title.setText(ad.getTitle());
             vh.cta.setText(ad.getCtaText());
             vh.description.setText(ad.getDescriptionText());
+            vh.card.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    fragment.onNativeAdClick(v, ad);
+                }
+            });
             Picasso.with(ctx).load(ad.getIconUrl()).into(vh.iconImg);
         } else {
             int offsetPosition = position - offset;
-            Anime anime = animeList.get(offsetPosition);
+            final Anime anime = animeList.get(offsetPosition);
             ViewHolder vh = (ViewHolder) holder;
             vh.title.setText(anime.title);
+            vh.card.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    fragment.onAnimeClick(v, anime.title);
+                }
+            });
             if (anime.coverURL == null || anime.coverURL.isEmpty()) {
                 Picasso.with(ctx).load(R.drawable.placeholder).into(vh.imageView);
             } else {
@@ -82,16 +92,8 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
         return animeList.size() + offset;
     }
 
-    private class CycleInterpolator implements android.view.animation.Interpolator {
-        private final float mCycles = 0.5f;
 
-        @Override
-        public float getInterpolation(final float input) {
-            return (float) Math.sin(2.0f * mCycles * Math.PI * input);
-        }
-    }
-
-    public class AdViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class AdViewHolder extends RecyclerView.ViewHolder {
 
         private TextView title, description, cta;
         private ImageView iconImg;
@@ -104,38 +106,10 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             description = (TextView) itemView.findViewById(R.id.description);
             iconImg = (ImageView) itemView.findViewById(R.id.image_view);
             card = itemView.findViewById(R.id.card);
-            card.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            ViewCompat.animate(v)
-                    .setDuration(200)
-                    .scaleX(0.9f)
-                    .scaleY(0.9f)
-                    .setInterpolator(new CycleInterpolator())
-                    .setListener(new ViewPropertyAnimatorListener() {
-                        @Override
-                        public void onAnimationStart(View view) {
-
-                        }
-
-                        @Override
-                        public void onAnimationEnd(View view) {
-                            activity.onNativeAdClick(nativeAds.get(0));
-                        }
-
-                        @Override
-                        public void onAnimationCancel(View view) {
-
-                        }
-                    })
-                    .withLayer()
-                    .start();
         }
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView title;
         private ImageView imageView;
@@ -146,42 +120,14 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             title = (TextView) itemView.findViewById(R.id.title);
             imageView = (ImageView) itemView.findViewById(R.id.image_view);
             card = itemView.findViewById(R.id.card);
-            card.setOnClickListener(this);
         }
 
-        @Override
-        public void onClick(View v) {
-            ViewCompat.animate(v)
-                    .setDuration(200)
-                    .scaleX(0.9f)
-                    .scaleY(0.9f)
-                    .setInterpolator(new CycleInterpolator())
-                    .setListener(new ViewPropertyAnimatorListener() {
-                        @Override
-                        public void onAnimationStart(View view) {
-
-                        }
-
-                        @Override
-                        public void onAnimationEnd(View view) {
-                            int offsetPosition = getLayoutPosition() - offset;
-                            activity.onAnimeSelected(animeList.get(offsetPosition).title);
-                        }
-
-                        @Override
-                        public void onAnimationCancel(View view) {
-
-                        }
-                    })
-                    .withLayer()
-                    .start();
-        }
     }
 
-    public AnimeAdapter(HomeActivity activity, OrderedRealmCollection<Anime> animeList, List<AppLovinNativeAd> nativeAds) {
-        super(activity, animeList, true);
-        this.activity = activity;
-        this.ctx = activity.getBaseContext();
+    public AnimeAdapter(AnimeListFragment fragment, OrderedRealmCollection<Anime> animeList, List<AppLovinNativeAd> nativeAds) {
+        super(fragment.getContext(), animeList, true);
+        this.fragment = fragment;
+        this.ctx = fragment.getContext();
         this.animeList = animeList;
         this.nativeAds = nativeAds;
         if (nativeAds == null) {

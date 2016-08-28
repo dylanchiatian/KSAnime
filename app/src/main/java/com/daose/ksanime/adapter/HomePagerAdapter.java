@@ -70,20 +70,20 @@ public class HomePagerAdapter extends PagerAdapter {
                     view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.star_list, null, false);
                     rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                     rv.setHasFixedSize(true);
-                    rv.setAdapter(new StarAdapter(activity, starredList));
+                    //rv.setAdapter(new StarAdapter(activity, starredList));
                 }
                 break;
             case POPULAR:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, popularList, nativeAds));
+                //rv.setAdapter(new AnimeAdapter(activity, popularList, nativeAds));
                 break;
             case HOT:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, hotList, null));
+                //rv.setAdapter(new AnimeAdapter(activity, hotList, null));
                 break;
             case SEARCH:
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.search_list, null, false);
@@ -97,7 +97,6 @@ public class HomePagerAdapter extends PagerAdapter {
                 view = LayoutInflater.from(activity.getBaseContext()).inflate(R.layout.anime_list, null, false);
                 rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
                 rv.setHasFixedSize(true);
-                rv.setAdapter(new AnimeAdapter(activity, new RealmList<Anime>(), null));
                 break;
         }
         container.addView(view);
@@ -107,7 +106,8 @@ public class HomePagerAdapter extends PagerAdapter {
     public RecyclerView getSearchView() {
         return searchView;
     }
-    public ProgressBar getSearchIndicator(){
+
+    public ProgressBar getSearchIndicator() {
         return searchIndicator;
     }
 

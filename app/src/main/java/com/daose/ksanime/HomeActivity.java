@@ -100,6 +100,17 @@ public class HomeActivity extends AppCompatActivity implements HtmlListener, Mat
     }
 
     public List<AppLovinNativeAd> getNativeAds() {
+        AppLovinSdk.getInstance(this).getNativeAdService().loadNativeAds(1, new AppLovinNativeAdLoadListener() {
+            @Override
+            public void onNativeAdsLoaded(List list) {
+                nativeAds = (List<AppLovinNativeAd>) list;
+            }
+
+            @Override
+            public void onNativeAdsFailedToLoad(int i) {
+
+            }
+        });
         return nativeAds;
     }
 
