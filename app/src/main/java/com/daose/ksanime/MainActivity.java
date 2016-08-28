@@ -22,6 +22,7 @@ import com.daose.ksanime.model.Anime;
 import com.lapism.searchview.SearchView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Case;
 import io.realm.Realm;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements
     private DrawerLayout drawer;
     private SearchView searchView;
     private ArrayList<String> searchList;
+    public static List<AppLovinNativeAd> nativeAds;
 
     //TODO:: request native ads from somewhere global and inflate with old native ad then replace so there's no unnecessary shifting
 

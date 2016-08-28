@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
 import com.applovin.sdk.AppLovinSdk;
+import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.AnimeAdapter;
 import com.daose.ksanime.model.Anime;
@@ -114,7 +115,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     public void onViewCreated(View view, Bundle savedInstanceState) {
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
-        rv.setAdapter(new AnimeAdapter(this, animeList, null));
+        rv.setAdapter(new AnimeAdapter(this, animeList, MainActivity.nativeAds));
         initAds();
         if (type != Type.Starred) {
             refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
@@ -203,12 +204,13 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     @Override
     public void onNativeAdsLoaded(final List list) {
+        MainActivity.nativeAds = (List<AppLovinNativeAd>) list;
         if (getActivity() == null) return;
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                rv.swapAdapter(new AnimeAdapter(AnimeListFragment.this, animeList, (List<AppLovinNativeAd>) list), false);
+                rv.swapAdapter(new AnimeAdapter(AnimeListFragment.this, animeList, MainActivity.nativeAds), false);
             }
         });
     }
