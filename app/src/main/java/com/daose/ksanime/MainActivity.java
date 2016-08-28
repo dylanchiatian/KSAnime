@@ -169,7 +169,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        if (newText.length() < 1) return false;
+        if (newText.length() < 1) {
+            int items = searchList.size();
+            searchList.clear();
+            searchView.getAdapter().notifyItemRangeRemoved(0, items);
+            return false;
+        }
         Realm realm = Realm.getDefaultInstance();
         RealmResults<Anime> queryResult = realm.where(Anime.class).beginsWith("title", newText, Case.INSENSITIVE).findAll();
         int searchSize = searchList.size();
