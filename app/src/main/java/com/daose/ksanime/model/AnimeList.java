@@ -11,11 +11,6 @@ public class AnimeList extends RealmObject{
 
     public RealmList<Anime> animeList;
 
-    public AnimeList(String key, RealmList<Anime> animeList){
-        this.key = key;
-        this.animeList = animeList;
-    }
-
     public AnimeList(){
 
     }

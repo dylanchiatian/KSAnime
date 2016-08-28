@@ -12,9 +12,10 @@ public class Anime extends RealmObject implements Serializable {
     @PrimaryKey
     public String title;
 
+    @Index
+    public boolean isLastWatched;
+
     public RealmList<Episode> episodes;
-    //public String mostRecent;
-    //public ArrayList<String> genres;
     public String summary;
     public String coverURL;
     public String summaryURL;

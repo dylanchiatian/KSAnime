@@ -12,6 +12,13 @@
         <item name="android:windowBackground">@color/base4</item>
     </style>
 
+    <style name="AppBar" parent="AppTheme.AppBarOverlay">
+        <item name="android:colorBackground">@color/base4</item>
+        <item name="android:windowBackground">@color/base4</item>
+        <item name="android:textColorSecondary">@color/colorAccent</item>
+        <item name="android:textColorPrimary">@color/colorAccent</item>
+    </style>
+
     <style name="FullscreenTheme" parent="AppTheme">
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>

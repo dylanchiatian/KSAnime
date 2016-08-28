@@ -12,14 +12,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.fragment.AnimeListFragment;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AnimeListFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, AnimeListFragment.OnFragmentInteractionListener, DrawerLayout.DrawerListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +30,19 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
+        drawer.addDrawerListener(this);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        //TODO:: search function
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("hotList"));
+        ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("Popular"));
         ft.commit();
     }
 
@@ -77,41 +81,26 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        Fragment fragment = null;
-        Class fragmentClass = AnimeListFragment.class;
-        Bundle args = new Bundle();
-        String param = "";
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-            param = "camera";
-        } else if (id == R.id.nav_gallery) {
-            param = "gallery";
-        } else if (id == R.id.nav_slideshow) {
-            param = "slideshow";
-        } else if (id == R.id.nav_manage) {
-            param = "manage";
-        } else if (id == R.id.nav_share) {
-            param = "share";
-        } else if (id == R.id.nav_send) {
-            param = "send";
+        AnimeListFragment fragment = null;
+
+        /*
+        switch (item.getItemId()) {
+            case R.id.nav_popular:
+            case R.id.nav_trending:
+            case R.id.nav_starred:
+                fragment = AnimeListFragment.newInstance(item.getTitle().toString());
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+                break;
+            case R.id.nav_downloaded:
+                //TODO:: fragment downloaded
+                break;
+            default:
+                break;
         }
+        */
 
-        args.putString("param1", param);
-        try {
-            fragment = (Fragment) fragmentClass.newInstance();
-            fragment.setArguments(args);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_placeholder, fragment)
-                    .commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        setTitle(item.getTitle());
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -126,5 +115,23 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, AnimeActivity.class);
         intent.putExtra("anime", anime);
         startActivity(intent);
+    }
+
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {
+    }
+
+    @Override
+    public void onDrawerOpened(View drawerView) {
+    }
+
+    @Override
+    public void onDrawerClosed(View drawerView) {
+        Fragment fragment = AnimeListFragment.newInstance(getTitle().toString());
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+    }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {
     }
 }

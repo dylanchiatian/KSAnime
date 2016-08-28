@@ -35,6 +35,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.List;
 
+import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
 import io.realm.RealmList;
 
@@ -42,12 +43,21 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     private static final String TAG = AnimeListFragment.class.getSimpleName();
     private static final String KEY = "key";
 
+    private enum Type {
+        Popular, Trending, Starred
+    }
+
+    private String value;
+
     private Realm realm;
-    private RealmList<Anime> animeList;
+
+    private AnimeList realmAnimeList;
+    private OrderedRealmCollection<Anime> animeList;
 
     private AutofitRecyclerView rv;
 
     private Snackbar refreshBar;
+    private Type type;
 
     private OnFragmentInteractionListener mListener;
 
@@ -67,9 +77,18 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            String value = getArguments().getString(KEY);
+            value = getArguments().getString(KEY);
+            type = Type.valueOf(getArguments().getString(KEY));
             realm = Realm.getDefaultInstance();
-            animeList = realm.where(AnimeList.class).equalTo(KEY, value).findFirst().animeList;
+            switch (type) {
+                case Starred:
+                    animeList = realm.where(Anime.class).equalTo("isStarred", true).findAll();
+                    break;
+                default:
+                    realmAnimeList = getList(value);
+                    animeList = realmAnimeList.animeList;
+                    break;
+            }
         }
     }
 
@@ -87,7 +106,6 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_anime_list, container, false);
     }
 
@@ -97,10 +115,12 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
         rv.setAdapter(new AnimeAdapter(this, animeList, null));
-        refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
-        refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
         initAds();
-        update();
+        if (type != Type.Starred) {
+            refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
+            refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+            update();
+        }
     }
 
     private void initAds() {
@@ -114,6 +134,20 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         } else {
             Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private AnimeList getList(final String list) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                if (realm.where(AnimeList.class).equalTo(KEY, list).findFirst() == null) {
+                    AnimeList animeList = realm.createObject(AnimeList.class);
+                    animeList.key = list;
+                    animeList.animeList = new RealmList<Anime>();
+                }
+            }
+        });
+        return realm.where(AnimeList.class).equalTo(KEY, list).findFirst();
     }
 
     @Override
@@ -169,6 +203,8 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     @Override
     public void onNativeAdsLoaded(final List list) {
+        if (getActivity() == null) return;
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -210,6 +246,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     @Override
     public void onPageLoaded(String html) {
         final Document doc = Jsoup.parse(html);
+        if (getActivity() == null) return;
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -217,10 +254,21 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        animeList = getAnimeList(doc, Selector.POPULAR_IMAGE + "," + Selector.POPULAR_TITLE);
+                        String query;
+                        switch (type) {
+                            case Popular:
+                                query = Selector.POPULAR_IMAGE + "," + Selector.POPULAR_TITLE;
+                                break;
+                            case Trending:
+                                query = Selector.HOT_IMAGE + "," + Selector.HOT_TITLE;
+                                break;
+                            default:
+                                query = "";
+                        }
+                        realmAnimeList.animeList = getAnimeList(doc, query);
                     }
                 });
-                for (Anime anime : animeList) {
+                for (Anime anime : realmAnimeList.animeList) {
                     if (anime.coverURL == null || anime.coverURL.isEmpty()) {
                         new GetCoverURL().execute(anime.title);
                     }
@@ -232,6 +280,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     @Override
     public void onPageFailed() {
+        if (getActivity() == null) return;
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -304,14 +353,14 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     }
 
     private RealmList<Anime> getAnimeList(Document doc, String query) {
-        RealmList<Anime> animeList = new RealmList<Anime>();
         Elements elements = doc.select(query);
-        if (elements == null) {
+        if (elements == null || elements.size() == 0) {
             Log.d(TAG, "doc is wrong");
             Log.d(TAG, "html: " + doc.html());
-            return new RealmList<Anime>();
+            return (RealmList<Anime>) animeList;
         }
 
+        RealmList<Anime> animeList = new RealmList<Anime>();
         int counter = 0;
 
         for (Element animeElement : elements) {
