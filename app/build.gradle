@@ -38,4 +38,5 @@ dependencies {
     compile 'com.github.d-max:spots-dialog:0.7@aar'
     compile 'com.google.android.gms:play-services-ads:9.4.0'
     compile 'com.android.support:design:23.4.0'
+    compile 'com.lapism:searchview:3.5'
 }

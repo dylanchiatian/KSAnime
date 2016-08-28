@@ -5,13 +5,11 @@ import android.content.Intent;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.daose.ksanime.AnimeActivity;
-import com.daose.ksanime.R;
 
 import java.util.ArrayList;
 
@@ -24,8 +22,9 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_item, parent, false);
-        return new ViewHolder(v);
+//        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_item, parent, false);
+//        return new ViewHolder(v);
+        return null;
     }
 
     @Override
@@ -53,8 +52,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
 
         public ViewHolder(View itemView) {
             super(itemView);
-            title = (TextView) itemView.findViewById(R.id.anime);
-            title.setOnClickListener(this);
+            //title = (TextView) itemView.findViewById(R.id.anime);
+            //title.setOnClickListener(this);
         }
 
         @Override

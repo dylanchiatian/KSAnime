@@ -15,7 +15,7 @@ public class CustomWebClient extends WebViewClient {
     private static HashSet<String> ignoreUrls;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
     private static final String javascript = "javascript:" +
-            "if(document.documentElement == null){" +
+            "if(document.documentElement == null || document.body.innerHTML === \"The service is unavailable.\"){" +
             "HtmlHandler.handleError(); " +
             "}else if(document.title === \"Please wait 5 seconds...\")" +
             "{}else{" +
