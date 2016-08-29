@@ -118,7 +118,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         initAds();
         if (type != Type.Starred) {
             refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
-            refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+            refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
             update();
         }
     }
@@ -296,7 +296,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                                 }
                             })
                             .setActionTextColor(getResources().getColor(R.color.colorAccent));
-                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.base1));
+                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
                     retryBar.show();
                 }
             }
