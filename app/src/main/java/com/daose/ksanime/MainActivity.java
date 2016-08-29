@@ -160,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onDrawerOpened(View drawerView) {
+        isNewMenuItem = false;
     }
 
     @Override
