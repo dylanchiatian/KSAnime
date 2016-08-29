@@ -4,7 +4,11 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.util.Log;
 import android.webkit.WebView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Browser {
 
@@ -16,6 +20,7 @@ public class Browser {
     public static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
 
     private WebView webView;
+    private CustomWebClient client;
     private HtmlHandler htmlHandler;
     private Context ctx;
 
@@ -43,7 +48,7 @@ public class Browser {
 
     public void load(String url, HtmlListener listener){
         htmlHandler.setListener(listener);
-        webView.loadUrl(url);
+        loadUrl(url);
     }
 
     public void setListener(HtmlListener listener){
@@ -54,7 +59,8 @@ public class Browser {
     }
 
     public void loadUrl(String url){
-        webView.loadUrl(url);
+        Log.d(TAG, "header: " + client.getHeaders().toString());
+        webView.loadUrl(url, client.getHeaders());
     }
 
     private Browser(Context ctx) {
@@ -63,7 +69,8 @@ public class Browser {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; rv:10.0) Gecko/20100101 Firefox/10.0");
         htmlHandler = new HtmlHandler();
-        webView.setWebViewClient(new CustomWebClient());
+        client = new CustomWebClient();
+        webView.setWebViewClient(client);
         webView.addJavascriptInterface(htmlHandler, "HtmlHandler");
     }
 

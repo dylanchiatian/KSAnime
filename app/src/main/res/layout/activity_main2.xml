@@ -9,9 +9,4 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.daose.ksanime.Main2Activity">
 
-    <WebView
-        android:id="@+id/web_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"></WebView>
-
 </RelativeLayout>

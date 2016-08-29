@@ -31,8 +31,13 @@ public class CustomWebClient extends WebViewClient {
         headers.put("X-Requested-With", "");
     }
 
+    public Map<String, String> getHeaders(){
+        return headers;
+    }
+
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        Log.d(TAG, "url: " + url);
         view.loadUrl(url, headers);
         return true;
     }
@@ -45,6 +50,7 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+        Log.d(TAG, "request: " + url);
         if (ignoreUrls.contains(url)) {
             return dud;
         }
