@@ -61,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("Popular"));
         ft.commit();
+
+        //addContentView(Browser.getInstance(this).getWebView(), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     private void setupToolbar() {

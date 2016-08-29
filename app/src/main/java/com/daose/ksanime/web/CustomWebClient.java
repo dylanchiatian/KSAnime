@@ -5,14 +5,16 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.io.ByteArrayInputStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class CustomWebClient extends WebViewClient {
     private static final String TAG = CustomWebClient.class.getSimpleName();
-    private static final WebResourceResponse dud = new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
+    private static final WebResourceResponse dud = new WebResourceResponse("text/plain", "utf-8", null);
 
     private static HashSet<String> ignoreUrls;
+    private static Map<String, String> headers;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
     private static final String javascript = "javascript:" +
             "if(document.documentElement == null || document.body.innerHTML === \"The service is unavailable.\"){" +
@@ -25,11 +27,14 @@ public class CustomWebClient extends WebViewClient {
     public CustomWebClient() {
         super();
         ignoreUrls = new HashSet<String>();
+        headers = new HashMap<String, String>();
+        headers.put("X-Requested-With", "");
     }
 
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        return false;
+        view.loadUrl(url, headers);
+        return true;
     }
 
     @Override

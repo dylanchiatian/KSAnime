@@ -12,7 +12,9 @@
         <item name="android:windowBackground">@color/base4</item>
     </style>
 
-    <style name="AppBar" parent="AppTheme.AppBarOverlay">
+    <style name="AppBar" parent="AppTheme">
+        <item name="android:colorBackground">@color/base4</item>
+        <item name="android:windowBackground">@color/base4</item>
         <item name="android:textColorSecondary">@color/colorAccent</item>
         <item name="android:textColorPrimary">@color/colorAccent</item>
     </style>

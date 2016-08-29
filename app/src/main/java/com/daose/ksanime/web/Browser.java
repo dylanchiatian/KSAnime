@@ -61,6 +61,7 @@ public class Browser {
         this.ctx = ctx;
         webView = new WebView(ctx);
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; rv:10.0) Gecko/20100101 Firefox/10.0");
         htmlHandler = new HtmlHandler();
         webView.setWebViewClient(new CustomWebClient());
         webView.addJavascriptInterface(htmlHandler, "HtmlHandler");
