@@ -116,10 +116,10 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
         rv.setAdapter(new AnimeAdapter(this, animeList, MainActivity.nativeAds));
+        refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
+        refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4));
         initAds();
         if (type != Type.Starred) {
-            refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
-            refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4));
             update();
         }
     }
