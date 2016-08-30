@@ -15,10 +15,6 @@ import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 public class FullScreenVideoPlayerActivity extends VideoActivity {
     private FullScreenListener fullScreenListener;
 
-    public enum Resolution {
-        r1080p, r720p, r480p, r360p
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);

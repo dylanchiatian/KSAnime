@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,6 +29,7 @@ import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -35,6 +37,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import dmax.dialog.SpotsDialog;
@@ -228,88 +232,82 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (updateBar.isShown()) updateBar.dismiss();
-        if ((episode.videoURL != null) && (!episode.videoURL.isEmpty())) {
-            startVideo(episode.videoURL);
-        } else {
-            Browser.getInstance(this).addJSONListener(new JSONListener() {
 
-                @Override
-                public void onJSONReceived(JSONObject json) {
-                    Log.d(TAG, "json: " + json.toString());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Browser.getInstance(AnimeActivity.this).reset();
-                        }
-                    });
+        Browser.getInstance(this).addJSONListener(new JSONListener() {
+
+            @Override
+            public void onJSONReceived(final JSONObject json) {
+                Log.d(TAG, "json: " + json.toString());
+                Browser.getInstance(AnimeActivity.this).reset();
+                try {
                     SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
-                    String resolution = prefs.getString("resolution", "r720p");
-                    //what you want isn't an enum...but an array? a set to loop through? String array probably
-
-                    while(json.optString("stub").isEmpty()){
-
-                    }
-                    if (json.has(resolution)) {
-
-                    }
-                }
-
-                @Override
-                public void onPageFailed() {
-                    //use a realm adapter? or just notifydatasetchanged so that the text color comes back to normal
-                }
-
-            });
-            Browser.getInstance(this).loadUrl(episode.url);
-            /*
-            Browser.getInstance(this).load(episode.url, new HtmlListener() {
-                @Override
-                public void onPageLoaded(String html) {
-                    Browser.getInstance(AnimeActivity.this).reset();
-                    Document doc = Jsoup.parse(html);
-                    final Element videoEle = doc.select(Selector.VIDEO).first();
-                    if (videoEle == null) {
-                        Log.e(TAG, "couldn't find div");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                loadDialog.dismiss();
-                                Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        return;
-                    }
-
+                    String resolution = prefs.getString("resolution", "1080p");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             realm.executeTransaction(new Realm.Transaction() {
                                 @Override
                                 public void execute(Realm realm) {
-                                    episode.videoURL = videoEle.attr("abs:src");
                                     episode.hasWatched = true;
-                                    startVideo(episode.videoURL);
                                 }
                             });
                         }
                     });
-                }
+                    startVideo(json.getString(resolution));
+                } catch (JSONException e) {
+                    Iterator<String> it = json.keys();
+                    final ArrayList<String> qualities = new ArrayList<String>();
+                    while (it.hasNext()) {
+                        qualities.add(it.next());
+                    }
 
-                @Override
-                public void onPageFailed() {
-                    Log.e(TAG, "onPageFailed: requestVideo");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (loadDialog.isShowing()) loadDialog.dismiss();
-                            Browser.getInstance(AnimeActivity.this).reset();
-                            Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    new AlertDialog.Builder(AnimeActivity.this)
+                            .setTitle("Select Quality")
+                            .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    Log.d(TAG, "chose: " + qualities.get(which));
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            realm.executeTransaction(new Realm.Transaction() {
+                                                @Override
+                                                public void execute(Realm realm) {
+                                                    episode.hasWatched = true;
+                                                }
+                                            });
+                                        }
+                                    });
+                                    startVideo(json.optString(qualities.get(which)));
+                                }
+                            })
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    Log.d(TAG, "onCancel");
+                                    rv.getAdapter().notifyDataSetChanged();
+                                }
+                            })
+                            .create()
+                            .show();
                 }
-            });
-            */
-        }
+            }
+
+            @Override
+            public void onPageFailed() {
+                Log.e(TAG, "requestVideo: onPageFailed");
+                Browser.getInstance(AnimeActivity.this).reset();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (loadDialog.isShowing()) loadDialog.dismiss();
+                        Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+        Browser.getInstance(this).loadUrl(episode.url);
     }
 
     private void startVideo(final String url) {
@@ -317,10 +315,15 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             @Override
             public void run() {
                 if (loadDialog.isShowing()) loadDialog.dismiss();
-                Anime prevAnime = realm.where(Anime.class).equalTo("isLastWatched", true).findFirst();
-                if (prevAnime != null) prevAnime.isLastWatched = false;
-                anime.isLastWatched = true;
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Anime prevAnime = realm.where(Anime.class).equalTo("isLastWatched", true).findFirst();
+                        if (prevAnime != null) prevAnime.isLastWatched = false;
+                        anime.isLastWatched = true;
 
+                    }
+                });
                 Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
                 intent.putExtra("url", url);
                 startActivity(intent);
@@ -330,6 +333,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     @Override
     public void onCancel(DialogInterface dialog) {
+        rv.getAdapter().notifyDataSetChanged();
         Browser.getInstance(this).reset();
     }
 

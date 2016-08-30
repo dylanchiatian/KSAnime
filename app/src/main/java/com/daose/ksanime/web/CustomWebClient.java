@@ -24,8 +24,7 @@ public class CustomWebClient extends WebViewClient {
             "        var qualities = document.getElementById(\"selectQuality\").options;\n" +
             "        var dictionary = {};\n" +
             "        for (var i = 0; i < qualities.length; i++) {\n" +
-            "            var key = \"r\" + qualities[i].text;" +
-            "            dictionary[key] = asp.wrap(qualities[i].value);\n" +
+            "            dictionary[qualities[i].text] = asp.wrap(qualities[i].value);\n" +
             "        }\n" +
             "        HtmlHandler.handleJSON(JSON.stringify(dictionary));\n" +
             "    } else {\n" +

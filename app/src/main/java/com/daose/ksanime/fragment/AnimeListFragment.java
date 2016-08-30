@@ -283,6 +283,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     @Override
     public void onPageFailed() {
+        Log.d(TAG, "onPageFailed");
         if (getActivity() == null) return;
         getActivity().runOnUiThread(new Runnable() {
             @Override
