@@ -28,7 +28,9 @@
             android:name="applovin.sdk.key"
             android:value="CeQ8HL41riZBGD8rgvKktklnmfM67lRJOsSfBXg1EFDUSLK8Ffs6Oau9FEGN-hhMT81kgimvzzOQJkTTOPfo_X" />
 
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
