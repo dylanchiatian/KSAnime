@@ -3,17 +3,25 @@ package com.daose.ksanime.web;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class HtmlHandler {
     private static final String TAG = HtmlHandler.class.getSimpleName();
 
     private HtmlListener listener;
+    private JSONListener JSONListener;
     private static final String BLANK_HTML = "<head></head><body></body>";
 
     public HtmlHandler() {
     }
 
-    public void setListener(HtmlListener listener) {
+    public void addHtmlListener(HtmlListener listener) {
         this.listener = listener;
+    }
+
+    public void addJSONListener(JSONListener listener){
+        this.JSONListener = listener;
     }
 
     public void removeListener() {
@@ -38,10 +46,19 @@ public class HtmlHandler {
         if(listener != null){
             listener.onPageFailed();
         }
+        if(JSONListener != null){
+            JSONListener.onPageFailed();
+        }
     }
 
     @JavascriptInterface
     public void handleJSON(String JSONString){
-        Log.d(TAG, "JSON: " + JSONString);
+        if(JSONListener != null){
+            try {
+                JSONListener.onJSONReceived(new JSONObject(JSONString));
+            } catch (JSONException e){
+                e.printStackTrace();
+            }
+        }
     }
 }

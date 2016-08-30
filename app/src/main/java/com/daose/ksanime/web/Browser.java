@@ -47,19 +47,22 @@ public class Browser {
     }
 
     public void load(String url, HtmlListener listener){
-        htmlHandler.setListener(listener);
+        htmlHandler.addHtmlListener(listener);
         loadUrl(url);
     }
 
-    public void setListener(HtmlListener listener){
-        htmlHandler.setListener(listener);
+    public void addHtmlListener(HtmlListener listener){
+        htmlHandler.addHtmlListener(listener);
+    }
+
+    public void addJSONListener(JSONListener listener){
+        htmlHandler.addJSONListener(listener);
     }
     public void removeListener(){
         htmlHandler.removeListener();
     }
 
     public void loadUrl(String url){
-        Log.d(TAG, "header: " + client.getHeaders().toString());
         webView.loadUrl(url, client.getHeaders());
     }
 

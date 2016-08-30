@@ -2,6 +2,7 @@ package com.daose.ksanime;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,9 +24,11 @@ import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
 import com.daose.ksanime.web.HtmlListener;
+import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,7 +42,7 @@ import io.realm.Realm;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 
-public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener {
+public class AnimeActivity extends AppCompatActivity implements HtmlListener, JSONListener, DialogInterface.OnCancelListener {
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
@@ -205,6 +208,15 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onJSONReceived(JSONObject json) {
+        SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
+        String resolution = prefs.getString("resolution", "720p");
+        if(json.has(resolution)){
+
+        }
     }
 
     public void toggleStar(final boolean isStarred) {
