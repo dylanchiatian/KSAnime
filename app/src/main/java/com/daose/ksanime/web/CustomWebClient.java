@@ -24,6 +24,10 @@ public class CustomWebClient extends WebViewClient {
             "HtmlHandler.handleHtml(document.documentElement.innerHTML);" +
             "}";
 
+    //TODO:: select quality
+    //select quality:
+    //console.log(asp.wrap("options value"));
+
     public CustomWebClient() {
         super();
         ignoreUrls = new HashSet<String>();
