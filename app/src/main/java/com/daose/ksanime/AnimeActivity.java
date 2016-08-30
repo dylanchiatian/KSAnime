@@ -42,7 +42,7 @@ import io.realm.Realm;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 
-public class AnimeActivity extends AppCompatActivity implements HtmlListener, JSONListener, DialogInterface.OnCancelListener {
+public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener {
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
@@ -210,15 +210,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, JS
         });
     }
 
-    @Override
-    public void onJSONReceived(JSONObject json) {
-        SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
-        String resolution = prefs.getString("resolution", "720p");
-        if(json.has(resolution)){
-
-        }
-    }
-
     public void toggleStar(final boolean isStarred) {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -240,6 +231,37 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, JS
         if ((episode.videoURL != null) && (!episode.videoURL.isEmpty())) {
             startVideo(episode.videoURL);
         } else {
+            Browser.getInstance(this).addJSONListener(new JSONListener() {
+
+                @Override
+                public void onJSONReceived(JSONObject json) {
+                    Log.d(TAG, "json: " + json.toString());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Browser.getInstance(AnimeActivity.this).reset();
+                        }
+                    });
+                    SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
+                    String resolution = prefs.getString("resolution", "r720p");
+                    //what you want isn't an enum...but an array? a set to loop through? String array probably
+
+                    while(json.optString("stub").isEmpty()){
+
+                    }
+                    if (json.has(resolution)) {
+
+                    }
+                }
+
+                @Override
+                public void onPageFailed() {
+                    //use a realm adapter? or just notifydatasetchanged so that the text color comes back to normal
+                }
+
+            });
+            Browser.getInstance(this).loadUrl(episode.url);
+            /*
             Browser.getInstance(this).load(episode.url, new HtmlListener() {
                 @Override
                 public void onPageLoaded(String html) {
@@ -286,6 +308,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, JS
                     });
                 }
             });
+            */
         }
     }
 

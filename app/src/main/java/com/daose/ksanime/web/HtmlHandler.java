@@ -24,8 +24,9 @@ public class HtmlHandler {
         this.JSONListener = listener;
     }
 
-    public void removeListener() {
+    public void removeListeners() {
         this.listener = null;
+        this.JSONListener = null;
     }
 
     @JavascriptInterface

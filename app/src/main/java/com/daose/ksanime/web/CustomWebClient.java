@@ -15,7 +15,7 @@ public class CustomWebClient extends WebViewClient {
 
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
-    private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook", "video.js"};
+    private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
     private static final String javascript = "javascript:" +
             "if (document.documentElement == null || document.body.innerHTML == \"The service is unavailable.\") {\n" +
             "    HtmlHandler.handleError();\n" +
@@ -24,7 +24,8 @@ public class CustomWebClient extends WebViewClient {
             "        var qualities = document.getElementById(\"selectQuality\").options;\n" +
             "        var dictionary = {};\n" +
             "        for (var i = 0; i < qualities.length; i++) {\n" +
-            "            dictionary[qualities[i].text] = asp.wrap(qualities[i].value);\n" +
+            "            var key = \"r\" + qualities[i].text;" +
+            "            dictionary[key] = asp.wrap(qualities[i].value);\n" +
             "        }\n" +
             "        HtmlHandler.handleJSON(JSON.stringify(dictionary));\n" +
             "    } else {\n" +
@@ -32,10 +33,7 @@ public class CustomWebClient extends WebViewClient {
             "    }\n" +
             "}";
 
-
     //TODO:: select quality
-    //select quality:
-    //console.log(asp.wrap("options value"));
 
     public CustomWebClient() {
         super();
@@ -63,26 +61,28 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-        Log.d(TAG, "request: " + url);
         if (ignoreUrls.contains(url)) {
+            Log.d(TAG, "FAIL: " + url);
             return dud;
         }
 
         //cloudflare, pass
         if (url.contains("answer")) return null;
 
-        if (url.contains("kissanime")) {
+        if (url.contains("kissanime") || url.contains("video")) {
             for (String key : ignoreKeys) {
                 if (url.contains(key)) {
                     //Log.d(TAG, "IGNORE: " + url);
                     ignoreUrls.add(url);
+                    Log.d(TAG, "FAIL: " + url);
                     return dud;
                 }
             }
-            //Log.d(TAG, "PASS: " + url);
+            Log.d(TAG, "PASS: " + url);
             return null;
         } else {
             ignoreUrls.add(url);
+            Log.d(TAG, "FAIL: " + url);
             return dud;
         }
     }
@@ -90,7 +90,7 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-
+        Log.d(TAG, "onPageFinished: " + url);
         //get post-javascript html and pass it to HtmlHandler.handleHtml()
         view.loadUrl(javascript);
     }

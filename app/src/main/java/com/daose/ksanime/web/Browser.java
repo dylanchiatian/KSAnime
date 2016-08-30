@@ -39,7 +39,7 @@ public class Browser {
         Runnable reset = new Runnable() {
             @Override
             public void run() {
-                removeListener();
+                removeListeners();
                 loadUrl("about:blank");
             }
         };
@@ -58,8 +58,8 @@ public class Browser {
     public void addJSONListener(JSONListener listener){
         htmlHandler.addJSONListener(listener);
     }
-    public void removeListener(){
-        htmlHandler.removeListener();
+    public void removeListeners(){
+        htmlHandler.removeListeners();
     }
 
     public void loadUrl(String url){
