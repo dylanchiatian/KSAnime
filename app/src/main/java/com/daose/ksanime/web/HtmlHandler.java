@@ -22,7 +22,7 @@ public class HtmlHandler {
 
     @JavascriptInterface
     public void handleHtml(String html) {
-        //Log.d(TAG, "got html with listener: " + listener);
+        Log.d(TAG, "got html with listener: " + listener);
         if (listener != null) {
             if (html.equals(BLANK_HTML)) {
                 listener.onPageFailed();
@@ -38,5 +38,10 @@ public class HtmlHandler {
         if(listener != null){
             listener.onPageFailed();
         }
+    }
+
+    @JavascriptInterface
+    public void handleJSON(String JSONString){
+        Log.d(TAG, "JSON: " + JSONString);
     }
 }

@@ -15,14 +15,23 @@ public class CustomWebClient extends WebViewClient {
 
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
-    private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
+    private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook", "video.js"};
     private static final String javascript = "javascript:" +
-            "if(document.documentElement == null || document.body.innerHTML === \"The service is unavailable.\"){" +
-            "HtmlHandler.handleError(); " +
-            "}else if(document.title === \"Please wait 5 seconds...\")" +
-            "{}else{" +
-            "HtmlHandler.handleHtml(document.documentElement.innerHTML);" +
+            "if (document.documentElement == null || document.body.innerHTML == \"The service is unavailable.\") {\n" +
+            "    HtmlHandler.handleError();\n" +
+            "} else if (document.title != \"Please wait 5 seconds...\") {\n" +
+            "    if (document.getElementById(\"selectQuality\") != null) {\n" +
+            "        var qualities = document.getElementById(\"selectQuality\").options;\n" +
+            "        var dictionary = {};\n" +
+            "        for (var i = 0; i < qualities.length; i++) {\n" +
+            "            dictionary[qualities[i].text] = asp.wrap(qualities[i].value);\n" +
+            "        }\n" +
+            "        HtmlHandler.handleJSON(JSON.stringify(dictionary));\n" +
+            "    } else {\n" +
+            "        HtmlHandler.handleHtml(document.documentElement.innerHTML);\n" +
+            "    }\n" +
             "}";
+
 
     //TODO:: select quality
     //select quality:
@@ -35,7 +44,7 @@ public class CustomWebClient extends WebViewClient {
         headers.put("X-Requested-With", "");
     }
 
-    public Map<String, String> getHeaders(){
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
