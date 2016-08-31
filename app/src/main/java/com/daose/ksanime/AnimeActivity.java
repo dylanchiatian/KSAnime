@@ -72,10 +72,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
     private FloatingActionButton fab;
     private boolean isDownloadMode;
-    private LongSparseArray<Episode> downloadQueue;
-    private DownloadManager dm;
-
-    //TODO:: loading here as well
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,55 +83,14 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         initUI();
         showUpdateIndicator(anime.episodes.isEmpty());
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        Log.d(TAG, "initiated");
         Browser.getInstance(this).load(anime.summaryURL, this);
         fab.setVisibility(View.VISIBLE);
-        initDownloadManager();
     }
-
     private void showUpdateIndicator(boolean show) {
         if (show) {
             updateBar.show();
         }
     }
-
-    private void initDownloadManager() {
-        dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
-                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-                    DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(downloadId);
-                    Cursor c = dm.query(query);
-                    if (c.moveToFirst()) {
-                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                            String path = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
-                            downloadSuccess(downloadId, path);
-                        }
-                    }
-                    downloadQueue.remove(downloadId);
-                }
-            }
-        };
-        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-    }
-
-    private void downloadSuccess(final long downloadId, final String path) {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                Episode episode = downloadQueue.get(downloadId);
-                Log.d(TAG, "Episode: " + episode.name + " finished downloading to: \n" + path);
-                //TODO:: what if user deletes them outside of the app? you would attempt to play and just say file not found
-                episode.localFilePath = path;
-            }
-        });
-    }
-
     private void initAds() {
         if (AppLovinInterstitialAd.isAdReadyToDisplay(this)) {
             if (Math.random() > 0.5) {
@@ -144,17 +99,11 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        realm.close();
-    }
 
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
         String animeTitle = getIntent().getStringExtra("anime");
         this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
-        downloadQueue = new LongSparseArray<Episode>();
     }
 
     private void initUI() {
@@ -271,6 +220,9 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 if (updateBar.isShown()) {
                     updateBar.dismiss();
                 }
+                if(loadDialog.isShowing()){
+                    loadDialog.dismiss();
+                }
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
         });
@@ -285,10 +237,22 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         });
     }
 
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        realm.close();
+    }
+
     @Override
     public void onPause() {
         super.onPause();
         Browser.getInstance(this).reset();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
     }
 
     public void requestVideo(final Episode episode) {
@@ -391,20 +355,23 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                     Log.e(TAG, "External storage not available");
                     Toast.makeText(AnimeActivity.this, "Cannot save file", Toast.LENGTH_SHORT).show();
                 }
-                String fileName = "";
+                String filePath = anime.title.replaceAll("[^a-zA-Z0-9.-]", "-");
                 try {
-                    fileName = URLEncoder.encode(episode.name, "UTF-8");
+                    filePath += "/" + episode.name.replaceAll("[^a-zA-Z0-9]", "-");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    fileName = UUID.randomUUID().toString();
+                    filePath += "/" + UUID.randomUUID().toString();
                 }
+                Log.d(TAG, "filename: " + filePath);
+
+                DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
-                request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, fileName + ".mp4");
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, fileName + ".mp4");
+//                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, filePath + ".mp4");
+                request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath + ".mp4");
                 request.allowScanningByMediaScanner();
                 request.setVisibleInDownloadsUi(true);
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                downloadQueue.put(dm.enqueue(request), episode);
+                dm.enqueue(request);
             }
         });
 

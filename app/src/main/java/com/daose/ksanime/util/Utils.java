@@ -2,9 +2,6 @@ package com.daose.ksanime.util;
 
 import android.os.Environment;
 
-/**
- * Created by student on 27/08/16.
- */
 public class Utils {
     public static boolean containsIgnoreCase(String src, String what) {
         final int length = what.length();
