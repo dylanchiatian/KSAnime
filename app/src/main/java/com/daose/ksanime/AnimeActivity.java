@@ -18,7 +18,9 @@ import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -86,11 +88,13 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         Browser.getInstance(this).load(anime.summaryURL, this);
         fab.setVisibility(View.VISIBLE);
     }
+
     private void showUpdateIndicator(boolean show) {
         if (show) {
             updateBar.show();
         }
     }
+
     private void initAds() {
         if (AppLovinInterstitialAd.isAdReadyToDisplay(this)) {
             if (Math.random() > 0.5) {
@@ -149,9 +153,11 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     }
 
     public void onArrowClick() {
-        //TODO:: smooth scroll maybe 2-3 if possible or else to max
-        if (rv.getAdapter().getItemCount() > 1) {
-            rv.getLayoutManager().scrollToPosition(1);
+        //TODO:: smooth scroll to last watched position?
+        if (rv.getAdapter().getItemCount() > 5) {
+            rv.smoothScrollToPosition(5);
+        } else if (rv.getAdapter().getItemCount() > 0) {
+            rv.smoothScrollToPosition(rv.getAdapter().getItemCount() - 1);
         }
     }
 
@@ -220,7 +226,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 if (updateBar.isShown()) {
                     updateBar.dismiss();
                 }
-                if(loadDialog.isShowing()){
+                if (loadDialog.isShowing()) {
                     loadDialog.dismiss();
                 }
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
@@ -251,7 +257,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
     }
 
@@ -304,6 +310,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     }
 
     private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
+        if(loadDialog.isShowing()) loadDialog.dismiss();
         Iterator<String> it = json.keys();
         final ArrayList<String> qualities = new ArrayList<String>();
         while (it.hasNext()) {
@@ -337,7 +344,12 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        rv.getAdapter().notifyDataSetChanged();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                rv.getAdapter().notifyDataSetChanged();
+                            }
+                        });
                     }
                 })
                 .create()
@@ -348,7 +360,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(loadDialog.isShowing()){
+                if (loadDialog.isShowing()) {
                     loadDialog.dismiss();
                 }
                 if (!Utils.isExternalStorageAvailable()) {

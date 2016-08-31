@@ -50,7 +50,6 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        //TODO:: might be better to just have even/odd layout
         if (holder instanceof HeaderViewHolder) {
             HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
             headerViewHolder.title.setText(anime.title);
