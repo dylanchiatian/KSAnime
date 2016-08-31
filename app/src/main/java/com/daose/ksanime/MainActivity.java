@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
+import com.daose.ksanime.fragment.DownloadFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
         AnimeListFragment.OnFragmentInteractionListener,
         SearchFragment.OnFragmentInteractionListener,
+        DownloadFragment.OnFragmentInteractionListener,
         DrawerLayout.DrawerListener,
         SearchView.OnQueryTextListener,
         SearchView.OnOpenCloseListener {
@@ -164,10 +166,17 @@ public class MainActivity extends AppCompatActivity implements
     public void onDrawerClosed(View drawerView) {
         if (isNewMenuItem) {
             Fragment fragment;
-            if (getTitle().equals("Settings")) {
-                fragment = SettingsFragment.newInstance();
-            } else {
-                fragment = AnimeListFragment.newInstance(getTitle().toString());
+            String title = getTitle().toString();
+            switch(title){
+                case "Settings":
+                    fragment = SettingsFragment.newInstance();
+                    break;
+                case "Downloaded":
+                    fragment = DownloadFragment.newInstance();
+                    break;
+                default:
+                    fragment = AnimeListFragment.newInstance(title);
+                    break;
             }
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
         }
@@ -230,5 +239,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onOpen() {
         searchList.clear();
+    }
+
+    @Override
+    public void onVideoClick(String path) {
+        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
+        intent.putExtra("url", path);
+        startActivity(intent);
     }
 }

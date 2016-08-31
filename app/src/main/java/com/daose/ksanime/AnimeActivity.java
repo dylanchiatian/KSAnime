@@ -1,12 +1,20 @@
 package com.daose.ksanime;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -37,16 +45,19 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 
-public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener {
+public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener, View.OnClickListener {
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
@@ -59,6 +70,11 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     private Snackbar updateBar;
     private SpotsDialog loadDialog;
 
+    private FloatingActionButton fab;
+    private boolean isDownloadMode;
+    private LongSparseArray<Episode> downloadQueue;
+    private DownloadManager dm;
+
     //TODO:: loading here as well
 
     @Override
@@ -70,13 +86,54 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         setupDatabase();
         initUI();
         showUpdateIndicator(anime.episodes.isEmpty());
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Log.d(TAG, "initiated");
         Browser.getInstance(this).load(anime.summaryURL, this);
+        fab.setVisibility(View.VISIBLE);
+        initDownloadManager();
     }
 
     private void showUpdateIndicator(boolean show) {
         if (show) {
             updateBar.show();
         }
+    }
+
+    private void initDownloadManager() {
+        dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
+                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
+                    DownloadManager.Query query = new DownloadManager.Query();
+                    query.setFilterById(downloadId);
+                    Cursor c = dm.query(query);
+                    if (c.moveToFirst()) {
+                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
+                            String path = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
+                            downloadSuccess(downloadId, path);
+                        }
+                    }
+                    downloadQueue.remove(downloadId);
+                }
+            }
+        };
+        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    }
+
+    private void downloadSuccess(final long downloadId, final String path) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Episode episode = downloadQueue.get(downloadId);
+                Log.d(TAG, "Episode: " + episode.name + " finished downloading to: \n" + path);
+                //TODO:: what if user deletes them outside of the app? you would attempt to play and just say file not found
+                episode.localFilePath = path;
+            }
+        });
     }
 
     private void initAds() {
@@ -97,12 +154,15 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         realm = Realm.getDefaultInstance();
         String animeTitle = getIntent().getStringExtra("anime");
         this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
+        downloadQueue = new LongSparseArray<Episode>();
     }
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
         updateBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
         updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(this);
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
         loadDialog.setOnCancelListener(this);
 
@@ -208,7 +268,9 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             @Override
             public void run() {
                 Browser.getInstance(AnimeActivity.this).reset();
-                if (updateBar.isShown()) updateBar.dismiss();
+                if (updateBar.isShown()) {
+                    updateBar.dismiss();
+                }
                 Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
             }
         });
@@ -234,60 +296,30 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         if (updateBar.isShown()) updateBar.dismiss();
 
         Browser.getInstance(this).addJSONListener(new JSONListener() {
-
             @Override
             public void onJSONReceived(final JSONObject json) {
                 Browser.getInstance(AnimeActivity.this).reset();
-                try {
-                    SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
-                    String resolution = prefs.getString("quality", "720p");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            realm.executeTransaction(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
-                                    episode.hasWatched = true;
-                                }
-                            });
-                        }
-                    });
-                    startVideo(json.getString(resolution));
-                } catch (JSONException e) {
-                    Iterator<String> it = json.keys();
-                    final ArrayList<String> qualities = new ArrayList<String>();
-                    while (it.hasNext()) {
-                        qualities.add(it.next());
+                if (isDownloadMode) {
+                    showSelectQualityDialog(episode, json);
+                } else {
+                    try {
+                        SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
+                        String resolution = prefs.getString("quality", "720p");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        episode.hasWatched = true;
+                                    }
+                                });
+                            }
+                        });
+                        startVideo(json.getString(resolution));
+                    } catch (JSONException e) {
+                        showSelectQualityDialog(episode, json);
                     }
-
-                    new AlertDialog.Builder(AnimeActivity.this)
-                            .setTitle("Select Quality")
-                            .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            realm.executeTransaction(new Realm.Transaction() {
-                                                @Override
-                                                public void execute(Realm realm) {
-                                                    episode.hasWatched = true;
-                                                }
-                                            });
-                                        }
-                                    });
-                                    startVideo(json.optString(qualities.get(which)));
-                                }
-                            })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    rv.getAdapter().notifyDataSetChanged();
-                                }
-                            })
-                            .create()
-                            .show();
                 }
             }
 
@@ -305,6 +337,77 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             }
         });
         Browser.getInstance(this).loadUrl(episode.url);
+    }
+
+    private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
+        Iterator<String> it = json.keys();
+        final ArrayList<String> qualities = new ArrayList<String>();
+        while (it.hasNext()) {
+            qualities.add(it.next());
+        }
+
+        new AlertDialog.Builder(AnimeActivity.this)
+                .setTitle("Select Quality")
+                .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        if (isDownloadMode) {
+                            downloadVideo(episode, json.optString(qualities.get(which)));
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    realm.executeTransaction(new Realm.Transaction() {
+                                        @Override
+                                        public void execute(Realm realm) {
+                                            episode.hasWatched = true;
+                                        }
+                                    });
+                                }
+                            });
+                            startVideo(json.optString(qualities.get(which)));
+                        }
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        rv.getAdapter().notifyDataSetChanged();
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void downloadVideo(final Episode episode, final String downloadURL) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(loadDialog.isShowing()){
+                    loadDialog.dismiss();
+                }
+                if (!Utils.isExternalStorageAvailable()) {
+                    Log.e(TAG, "External storage not available");
+                    Toast.makeText(AnimeActivity.this, "Cannot save file", Toast.LENGTH_SHORT).show();
+                }
+                String fileName = "";
+                try {
+                    fileName = URLEncoder.encode(episode.name, "UTF-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    fileName = UUID.randomUUID().toString();
+                }
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
+                request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, fileName + ".mp4");
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, fileName + ".mp4");
+                request.allowScanningByMediaScanner();
+                request.setVisibleInDownloadsUi(true);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                downloadQueue.put(dm.enqueue(request), episode);
+            }
+        });
+
     }
 
     private void startVideo(final String url) {
@@ -332,6 +435,16 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     public void onCancel(DialogInterface dialog) {
         rv.getAdapter().notifyDataSetChanged();
         Browser.getInstance(this).reset();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (isDownloadMode) {
+            isDownloadMode = false;
+        } else {
+            isDownloadMode = true;
+            Toast.makeText(this, "Click to Download", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private class GetCoverURL implements Realm.Transaction {

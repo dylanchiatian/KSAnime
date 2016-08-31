@@ -15,10 +15,10 @@
             android:icon="@drawable/ic_star_border_black_24dp"
             android:title="Starred" />
 
-        <!--      <item
-                  android:id="@+id/nav_downloaded"
-                  android:icon="@drawable/ic_file_download_black_24dp"
-                  android:title="Downloaded" /> -->
+        <item
+            android:id="@+id/nav_downloaded"
+            android:icon="@drawable/ic_file_download_black_24dp"
+            android:title="Downloaded" />
 
         <item
             android:id="@+id/nav_settings"

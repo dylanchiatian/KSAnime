@@ -1,5 +1,7 @@
 package com.daose.ksanime.util;
 
+import android.os.Environment;
+
 /**
  * Created by student on 27/08/16.
  */
@@ -35,5 +37,9 @@ public class Utils {
         public float getInterpolation(final float input) {
             return (float) Math.sin(2.0f * mCycles * Math.PI * input);
         }
+    }
+
+    public static boolean isExternalStorageAvailable(){
+        return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 }
