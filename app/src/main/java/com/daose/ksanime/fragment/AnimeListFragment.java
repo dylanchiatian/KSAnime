@@ -107,12 +107,17 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_anime_list, container, false);
+        if (type == Type.Starred && animeList.isEmpty()) {
+            return inflater.inflate(R.layout.star_list_default, container, false);
+        } else {
+            return inflater.inflate(R.layout.fragment_anime_list, container, false);
+        }
     }
 
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        if (type == Type.Starred && animeList.isEmpty()) return;
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
         rv.setAdapter(new AnimeAdapter(this, animeList, MainActivity.nativeAds));
@@ -160,7 +165,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (refreshBar.isShown()) refreshBar.dismiss();
+        if (refreshBar != null && refreshBar.isShown()) refreshBar.dismiss();
         realm.close();
     }
 

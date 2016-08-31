@@ -237,11 +237,10 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
 
             @Override
             public void onJSONReceived(final JSONObject json) {
-                Log.d(TAG, "json: " + json.toString());
                 Browser.getInstance(AnimeActivity.this).reset();
                 try {
                     SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
-                    String resolution = prefs.getString("resolution", "1080p");
+                    String resolution = prefs.getString("quality", "720p");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -267,7 +266,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
-                                    Log.d(TAG, "chose: " + qualities.get(which));
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -285,7 +283,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                             .setOnCancelListener(new DialogInterface.OnCancelListener() {
                                 @Override
                                 public void onCancel(DialogInterface dialog) {
-                                    Log.d(TAG, "onCancel");
                                     rv.getAdapter().notifyDataSetChanged();
                                 }
                             })

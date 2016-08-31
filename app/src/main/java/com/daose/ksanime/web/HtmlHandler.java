@@ -31,7 +31,6 @@ public class HtmlHandler {
 
     @JavascriptInterface
     public void handleHtml(String html) {
-        Log.d(TAG, "got html with listener: " + listener);
         if (listener != null) {
             if (html.equals(BLANK_HTML)) {
                 listener.onPageFailed();

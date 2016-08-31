@@ -47,7 +47,6 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        Log.d(TAG, "url: " + url);
         view.loadUrl(url, headers);
         return true;
     }
@@ -61,7 +60,7 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
         if (ignoreUrls.contains(url)) {
-            Log.d(TAG, "FAIL: " + url);
+            //Log.d(TAG, "FAIL: " + url);
             return dud;
         }
 
@@ -73,15 +72,15 @@ public class CustomWebClient extends WebViewClient {
                 if (url.contains(key)) {
                     //Log.d(TAG, "IGNORE: " + url);
                     ignoreUrls.add(url);
-                    Log.d(TAG, "FAIL: " + url);
+                    //Log.d(TAG, "FAIL: " + url);
                     return dud;
                 }
             }
-            Log.d(TAG, "PASS: " + url);
+            //Log.d(TAG, "PASS: " + url);
             return null;
         } else {
             ignoreUrls.add(url);
-            Log.d(TAG, "FAIL: " + url);
+            //Log.d(TAG, "FAIL: " + url);
             return dud;
         }
     }
@@ -89,7 +88,7 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        Log.d(TAG, "onPageFinished: " + url);
+        //Log.d(TAG, "onPageFinished: " + url);
         //get post-javascript html and pass it to HtmlHandler.handleHtml()
         view.loadUrl(javascript);
     }

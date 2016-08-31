@@ -19,6 +19,7 @@ import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.SearchFragment;
+import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
 import com.lapism.searchview.SearchView;
 import com.squareup.picasso.Picasso;
@@ -164,7 +165,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onDrawerClosed(View drawerView) {
         if (isNewMenuItem) {
-            Fragment fragment = AnimeListFragment.newInstance(getTitle().toString());
+            Fragment fragment;
+            if (getTitle().equals("Settings")) {
+                fragment = SettingsFragment.newInstance();
+            } else {
+                fragment = AnimeListFragment.newInstance(getTitle().toString());
+            }
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
         }
         isNewMenuItem = false;

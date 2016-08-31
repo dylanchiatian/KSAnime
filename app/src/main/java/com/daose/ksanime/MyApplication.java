@@ -1,6 +1,8 @@
 package com.daose.ksanime;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.applovin.sdk.AppLovinSdk;
 
@@ -12,9 +14,6 @@ import java.io.InputStream;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
-/**
- * Created by STUDENT on 2016-08-19.
- */
 public class MyApplication extends Application {
 
     private static final String TAG = MyApplication.class.getSimpleName();
@@ -23,7 +22,6 @@ public class MyApplication extends Application {
     public void onCreate(){
         super.onCreate();
 
-        /*
         SharedPreferences settings = getSharedPreferences("daose", 0);
         if (settings.getBoolean("first_install", true)) {
             Log.d(TAG, "first install detected");
@@ -32,14 +30,13 @@ public class MyApplication extends Application {
             editor.putBoolean("first_install", false);
             editor.apply();
         }
-        */
 
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build();
         Realm.setDefaultConfiguration(realmConfiguration);
 
         AppLovinSdk.initializeSdk(getApplicationContext());
 
-        /* Get Database
+        /*
         Realm realm = Realm.getDefaultInstance();
         Log.d("REALM", realm.getPath());
         File exportRealmFile = null;
