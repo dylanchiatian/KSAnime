@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity implements
     private ImageView headerImage;
     public static List<AppLovinNativeAd> nativeAds;
 
-    //TODO:: request native ads from somewhere global and inflate with old native ad then replace so there's no unnecessary shifting
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
