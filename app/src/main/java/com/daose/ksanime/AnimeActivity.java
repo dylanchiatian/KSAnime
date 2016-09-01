@@ -11,6 +11,7 @@ import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -154,7 +155,12 @@ public class AnimeActivity extends AppCompatActivity {
                         if (updateBar.isShownOrQueued()) {
                             updateBar.dismiss();
                         }
-                        fab.show();
+                        fab.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                fab.show();
+                            }
+                        }, 1000);
                     }
                 });
             }
@@ -334,6 +340,46 @@ public class AnimeActivity extends AppCompatActivity {
                 .show();
     }
 
+    public boolean isFirstDownload() {
+        SharedPreferences pref = getSharedPreferences("daose", MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (pref.getBoolean("first_download", true)) {
+            editor.putBoolean("first_download", false);
+            editor.apply();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void showRatingDialog(final Episode episode, final JSONObject json) {
+        new AlertDialog.Builder(this)
+                .setTitle("Thank you!")
+                .setMessage("Want more features like offline videos? Please leave a review!")
+                .setPositiveButton("Okay!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String id = getPackageName();
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + id)));
+                        } catch (android.content.ActivityNotFoundException exception) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + id)));
+                        }
+                        showSelectQualityDialog(episode, json);
+                    }
+                })
+                .setNegativeButton("</3", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        showSelectQualityDialog(episode, json);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+
+    //TODO:: bug that keeps looping forever, no idea of network?
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (updateBar.isShown()) updateBar.dismiss();
@@ -343,7 +389,11 @@ public class AnimeActivity extends AppCompatActivity {
             public void onJSONReceived(final JSONObject json) {
                 Browser.getInstance(AnimeActivity.this).reset();
                 if (inDownloadMode) {
-                    showSelectQualityDialog(episode, json);
+                    if (isFirstDownload()) {
+                        showRatingDialog(episode, json);
+                    } else {
+                        showSelectQualityDialog(episode, json);
+                    }
                 } else {
                     try {
                         SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
