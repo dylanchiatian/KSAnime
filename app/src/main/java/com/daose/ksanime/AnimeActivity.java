@@ -305,7 +305,12 @@ public class AnimeActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if (inDownloadMode) {
-                            showAdDialog(episode, json.optString(qualities.get(which)));
+                            if (isFirstDownload()) {
+                                showRatingDialog();
+                            } else {
+                                showAdDialog();
+                            }
+                            downloadVideo(episode, json.optString(qualities.get(which)));
                         } else {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -349,7 +354,7 @@ public class AnimeActivity extends AppCompatActivity {
         }
     }
 
-    public void showRatingDialog(final Episode episode, final JSONObject json) {
+    public void showRatingDialog() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.rating_title))
                 .setMessage(getString(R.string.rating_message))
@@ -361,27 +366,14 @@ public class AnimeActivity extends AppCompatActivity {
                         } catch (android.content.ActivityNotFoundException exception) {
                             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.MARKET_URL)));
                         }
-                        showSelectQualityDialog(episode, json);
-                    }
-                })
-                .setNegativeButton("</3", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        showSelectQualityDialog(episode, json);
-                    }
-                })
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        showSelectQualityDialog(episode, json);
                     }
                 })
                 .create()
                 .show();
     }
 
-    private void showAdDialog(Episode episode, String url){
-        if(videoAd.isAdReadyToDisplay()) {
+    private void showAdDialog() {
+        if (videoAd.isAdReadyToDisplay()) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.ad_title))
                     .setMessage(getString(R.string.ad_message))
@@ -400,15 +392,14 @@ public class AnimeActivity extends AppCompatActivity {
                     .create()
                     .show();
         }
-        downloadVideo(episode, url);
     }
 
     //TODO:: bug that keeps looping forever, no idea of network?
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (updateBar.isShown()) updateBar.dismiss();
-        if(inDownloadMode){
-            if(!videoAd.isAdReadyToDisplay()) {
+        if (inDownloadMode) {
+            if (!videoAd.isAdReadyToDisplay()) {
                 videoAd.preload(null);
             }
         }
@@ -417,11 +408,7 @@ public class AnimeActivity extends AppCompatActivity {
             public void onJSONReceived(final JSONObject json) {
                 Browser.getInstance(AnimeActivity.this).reset();
                 if (inDownloadMode) {
-                    if (isFirstDownload()) {
-                        showRatingDialog(episode, json);
-                    } else {
-                        showSelectQualityDialog(episode, json);
-                    }
+                    showSelectQualityDialog(episode, json);
                 } else {
                     try {
                         SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
@@ -476,7 +463,7 @@ public class AnimeActivity extends AppCompatActivity {
 
                 //TODO:: broadcast manager for deeplink into download fragment
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                if(dm == null) {
+                if (dm == null) {
                     Toast.makeText(AnimeActivity.this, getString(R.string.download_unavailable), Toast.LENGTH_SHORT).show();
                     return;
                 }

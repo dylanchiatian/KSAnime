@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.R;
-import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.model.Anime;
 import com.squareup.picasso.Picasso;
@@ -21,10 +20,10 @@ import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
 import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 
-public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.ViewHolder> {
+public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.ViewHolder> {
 
     private OrderedRealmCollection<Anime> animeList;
-    private AnimeListFragment fragment;
+    private HomeFragment fragment;
     private Context ctx;
     private List<AppLovinNativeAd> nativeAds;
 
@@ -46,10 +45,10 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
         View v;
         switch (viewType) {
             case Type.ANIME:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_item, parent, false);
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_horizontal_item, parent, false);
                 return new ViewHolder(v);
             default:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_ad, parent, false);
+                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_horizontal_ad, parent, false);
                 return new AdViewHolder(v);
         }
     }
@@ -60,8 +59,6 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             final AppLovinNativeAd ad = nativeAds.get(position);
             AdViewHolder vh = (AdViewHolder) holder;
             vh.title.setText(ad.getTitle());
-            vh.cta.setText(ad.getCtaText());
-            vh.description.setText(ad.getDescriptionText());
             vh.card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -96,15 +93,13 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
 
     public class AdViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView title, description, cta;
+        private TextView title;
         private ImageView iconImg;
         private View card;
 
         public AdViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
-            cta = (TextView) itemView.findViewById(R.id.cta);
-            description = (TextView) itemView.findViewById(R.id.description);
             iconImg = (ImageView) itemView.findViewById(R.id.image_view);
             card = itemView.findViewById(R.id.card);
         }
@@ -125,7 +120,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
 
     }
 
-    public AnimeAdapter(AnimeListFragment fragment, OrderedRealmCollection<Anime> animeList, List<AppLovinNativeAd> nativeAds) {
+    public HorizontalAdapter(HomeFragment fragment, OrderedRealmCollection<Anime> animeList, List<AppLovinNativeAd> nativeAds) {
         super(fragment.getContext(), animeList, true);
         this.fragment = fragment;
         this.ctx = fragment.getContext();
@@ -138,5 +133,4 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             offset = nativeAds.size();
         }
     }
-
 }

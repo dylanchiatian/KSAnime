@@ -19,6 +19,7 @@ import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.DownloadFragment;
+import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements
         AnimeListFragment.OnFragmentInteractionListener,
         SearchFragment.OnFragmentInteractionListener,
         DownloadFragment.OnFragmentInteractionListener,
+        HomeFragment.OnFragmentInteractionListener,
         DrawerLayout.DrawerListener,
         SearchView.OnQueryTextListener,
         SearchView.OnOpenCloseListener {
@@ -173,6 +175,9 @@ public class MainActivity extends AppCompatActivity implements
                     break;
                 case "Downloaded":
                     fragment = DownloadFragment.newInstance();
+                    break;
+                case "Home":
+                    fragment = HomeFragment.newInstance();
                     break;
                 default:
                     fragment = AnimeListFragment.newInstance(title);
