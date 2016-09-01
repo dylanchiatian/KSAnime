@@ -351,6 +351,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
         @Override
         protected void onPostExecute(final String url) {
+            Realm realm = Realm.getDefaultInstance();
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -358,6 +359,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                     anime.coverURL = url;
                 }
             });
+            realm.close();
         }
     }
 
