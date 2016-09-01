@@ -26,6 +26,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.daose.ksanime.adapter.EpisodeAdapter;
 import com.daose.ksanime.model.Anime;
@@ -66,14 +67,14 @@ public class AnimeActivity extends AppCompatActivity {
 
     private Anime anime;
     private ImageView cover, star, starAnimation;
+    private Snackbar updateBar;
+    private SpotsDialog loadDialog;
+    private FloatingActionButton fab;
     private RecyclerView rv;
 
     private Realm realm;
 
-    private Snackbar updateBar;
-    private SpotsDialog loadDialog;
-
-    private FloatingActionButton fab;
+    private AppLovinIncentivizedInterstitial videoAd;
 
     private boolean inDownloadMode;
 
@@ -189,6 +190,7 @@ public class AnimeActivity extends AppCompatActivity {
                 AppLovinInterstitialAd.show(this);
             }
         }
+        videoAd = AppLovinIncentivizedInterstitial.create(this);
     }
 
     private void setupDatabase() {
@@ -308,7 +310,7 @@ public class AnimeActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if (inDownloadMode) {
-                            downloadVideo(episode, json.optString(qualities.get(which)));
+                            showAdDialog(episode, json.optString(qualities.get(which)));
                         } else {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -378,12 +380,38 @@ public class AnimeActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void showAdDialog(Episode episode, String url){
+        if(videoAd.isAdReadyToDisplay()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Downloading...")
+                    .setMessage("Watch a video while downloading?")
+                    .setPositiveButton("Okay!", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            videoAd.show(AnimeActivity.this);
+                        }
+                    })
+                    .setNegativeButton("</3", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+        downloadVideo(episode, url);
+    }
 
     //TODO:: bug that keeps looping forever, no idea of network?
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (updateBar.isShown()) updateBar.dismiss();
-
+        if(inDownloadMode){
+            if(!videoAd.isAdReadyToDisplay()) {
+                videoAd.preload(null);
+            }
+        }
         Browser.getInstance(this).addJSONListener(new JSONListener() {
             @Override
             public void onJSONReceived(final JSONObject json) {

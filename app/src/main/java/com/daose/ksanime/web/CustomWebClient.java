@@ -16,6 +16,7 @@ public class CustomWebClient extends WebViewClient {
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook"};
+    //TODO:: bug "asp is not defined"
     private static final String javascript = "javascript:" +
             "if (document.documentElement == null || document.body.innerHTML == \"The service is unavailable.\") {\n" +
             "    HtmlHandler.handleError();\n" +
