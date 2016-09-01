@@ -22,7 +22,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
 
     @Override
     public DownloadAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        //TODO:: change to another layout
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.episode_item, parent, false);
         return new ViewHolder(v);
     }

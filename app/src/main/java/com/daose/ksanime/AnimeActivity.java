@@ -1,26 +1,20 @@
 package com.daose.ksanime;
 
 import android.app.DownloadManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.util.LongSparseArray;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -47,9 +41,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -58,8 +50,9 @@ import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
 import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
+import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
-public class AnimeActivity extends AppCompatActivity implements HtmlListener, DialogInterface.OnCancelListener, View.OnClickListener {
+public class AnimeActivity extends AppCompatActivity {
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
@@ -73,7 +66,8 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
     private SpotsDialog loadDialog;
 
     private FloatingActionButton fab;
-    private boolean isDownloadMode;
+
+    private boolean inDownloadMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,16 +77,94 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         initAds();
         setupDatabase();
         initUI();
-        showUpdateIndicator(anime.episodes.isEmpty());
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        Browser.getInstance(this).load(anime.summaryURL, this);
+        updateEpisodes();
         fab.setVisibility(View.VISIBLE);
     }
 
-    private void showUpdateIndicator(boolean show) {
-        if (show) {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        realm.close();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Browser.getInstance(this).reset();
+    }
+
+    private void updateEpisodes() {
+        if (anime.episodes.isEmpty()) {
             updateBar.show();
         }
+        Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                //Log.d(TAG, "onPageLoaded");
+                final Document doc = Jsoup.parse(html);
+                if (doc.title().isEmpty()) {
+                    Log.e(TAG, "this shouldn't happen: " + html);
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Browser.getInstance(AnimeActivity.this).reset();
+
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+
+                                Elements elements = doc.select(Selector.EPISODE_LIST);
+
+                                for (Element episodeElement : elements) {
+                                    String name = episodeElement.text();
+                                    String url = Browser.BASE_URL + episodeElement.attributes().get("href");
+
+                                    //GOOGLE PLAY
+                                    if (Utils.containsIgnoreCase(name, "censored"))
+                                        continue;
+
+                                    Episode episode = realm.where(Episode.class).equalTo("url", url).findFirst();
+                                    if (episode == null) {
+                                        episode = realm.createObject(Episode.class);
+                                        episode.name = name;
+                                        episode.url = url;
+                                        anime.episodes.add(episode);
+                                    }
+                                }
+                                /*
+                                elements = doc.select(Selector.ANIME_DESCRIPTION);
+                                //TODO:: crashes if page returns error, some anime have link at very bottom (Fun Facts)
+                                if (elements.size() > 1) {
+                                    anime.summary = elements.get(elements.size() - 2).text();
+                                }
+                                */
+                            }
+                        });
+                        ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
+                        if (updateBar.isShownOrQueued()) {
+                            updateBar.dismiss();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onPageFailed() {
+                Log.e(TAG, "onPageFailed: updateEpisodes");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Browser.getInstance(AnimeActivity.this).reset();
+                        if (updateBar.isShown()) {
+                            updateBar.dismiss();
+                        }
+                        Toast.makeText(AnimeActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 
     private void initAds() {
@@ -102,7 +174,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             }
         }
     }
-
 
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
@@ -115,15 +186,35 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         updateBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
         updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(this);
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
-        loadDialog.setOnCancelListener(this);
-
 
         final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
         star = (ImageView) findViewById(R.id.star);
         star.setSelected(anime.isStarred);
         starAnimation = (ImageView) findViewById(R.id.star_animation);
+
+
+        rv = (RecyclerView) findViewById(R.id.recycler_view);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(new EpisodeAdapter(this, anime));
+        setupBackground(false);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (inDownloadMode) {
+                    inDownloadMode = false;
+                    setupBackground(false);
+                    fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_file_download_black_24dp));
+                } else {
+                    inDownloadMode = true;
+                    setupBackground(true);
+                    fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
+                    Toast.makeText(AnimeActivity.this, "Click to Download", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         starAnimation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,18 +229,35 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             }
         });
 
-        rv = (RecyclerView) findViewById(R.id.recycler_view);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(new EpisodeAdapter(this, anime));
+        loadDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                rv.getAdapter().notifyDataSetChanged();
+                Browser.getInstance(AnimeActivity.this).reset();
+            }
+        });
+    }
+
+    private void setupBackground(boolean dark) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             realm.executeTransactionAsync(new GetCoverURL(anime.title));
         } else {
-            Picasso.with(this).load(anime.coverURL)
-                    .fit()
-                    .centerCrop()
-                    .transform(new BlurTransformation(this))
-                    .into(cover);
+            if (dark) {
+                Picasso.with(this).load(anime.coverURL)
+                        .fit()
+                        .centerCrop()
+                        .transform(new BlurTransformation(this))
+                        .transform(new GrayscaleTransformation())
+                        .into(cover);
+            } else {
+                Picasso.with(this).load(anime.coverURL)
+                        .fit()
+                        .centerCrop()
+                        .transform(new BlurTransformation(this))
+                        .into(cover);
+            }
         }
+
     }
 
     public void onArrowClick() {
@@ -161,79 +269,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         }
     }
 
-    @Override
-    public void onPageLoaded(final String html) {
-        //Log.d(TAG, "onPageLoaded");
-        final Document doc = Jsoup.parse(html);
-        if (doc.title().isEmpty()) return;
-        Runnable stopLoad = new Runnable() {
-            @Override
-            public void run() {
-                Browser.getInstance(AnimeActivity.this).reset();
-
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-
-                        Elements elements = doc.select(Selector.EPISODE_LIST);
-
-                        for (Element episodeElement : elements) {
-                            String name = episodeElement.text();
-                            String url = Browser.BASE_URL + episodeElement.attributes().get("href");
-
-                            //GOOGLE PLAY
-                            if (Utils.containsIgnoreCase(name, "censored")) continue;
-
-                            Episode episode = realm.where(Episode.class).equalTo("url", url).findFirst();
-                            if (episode == null) {
-                                episode = realm.createObject(Episode.class);
-                                episode.name = name;
-                                episode.url = Browser.BASE_URL + episodeElement.attributes().get("href");
-                                anime.episodes.add(episode);
-                            }
-                        }
-                        elements = doc.select(Selector.ANIME_DESCRIPTION);
-                        //TODO:: crashes if page returns error, some anime have link at very bottom (Fun Facts)
-                        if (elements.size() > 1) {
-                            anime.summary = elements.get(elements.size() - 2).text();
-                        }
-                    }
-                });
-
-            }
-        };
-        new Handler(AnimeActivity.this.getMainLooper()).post(stopLoad);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (updateBar.isShownOrQueued()) {
-                    updateBar.dismiss();
-                }
-                ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
-            }
-        });
-    }
-
-
-    @Override
-    public void onPageFailed() {
-        Log.e(TAG, "onPageFailed: AnimeActivity");
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Browser.getInstance(AnimeActivity.this).reset();
-                if (updateBar.isShown()) {
-                    updateBar.dismiss();
-                }
-                if (loadDialog.isShowing()) {
-                    loadDialog.dismiss();
-                }
-                Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     public void toggleStar(final boolean isStarred) {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -243,22 +278,51 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         });
     }
 
+    private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
+        if (loadDialog.isShowing()) loadDialog.dismiss();
+        Iterator<String> it = json.keys();
+        final ArrayList<String> qualities = new ArrayList<String>();
+        while (it.hasNext()) {
+            qualities.add(it.next());
+        }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        realm.close();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Browser.getInstance(this).reset();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
+        new AlertDialog.Builder(AnimeActivity.this)
+                .setTitle("Select Quality")
+                .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        if (inDownloadMode) {
+                            downloadVideo(episode, json.optString(qualities.get(which)));
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    realm.executeTransaction(new Realm.Transaction() {
+                                        @Override
+                                        public void execute(Realm realm) {
+                                            episode.hasWatched = true;
+                                        }
+                                    });
+                                }
+                            });
+                            startVideo(json.optString(qualities.get(which)));
+                        }
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                rv.getAdapter().notifyDataSetChanged();
+                            }
+                        });
+                    }
+                })
+                .create()
+                .show();
     }
 
     public void requestVideo(final Episode episode) {
@@ -269,7 +333,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
             @Override
             public void onJSONReceived(final JSONObject json) {
                 Browser.getInstance(AnimeActivity.this).reset();
-                if (isDownloadMode) {
+                if (inDownloadMode) {
                     showSelectQualityDialog(episode, json);
                 } else {
                     try {
@@ -309,53 +373,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
         Browser.getInstance(this).loadUrl(episode.url);
     }
 
-    private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
-        if(loadDialog.isShowing()) loadDialog.dismiss();
-        Iterator<String> it = json.keys();
-        final ArrayList<String> qualities = new ArrayList<String>();
-        while (it.hasNext()) {
-            qualities.add(it.next());
-        }
-
-        new AlertDialog.Builder(AnimeActivity.this)
-                .setTitle("Select Quality")
-                .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        if (isDownloadMode) {
-                            downloadVideo(episode, json.optString(qualities.get(which)));
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    realm.executeTransaction(new Realm.Transaction() {
-                                        @Override
-                                        public void execute(Realm realm) {
-                                            episode.hasWatched = true;
-                                        }
-                                    });
-                                }
-                            });
-                            startVideo(json.optString(qualities.get(which)));
-                        }
-                    }
-                })
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                rv.getAdapter().notifyDataSetChanged();
-                            }
-                        });
-                    }
-                })
-                .create()
-                .show();
-    }
-
     private void downloadVideo(final Episode episode, final String downloadURL) {
         runOnUiThread(new Runnable() {
             @Override
@@ -384,6 +401,7 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 request.setVisibleInDownloadsUi(true);
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 dm.enqueue(request);
+                Toast.makeText(AnimeActivity.this, "Download started", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -408,22 +426,6 @@ public class AnimeActivity extends AppCompatActivity implements HtmlListener, Di
                 startActivity(intent);
             }
         });
-    }
-
-    @Override
-    public void onCancel(DialogInterface dialog) {
-        rv.getAdapter().notifyDataSetChanged();
-        Browser.getInstance(this).reset();
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (isDownloadMode) {
-            isDownloadMode = false;
-        } else {
-            isDownloadMode = true;
-            Toast.makeText(this, "Click to Download", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private class GetCoverURL implements Realm.Transaction {
