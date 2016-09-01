@@ -480,6 +480,7 @@ public class AnimeActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "filename: " + filePath);
 
+                //TODO:: broadcast manager for deeplink into download fragment
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
                 request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath + ".mp4");
