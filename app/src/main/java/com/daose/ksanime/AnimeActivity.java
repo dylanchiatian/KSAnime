@@ -1,10 +1,13 @@
 package com.daose.ksanime;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -54,6 +57,10 @@ import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
 public class AnimeActivity extends AppCompatActivity {
 
+    private enum Transformation {
+        BLUR, BW
+    }
+
     private static final String TAG = AnimeActivity.class.getSimpleName();
 
     private Anime anime;
@@ -78,7 +85,6 @@ public class AnimeActivity extends AppCompatActivity {
         setupDatabase();
         initUI();
         updateEpisodes();
-        fab.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -96,6 +102,8 @@ public class AnimeActivity extends AppCompatActivity {
     private void updateEpisodes() {
         if (anime.episodes.isEmpty()) {
             updateBar.show();
+        } else {
+            fab.show();
         }
         Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
             @Override
@@ -146,6 +154,7 @@ public class AnimeActivity extends AppCompatActivity {
                         if (updateBar.isShownOrQueued()) {
                             updateBar.dismiss();
                         }
+                        fab.show();
                     }
                 });
             }
@@ -160,6 +169,7 @@ public class AnimeActivity extends AppCompatActivity {
                         if (updateBar.isShown()) {
                             updateBar.dismiss();
                         }
+                        fab.show();
                         Toast.makeText(AnimeActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -186,6 +196,7 @@ public class AnimeActivity extends AppCompatActivity {
         updateBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
         updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.hide();
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
 
         final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
@@ -193,22 +204,21 @@ public class AnimeActivity extends AppCompatActivity {
         star.setSelected(anime.isStarred);
         starAnimation = (ImageView) findViewById(R.id.star_animation);
 
-
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(new EpisodeAdapter(this, anime));
-        setupBackground(false);
+        setupBackground(Transformation.BLUR);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (inDownloadMode) {
                     inDownloadMode = false;
-                    setupBackground(false);
+                    setupBackground(Transformation.BLUR);
                     fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_file_download_black_24dp));
                 } else {
                     inDownloadMode = true;
-                    setupBackground(true);
+                    setupBackground(Transformation.BW);
                     fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
                 }
             }
@@ -237,11 +247,11 @@ public class AnimeActivity extends AppCompatActivity {
         });
     }
 
-    private void setupBackground(boolean dark) {
+    private void setupBackground(Transformation type) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             realm.executeTransactionAsync(new GetCoverURL(anime.title));
         } else {
-            if (dark) {
+            if (type.equals(Transformation.BW)) {
                 Picasso.with(this).load(anime.coverURL)
                         .fit()
                         .centerCrop()
