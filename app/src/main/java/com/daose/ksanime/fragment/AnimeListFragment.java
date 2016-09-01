@@ -235,11 +235,11 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 .setListener(new ViewPropertyAnimatorListener() {
                     @Override
                     public void onAnimationStart(View view) {
+                        if (refreshBar.isShown()) refreshBar.dismiss();
                     }
 
                     @Override
                     public void onAnimationEnd(View view) {
-                        if (refreshBar.isShown()) refreshBar.dismiss();
                         mListener.onAnimeClick(anime);
                     }
 

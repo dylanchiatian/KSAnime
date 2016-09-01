@@ -1,17 +1,13 @@
 package com.daose.ksanime;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -49,7 +45,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
+import java.util.regex.Pattern;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
@@ -64,6 +60,8 @@ public class AnimeActivity extends AppCompatActivity {
     }
 
     private static final String TAG = AnimeActivity.class.getSimpleName();
+
+    public static final Pattern pattern = Pattern.compile("[^a-zA-Z0-9.-]");
 
     private Anime anime;
     private ImageView cover, star, starAnimation;
@@ -110,7 +108,6 @@ public class AnimeActivity extends AppCompatActivity {
         Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
             @Override
             public void onPageLoaded(String html) {
-                //Log.d(TAG, "onPageLoaded");
                 final Document doc = Jsoup.parse(html);
                 if (doc.title().isEmpty()) {
                     Log.e(TAG, "this shouldn't happen: " + html);
@@ -120,13 +117,10 @@ public class AnimeActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Browser.getInstance(AnimeActivity.this).reset();
-
                         realm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
-
                                 Elements elements = doc.select(Selector.EPISODE_LIST);
-
                                 for (Element episodeElement : elements) {
                                     String name = episodeElement.text();
                                     String url = Browser.BASE_URL + episodeElement.attributes().get("href");
@@ -177,7 +171,7 @@ public class AnimeActivity extends AppCompatActivity {
                             updateBar.dismiss();
                         }
                         fab.show();
-                        Toast.makeText(AnimeActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AnimeActivity.this, getString(R.string.update_failed), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -201,7 +195,7 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        updateBar = Snackbar.make(cover, "Updating...", Snackbar.LENGTH_INDEFINITE);
+        updateBar = Snackbar.make(cover, getString(R.string.snackbar_update), Snackbar.LENGTH_INDEFINITE);
         updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.hide();
@@ -226,6 +220,7 @@ public class AnimeActivity extends AppCompatActivity {
                     fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_file_download_black_24dp));
                 } else {
                     inDownloadMode = true;
+                    Snackbar.make(cover, getString(R.string.snackbar_download), Snackbar.LENGTH_SHORT).show();
                     setupBackground(Transformation.BW);
                     fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
                 }
@@ -304,7 +299,7 @@ public class AnimeActivity extends AppCompatActivity {
         }
 
         new AlertDialog.Builder(AnimeActivity.this)
-                .setTitle("Select Quality")
+                .setTitle(getString(R.string.quality_title))
                 .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -343,10 +338,10 @@ public class AnimeActivity extends AppCompatActivity {
     }
 
     public boolean isFirstDownload() {
-        SharedPreferences pref = getSharedPreferences("daose", MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        if (pref.getBoolean("first_download", true)) {
-            editor.putBoolean("first_download", false);
+        if (pref.getBoolean(Utils.FIRST_DOWNLOAD_KEY, true)) {
+            editor.putBoolean(Utils.FIRST_DOWNLOAD_KEY, false);
             editor.apply();
             return true;
         } else {
@@ -356,16 +351,15 @@ public class AnimeActivity extends AppCompatActivity {
 
     public void showRatingDialog(final Episode episode, final JSONObject json) {
         new AlertDialog.Builder(this)
-                .setTitle("Thank you!")
-                .setMessage("Want more features like offline videos? Please leave a review!")
-                .setPositiveButton("Okay!", new DialogInterface.OnClickListener() {
+                .setTitle(getString(R.string.rating_title))
+                .setMessage(getString(R.string.rating_message))
+                .setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        final String id = getPackageName();
                         try {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + id)));
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.MARKET_DEEPLINK)));
                         } catch (android.content.ActivityNotFoundException exception) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + id)));
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.MARKET_URL)));
                         }
                         showSelectQualityDialog(episode, json);
                     }
@@ -376,6 +370,12 @@ public class AnimeActivity extends AppCompatActivity {
                         showSelectQualityDialog(episode, json);
                     }
                 })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        showSelectQualityDialog(episode, json);
+                    }
+                })
                 .create()
                 .show();
     }
@@ -383,9 +383,9 @@ public class AnimeActivity extends AppCompatActivity {
     private void showAdDialog(Episode episode, String url){
         if(videoAd.isAdReadyToDisplay()) {
             new AlertDialog.Builder(this)
-                    .setTitle("Downloading...")
-                    .setMessage("Watch a video while downloading?")
-                    .setPositiveButton("Okay!", new DialogInterface.OnClickListener() {
+                    .setTitle(getString(R.string.ad_title))
+                    .setMessage(getString(R.string.ad_message))
+                    .setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             videoAd.show(AnimeActivity.this);
@@ -424,8 +424,8 @@ public class AnimeActivity extends AppCompatActivity {
                     }
                 } else {
                     try {
-                        SharedPreferences prefs = getSharedPreferences("daose", MODE_PRIVATE);
-                        String resolution = prefs.getString("quality", "720p");
+                        SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
+                        String resolution = prefs.getString(Utils.SELECT_QUALITY_KEY, Utils.DEFAULT_QUALITY);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -452,7 +452,7 @@ public class AnimeActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (loadDialog.isShowing()) loadDialog.dismiss();
-                        Toast.makeText(AnimeActivity.this, "Try again later", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AnimeActivity.this, getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -468,27 +468,25 @@ public class AnimeActivity extends AppCompatActivity {
                     loadDialog.dismiss();
                 }
                 if (!Utils.isExternalStorageAvailable()) {
-                    Log.e(TAG, "External storage not available");
-                    Toast.makeText(AnimeActivity.this, "Cannot save file", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "External Storage unavailable");
+                    Toast.makeText(AnimeActivity.this, getString(R.string.storage_unavailable), Toast.LENGTH_SHORT).show();
                 }
-                String filePath = anime.title.replaceAll("[^a-zA-Z0-9.-]", "-");
-                try {
-                    filePath += "/" + episode.name.replaceAll("[^a-zA-Z0-9]", "-");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    filePath += "/" + UUID.randomUUID().toString();
-                }
-                Log.d(TAG, "filename: " + filePath);
+
+                String filePath = pattern.matcher(anime.title).replaceAll("-") + "/" + pattern.matcher(episode.name).replaceAll("-") + ".mp4";
 
                 //TODO:: broadcast manager for deeplink into download fragment
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                if(dm == null) {
+                    Toast.makeText(AnimeActivity.this, getString(R.string.download_unavailable), Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
-                request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath + ".mp4");
+                request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath);
                 request.allowScanningByMediaScanner();
                 request.setVisibleInDownloadsUi(true);
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 dm.enqueue(request);
-                Toast.makeText(AnimeActivity.this, "Download started", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AnimeActivity.this, getString(R.string.download_started), Toast.LENGTH_SHORT).show();
 
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
@@ -516,7 +514,7 @@ public class AnimeActivity extends AppCompatActivity {
                     }
                 });
                 Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
-                intent.putExtra("url", url);
+                intent.putExtra(Utils.URL_KEY, url);
                 startActivity(intent);
             }
         });
@@ -535,7 +533,7 @@ public class AnimeActivity extends AppCompatActivity {
             try {
                 final StringBuilder URLBuilder = new StringBuilder();
                 Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent("Mozilla/5.0").get();
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent(Utils.USER_AGENT).get();
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();

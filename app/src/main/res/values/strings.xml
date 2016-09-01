@@ -11,6 +11,24 @@
 
     <string name="custom">X-Requested-With</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="rating_title">Rate KSAnime</string>
+    <string name="rating_message">Want more features like offline videos? Leave a rating!</string>
+
+    <string name="okay">Okay!</string>
+
+    <string name="quality_title">Select Quality</string>
+
+    <string name="ad_title">Downloading...</string>
+    <string name="ad_message">Watch a video advertisement while downloading?</string>
+
+    <string name="fail_message">Try again later</string>
+    <string name="update_failed">Update failed</string>
+
+    <string name="storage_unavailable">Cannot save file</string>
+    <string name="download_unavailable">Cannot download file</string>
+    <string name="download_started">Download started</string>
+
+    <string name="snackbar_update">Updating...</string>
+    <string name="snackbar_refresh">Refreshing...</string>
+    <string name="snackbar_download">Select episode to download</string>
 </resources>

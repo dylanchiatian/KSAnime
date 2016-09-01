@@ -13,9 +13,6 @@ public class Episode extends RealmObject {
     @Index
     public String name;
 
-    @Index
-    public String localFilePath;
-
     public boolean hasWatched;
 
     public Episode(){}

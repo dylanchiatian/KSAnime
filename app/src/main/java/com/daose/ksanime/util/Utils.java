@@ -3,6 +3,20 @@ package com.daose.ksanime.util;
 import android.os.Environment;
 
 public class Utils {
+
+    public static String PREFS_FILE = "daose";
+    public static String FIRST_DOWNLOAD_KEY = "first_download";
+    public static String SELECT_QUALITY_KEY = "quality";
+    public static String DEFAULT_QUALITY = "720p";
+
+    public static String MARKET_DEEPLINK = "market://details?id=com.daose.ksanime";
+    public static String MARKET_URL = "https://play.google.com/store/apps/details?id=com.daose.ksanime";
+
+    public static String URL_KEY = "url";
+
+    public static String USER_AGENT = "Mozilla/5.0";
+
+
     public static boolean containsIgnoreCase(String src, String what) {
         final int length = what.length();
         if (length == 0)

@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements
         if (isNewMenuItem) {
             Fragment fragment;
             String title = getTitle().toString();
-            switch(title){
+            switch (title) {
                 case "Settings":
                     fragment = SettingsFragment.newInstance();
                     break;
