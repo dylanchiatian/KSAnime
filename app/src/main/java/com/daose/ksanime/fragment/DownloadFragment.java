@@ -6,7 +6,6 @@ import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +17,14 @@ import com.daose.ksanime.adapter.SectionAdapter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 
 public class DownloadFragment extends Fragment {
 
     private static final String TAG = DownloadFragment.class.getSimpleName();
+
+    private RecyclerView rv;
 
     private OnFragmentInteractionListener mListener;
 
@@ -50,30 +50,10 @@ public class DownloadFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedBundleInstance) {
-        RecyclerView rv = (RecyclerView) view.findViewById(R.id.recycler_view);
+        rv = (RecyclerView) view.findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setHasFixedSize(true);
-
-        int animeIndex = 0;
-        List<SectionAdapter.Section> sections = new ArrayList<SectionAdapter.Section>();
-        ArrayList<File> downloadedEpisodes = new ArrayList<File>();
-        File movies = getContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-        if(movies == null) return; //TODO:: better fail case here
-        File[] animes = movies.listFiles();
-        for(File animeFolder : animes){
-            //TODO:: if it's an empty folder then delete it
-            sections.add(new SectionAdapter.Section(animeIndex, animeFolder.getName()));
-            File[] downloadedFiles = animeFolder.listFiles();
-            animeIndex += downloadedFiles.length;
-            downloadedEpisodes.addAll(Arrays.asList(downloadedFiles));
-        }
-
-        DownloadAdapter adapter = new DownloadAdapter(this, downloadedEpisodes);
-
-        SectionAdapter.Section[] sectionArray = new SectionAdapter.Section[sections.size()];
-        SectionAdapter sectionAdapter = new SectionAdapter(getContext(), R.layout.section_header, R.id.title, adapter);
-        sectionAdapter.setSections(sections.toArray(sectionArray));
-        rv.setAdapter(sectionAdapter);
+        refreshAdapter();
     }
 
     @Override
@@ -96,6 +76,44 @@ public class DownloadFragment extends Fragment {
     public void onVideoClick(String path) {
         mListener.onVideoClick(path);
     }
+
+    public void onVideoRemove(String path, int position) {
+        File file = new File(path);
+        File parent = file.getParentFile();
+        file.delete();
+        if (parent.list().length == 0) {
+            parent.delete();
+        }
+        refreshAdapter();
+    }
+
+    private void refreshAdapter() {
+        int animeIndex = 0;
+        List<SectionAdapter.Section> sections = new ArrayList<SectionAdapter.Section>();
+        ArrayList<File> downloadedEpisodes = new ArrayList<File>();
+        File movies = getContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+        if (movies == null) return; //TODO:: better fail case here
+        File[] animes = movies.listFiles();
+        for (File animeFolder : animes) {
+            //TODO:: if it's an empty folder then delete it
+            sections.add(new SectionAdapter.Section(animeIndex, animeFolder.getName().replaceAll("-", " ")));
+            File[] downloadedFiles = animeFolder.listFiles();
+            animeIndex += downloadedFiles.length;
+            downloadedEpisodes.addAll(Arrays.asList(downloadedFiles));
+        }
+
+        DownloadAdapter adapter = new DownloadAdapter(this, downloadedEpisodes);
+
+        SectionAdapter.Section[] sectionArray = new SectionAdapter.Section[sections.size()];
+        SectionAdapter sectionAdapter = new SectionAdapter(getContext(), R.layout.section_header, R.id.title, adapter);
+        sectionAdapter.setSections(sections.toArray(sectionArray));
+        if (rv.getAdapter() == null) {
+            rv.setAdapter(sectionAdapter);
+        } else {
+            rv.swapAdapter(sectionAdapter, false);
+        }
+    }
+
 
     public interface OnFragmentInteractionListener {
         void onVideoClick(String path);

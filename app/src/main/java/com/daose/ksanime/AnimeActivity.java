@@ -210,7 +210,6 @@ public class AnimeActivity extends AppCompatActivity {
                     inDownloadMode = true;
                     setupBackground(true);
                     fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
-                    Toast.makeText(AnimeActivity.this, "Click to Download", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -395,13 +394,19 @@ public class AnimeActivity extends AppCompatActivity {
 
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
-//                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, filePath + ".mp4");
                 request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath + ".mp4");
                 request.allowScanningByMediaScanner();
                 request.setVisibleInDownloadsUi(true);
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 dm.enqueue(request);
                 Toast.makeText(AnimeActivity.this, "Download started", Toast.LENGTH_SHORT).show();
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        episode.hasWatched = true;
+                    }
+                });
             }
         });
 
