@@ -24,5 +24,5 @@ public class Selector {
 
     //latest update rightBox -> barContent below "Please help us by liking, sharing and commenting. Thanks!"
 
-    public static final String SEARCH_LIST = "table.listing tr td:eq(0) a";
+    public static final String ANIME_LIST = "table.listing td:eq(0) a";
 }

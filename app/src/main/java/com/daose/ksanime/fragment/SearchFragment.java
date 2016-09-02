@@ -117,7 +117,7 @@ public class SearchFragment extends Fragment implements HtmlListener {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final Elements animeElements = doc.select(Selector.SEARCH_LIST);
+                final Elements animeElements = doc.select(Selector.ANIME_LIST);
                 final ArrayList<String> searchList = new ArrayList<String>();
                 realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override

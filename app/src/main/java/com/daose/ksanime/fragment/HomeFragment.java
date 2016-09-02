@@ -309,9 +309,9 @@ public class HomeFragment extends Fragment {
 
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
-        realmPopularList = getList("Popular");
-        realmTrendingList = getList("Trending");
-        realmUpdatedList = getList("Updated");
+        realmPopularList = getList("home_popular");
+        realmTrendingList = getList("home_trending");
+        realmUpdatedList = getList("home_updated");
     }
 
     private AnimeList getList(final String list) {

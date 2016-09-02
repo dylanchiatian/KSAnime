@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.util.Log;
@@ -38,7 +39,7 @@ import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
 import io.realm.RealmList;
 
-public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadListener, HtmlListener {
+public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadListener {
     private static final String TAG = AnimeListFragment.class.getSimpleName();
     private static final String KEY = "key";
 
@@ -60,7 +61,8 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     private OnFragmentInteractionListener mListener;
 
-    public AnimeListFragment() {}
+    public AnimeListFragment() {
+    }
 
     public static AnimeListFragment newInstance(String key) {
         AnimeListFragment fragment = new AnimeListFragment();
@@ -117,8 +119,8 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
         rv.setAdapter(new AnimeAdapter(this, animeList, MainActivity.nativeAds));
-        refreshBar = Snackbar.make(rv, "Refreshing...", Snackbar.LENGTH_INDEFINITE);
-        refreshBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4));
+        refreshBar = Snackbar.make(rv, getString(R.string.snackbar_refresh), Snackbar.LENGTH_INDEFINITE);
+        refreshBar.getView().setBackgroundColor(ContextCompat.getColor(getContext(), R.color.trans_base4));
         initAds();
         if (type != Type.Starred) {
             update();
@@ -130,12 +132,84 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     }
 
     private void update() {
-        if (Browser.getInstance(getContext()).isNetworkAvailable()) {
-            refreshBar.show();
-            Browser.getInstance(getContext()).load(Browser.BASE_URL, this);
-        } else {
+
+        if (!Browser.getInstance(getContext()).isNetworkAvailable()) {
             Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
+            return;
         }
+        refreshBar.show();
+        String URL = Browser.BASE_URL;
+        if (type == Type.Popular) {
+            URL += Browser.MOST_POPULAR;
+        } else if (type == Type.Trending) {
+            URL += Browser.NEW_AND_HOT;
+        }
+        Browser.getInstance(getContext()).load(URL, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                Browser.getInstance(getContext()).reset();
+                final Document doc = Jsoup.parse(html);
+                if (getActivity() == null) {
+                    Log.e(TAG, "getActivity refresh is null");
+                    return;
+                }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                final Elements animeElements = doc.select(Selector.ANIME_LIST);
+                                final RealmList<Anime> animeList = new RealmList<Anime>();
+                                for (final Element animeElement : animeElements) {
+                                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
+                                    if (anime == null) {
+                                        anime = realm.createObject(Anime.class);
+                                        anime.title = animeElement.text();
+                                        anime.summaryURL = Browser.BASE_URL + animeElement.attributes().get("href");
+                                    }
+                                    animeList.add(anime);
+                                }
+                                realmAnimeList.animeList = animeList;
+                            }
+                        });
+
+                        for (Anime anime : realmAnimeList.animeList) {
+                            if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                                new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                            }
+                        }
+                        if (refreshBar.isShown()) refreshBar.dismiss();
+                    }
+                });
+            }
+
+            @Override
+            public void onPageFailed() {
+                Log.d(TAG, "onPageFailed");
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (refreshBar.isShown()) {
+                            refreshBar.dismiss();
+                            Browser.getInstance(getContext()).reset();
+                            Snackbar retryBar = Snackbar
+                                    .make(rv, "Refresh Failed", Snackbar.LENGTH_LONG)
+                                    .setAction("Retry", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            update();
+                                        }
+                                    })
+                                    .setActionTextColor(getResources().getColor(R.color.colorAccent));
+                            retryBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
+                            retryBar.show();
+                        }
+                    }
+                });
+            }
+        });
     }
 
     private AnimeList getList(final String list) {
@@ -181,7 +255,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 .setListener(new ViewPropertyAnimatorListener() {
                     @Override
                     public void onAnimationStart(View view) {
-                        if(refreshBar.isShown()) refreshBar.dismiss();
+                        if (refreshBar.isShown()) refreshBar.dismiss();
                     }
 
                     @Override
@@ -246,104 +320,4 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 .withLayer()
                 .start();
     }
-
-    @Override
-    public void onPageLoaded(String html) {
-        final Document doc = Jsoup.parse(html);
-        if (getActivity() == null) return;
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Browser.getInstance(getContext()).reset();
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        String query;
-                        switch (type) {
-                            case Popular:
-                                query = Selector.POPULAR_IMAGE + "," + Selector.POPULAR_TITLE;
-                                break;
-                            case Trending:
-                                query = Selector.TRENDING_IMAGE + "," + Selector.TRENDING_TITLE;
-                                break;
-                            default:
-                                query = "";
-                        }
-                        realmAnimeList.animeList = getAnimeList(doc, query);
-                    }
-                });
-                Log.d(TAG, "UI Start");
-                for (Anime anime : realmAnimeList.animeList) {
-                    if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                        new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                    }
-                }
-                Log.d(TAG, "UI End");
-                if (refreshBar.isShown()) refreshBar.dismiss();
-            }
-        });
-    }
-
-    @Override
-    public void onPageFailed() {
-        Log.d(TAG, "onPageFailed");
-        if (getActivity() == null) return;
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (refreshBar.isShown()) {
-                    refreshBar.dismiss();
-                    Browser.getInstance(getContext()).reset();
-                    Snackbar retryBar = Snackbar
-                            .make(rv, "Refresh Failed", Snackbar.LENGTH_LONG)
-                            .setAction("Retry", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    update();
-                                }
-                            })
-                            .setActionTextColor(getResources().getColor(R.color.colorAccent));
-                    retryBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
-                    retryBar.show();
-                }
-            }
-        });
-    }
-
-    private RealmList<Anime> getAnimeList(Document doc, String query) {
-        Elements elements = doc.select(query);
-        if (elements == null || elements.size() == 0) {
-            Log.d(TAG, "doc is wrong");
-            Log.d(TAG, "html: " + doc.html());
-            Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
-            return realmAnimeList.animeList;
-        }
-
-        RealmList<Anime> animeList = new RealmList<Anime>();
-        int counter = 0;
-
-        for (Element animeElement : elements) {
-            switch (counter % 3) {
-                case 0:
-                    break;
-                case 1:
-                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
-                    if (anime == null) {
-                        anime = realm.createObject(Anime.class);
-                        anime.title = animeElement.text();
-                        anime.summaryURL = Browser.BASE_URL + animeElement.parentNode().attributes().get("href");
-                    }
-                    animeList.add(anime);
-                    break;
-                case 2:
-                    break;
-                default:
-                    break;
-            }
-            counter++;
-        }
-        return animeList;
-    }
-
-
 }

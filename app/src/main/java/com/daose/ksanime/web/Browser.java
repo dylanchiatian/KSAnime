@@ -18,6 +18,8 @@ public class Browser {
     public static final String BASE_URL = "http://kissanime.to/";
     public static final String SEARCH_URL = "http://kissanime.to/Search/Anime/";
     public static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
+    public static final String MOST_POPULAR = "AnimeList/MostPopular";
+    public static final String NEW_AND_HOT = "AnimeList/NewAndHot";
 
     private WebView webView;
     private CustomWebClient client;
