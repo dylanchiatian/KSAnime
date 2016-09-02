@@ -60,7 +60,6 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             AdViewHolder vh = (AdViewHolder) holder;
             vh.title.setText(ad.getTitle());
             vh.cta.setText(ad.getCtaText());
-            vh.description.setText(ad.getDescriptionText());
             vh.card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -99,7 +98,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
 
     public class AdViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView title, description, cta;
+        private TextView title, cta;
         private ImageView iconImg;
         private View card;
 
@@ -107,7 +106,6 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
             cta = (TextView) itemView.findViewById(R.id.cta);
-            description = (TextView) itemView.findViewById(R.id.description);
             iconImg = (ImageView) itemView.findViewById(R.id.image_view);
             card = itemView.findViewById(R.id.card);
         }

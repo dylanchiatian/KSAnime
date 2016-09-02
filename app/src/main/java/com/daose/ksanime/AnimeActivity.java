@@ -77,6 +77,7 @@ public class AnimeActivity extends AppCompatActivity {
     private boolean inDownloadMode;
 
     //TODO:: since title is the only thing you get, why not load in the beginning and show everything at the same time? (title + description + episode list)
+    //TODO:: put star/related/download into fab and keep activity ui clean (trello)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -254,18 +255,6 @@ public class AnimeActivity extends AppCompatActivity {
     private void setupBackground(Transformation type) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
             new GetHeaderURL().execute(anime.title);
-            /**
-             realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title), new Realm.Transaction.OnSuccess() {
-            @Override public void onSuccess() {
-            Picasso.with(AnimeActivity.this).
-            load(anime.coverURL)
-            .fit()
-            .centerCrop()
-            .transform(new BlurTransformation(AnimeActivity.this))
-            .into(cover);
-            }
-            });
-             **/
         } else {
             if (type.equals(Transformation.BW)) {
                 Picasso.with(this).load(anime.coverURL)
@@ -282,7 +271,6 @@ public class AnimeActivity extends AppCompatActivity {
                         .into(cover);
             }
         }
-
     }
 
     public void onArrowClick() {

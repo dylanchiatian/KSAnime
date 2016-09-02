@@ -71,7 +71,6 @@ public class Utils {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
-    //TODO:: blocking the UI thread ?!?!
     public static class GetCoverURL extends AsyncTask<String, Void, String> {
 
         private String title;

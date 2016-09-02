@@ -33,8 +33,6 @@ public class CustomWebClient extends WebViewClient {
             "    }\n" +
             "}";
 
-    //TODO:: select quality
-
     public CustomWebClient() {
         super();
         ignoreUrls = new HashSet<String>();
