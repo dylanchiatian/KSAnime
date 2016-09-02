@@ -76,6 +76,7 @@ public class AnimeActivity extends AppCompatActivity {
 
     private boolean inDownloadMode;
 
+    //TODO:: since title is the only thing you get, why not load in the beginning and show everything at the same time? (title + description + episode list)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

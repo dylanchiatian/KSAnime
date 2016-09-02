@@ -12,6 +12,8 @@ public class Selector {
     public static final String TRENDING_IMAGE = "div#tab-trending img";
     public static final String TRENDING = TRENDING_IMAGE + "," + TRENDING_TITLE;
 
+    public static final String UPDATED = "div.barContent";
+
     public static final String MAL_IMAGE = "div.picSurround img";
     public static final String MAL_IMAGE_ATTR = "abs:data-src";
 

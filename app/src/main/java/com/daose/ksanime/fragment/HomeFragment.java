@@ -55,6 +55,7 @@ public class HomeFragment extends Fragment {
 
     private AnimeList realmPopularList;
     private AnimeList realmTrendingList;
+    private AnimeList realmUpdatedList;
 
     private RecyclerView popularView;
     private RecyclerView trendingView;
@@ -66,7 +67,7 @@ public class HomeFragment extends Fragment {
 
     private Anime recentAnime;
 
-    private AppLovinNativeAd trendingAd, popularAd;
+    private AppLovinNativeAd trendingAd, popularAd, updatedAd;
 
     public HomeFragment() {
     }
@@ -103,16 +104,20 @@ public class HomeFragment extends Fragment {
         Log.d(TAG, "onViewCreated");
         trendingView = (RecyclerView) view.findViewById(R.id.trending_view);
         popularView = (RecyclerView) view.findViewById(R.id.popular_view);
+        updatedView = (RecyclerView) view.findViewById(R.id.updated_view);
 
         trendingView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         popularView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        updatedView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         trendingView.setHasFixedSize(true);
         popularView.setHasFixedSize(true);
+        updatedView.setHasFixedSize(true);
 
         //TODO:: "more" button that takes you to the animelistfragment
         trendingView.setNestedScrollingEnabled(false);
         popularView.setNestedScrollingEnabled(false);
+        updatedView.setNestedScrollingEnabled(false);
 
         recentView = (RelativeLayout) view.findViewById(R.id.recent_view);
         recentView.setOnClickListener(new View.OnClickListener() {
@@ -128,6 +133,7 @@ public class HomeFragment extends Fragment {
         initAds();
         trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, trendingAd));
         popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, popularAd));
+        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList, updatedAd));
 
         refresh();
     }
@@ -154,6 +160,25 @@ public class HomeFragment extends Fragment {
                                 public void execute(Realm realm) {
                                     updateAnimeList(realmTrendingList, doc, Selector.TRENDING);
                                     updateAnimeList(realmPopularList, doc, Selector.POPULAR);
+
+                                    RealmList<Anime> updatedList = new RealmList<Anime>();
+                                    Elements elements = doc.select(Selector.UPDATED).last().select("a");
+                                    for (int i = 0; i < elements.size(); i += 2) {
+                                        String title = elements.get(i).text();
+                                        String summaryURL = elements.get(i).attr("href");
+                                        if (title.equals("More...")) {
+                                            break;
+                                        }
+
+                                        Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+                                        if (anime == null) {
+                                            anime = realm.createObject(Anime.class);
+                                            anime.title = title;
+                                            anime.summaryURL = Browser.BASE_URL + summaryURL;
+                                        }
+                                        updatedList.add(anime);
+                                    }
+                                    realmUpdatedList.animeList = updatedList;
                                 }
                             });
 
@@ -164,6 +189,12 @@ public class HomeFragment extends Fragment {
                             }
 
                             for (Anime anime : realmTrendingList.animeList) {
+                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                                }
+                            }
+
+                            for (Anime anime : realmUpdatedList.animeList) {
                                 if (anime.coverURL == null || anime.coverURL.isEmpty()) {
                                     new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
                                 }
@@ -222,17 +253,31 @@ public class HomeFragment extends Fragment {
         if (MainActivity.nativeAds == null) {
             trendingAd = null;
             popularAd = null;
+            updatedAd = null;
         } else {
-            if (MainActivity.nativeAds.size() > 1) {
-                trendingAd = MainActivity.nativeAds.get(0);
-                popularAd = MainActivity.nativeAds.get(1);
-            } else {
-                trendingAd = MainActivity.nativeAds.get(0);
-                popularAd = null;
+            switch(MainActivity.nativeAds.size()){
+                case 1:
+                    trendingAd = MainActivity.nativeAds.get(0);
+                    popularAd = null;
+                    updatedAd = null;
+                    break;
+                case 2:
+                    trendingAd = MainActivity.nativeAds.get(0);
+                    popularAd  = MainActivity.nativeAds.get(1);
+                    updatedAd = null;
+                    break;
+                case 3:
+                    trendingAd = MainActivity.nativeAds.get(0);
+                    popularAd = MainActivity.nativeAds.get(1);
+                    updatedAd = MainActivity.nativeAds.get(2);
+                    break;
+                default:
+                    trendingAd = popularAd = updatedAd = null;
+                    break;
             }
         }
 
-        AppLovinSdk.getInstance(getContext()).getNativeAdService().loadNativeAds(2, new AppLovinNativeAdLoadListener() {
+        AppLovinSdk.getInstance(getContext()).getNativeAdService().loadNativeAds(3, new AppLovinNativeAdLoadListener() {
             @Override
             public void onNativeAdsLoaded(final List list) {
                 MainActivity.nativeAds = (List<AppLovinNativeAd>) list;
@@ -242,6 +287,7 @@ public class HomeFragment extends Fragment {
                         public void run() {
                             trendingView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmTrendingList.animeList, (AppLovinNativeAd) list.get(0)), false);
                             popularView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmPopularList.animeList, (AppLovinNativeAd) list.get(1)), false);
+                            updatedView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmUpdatedList.animeList, (AppLovinNativeAd) list.get(2)), false);
                         }
                     });
 
@@ -265,6 +311,7 @@ public class HomeFragment extends Fragment {
         realm = Realm.getDefaultInstance();
         realmPopularList = getList("Popular");
         realmTrendingList = getList("Trending");
+        realmUpdatedList = getList("Updated");
     }
 
     private AnimeList getList(final String list) {
