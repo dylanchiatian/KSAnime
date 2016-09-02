@@ -15,11 +15,11 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.List;
 
-import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
-import io.realm.RealmList;
 
 public class Utils {
+
+    private static final String TAG = Utils.class.getSimpleName();
 
     public static String PREFS_FILE = "daose";
     public static String FIRST_DOWNLOAD_KEY = "first_download";
@@ -71,37 +71,49 @@ public class Utils {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
-
-    public static class GetCoverURL implements Realm.Transaction {
+    //TODO:: blocking the UI thread ?!?!
+    public static class GetCoverURL extends AsyncTask<String, Void, String> {
 
         private String title;
 
-        public GetCoverURL(String title) {
-            this.title = title;
-        }
-
         @Override
-        public void execute(Realm realm) {
-            Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+        public String doInBackground(String... titles) {
+            this.title = titles[0];
+            Log.d(TAG, "Start: " + title);
             try {
                 final StringBuilder URLBuilder = new StringBuilder();
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent(Utils.USER_AGENT).get();
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + title).userAgent(Utils.USER_AGENT).get();
+                Log.d(TAG, "Connected: " + title);
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();
                 if (rawUrl.getPathSegments().size() < 3) {
-                    anime.coverURL = "";
-                    return;
+                    return "";
                 } else {
                     for (int i = 2; i < pathSegments.size(); i++) {
                         URLBuilder.append("/");
                         URLBuilder.append(pathSegments.get(i));
                     }
                 }
-                anime.coverURL = URLBuilder.toString();
+                return URLBuilder.toString();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Log.d(TAG, "End: " + title);
+            return "";
+        }
+
+        @Override
+        public void onPostExecute(final String URL) {
+            Realm realm = Realm.getDefaultInstance();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+                    anime.coverURL = URL;
+                }
+            });
+            realm.close();
         }
     }
 }

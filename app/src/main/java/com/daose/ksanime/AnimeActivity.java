@@ -252,17 +252,19 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void setupBackground(Transformation type) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-            realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title), new Realm.Transaction.OnSuccess() {
-                @Override
-                public void onSuccess() {
-                    Picasso.with(AnimeActivity.this).
-                            load(anime.coverURL)
-                            .fit()
-                            .centerCrop()
-                            .transform(new BlurTransformation(AnimeActivity.this))
-                            .into(cover);
-                }
+            new GetHeaderURL().execute(anime.title);
+            /**
+             realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title), new Realm.Transaction.OnSuccess() {
+            @Override public void onSuccess() {
+            Picasso.with(AnimeActivity.this).
+            load(anime.coverURL)
+            .fit()
+            .centerCrop()
+            .transform(new BlurTransformation(AnimeActivity.this))
+            .into(cover);
+            }
             });
+             **/
         } else {
             if (type.equals(Transformation.BW)) {
                 Picasso.with(this).load(anime.coverURL)
@@ -314,6 +316,17 @@ public class AnimeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        episode.hasWatched = true;
+                                    }
+                                });
+                            }
+                        });
                         if (inDownloadMode) {
                             if (isFirstDownload()) {
                                 showRatingDialog();
@@ -322,17 +335,6 @@ public class AnimeActivity extends AppCompatActivity {
                             }
                             downloadVideo(episode, json.optString(qualities.get(which)));
                         } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    realm.executeTransaction(new Realm.Transaction() {
-                                        @Override
-                                        public void execute(Realm realm) {
-                                            episode.hasWatched = true;
-                                        }
-                                    });
-                                }
-                            });
                             startVideo(json.optString(qualities.get(which)));
                         }
                     }
@@ -484,13 +486,6 @@ public class AnimeActivity extends AppCompatActivity {
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 dm.enqueue(request);
                 Toast.makeText(AnimeActivity.this, getString(R.string.download_started), Toast.LENGTH_SHORT).show();
-
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        episode.hasWatched = true;
-                    }
-                });
             }
         });
 
@@ -515,5 +510,20 @@ public class AnimeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    private class GetHeaderURL extends Utils.GetCoverURL {
+        @Override
+        public void onPostExecute(String URL) {
+            super.onPostExecute(URL);
+            if (cover != null && !URL.isEmpty()) {
+                Picasso.with(AnimeActivity.this).
+                        load(URL)
+                        .fit()
+                        .centerCrop()
+                        .transform(new BlurTransformation(AnimeActivity.this))
+                        .into(cover);
+            }
+        }
     }
 }

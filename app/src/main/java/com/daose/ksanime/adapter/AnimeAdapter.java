@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.R;
 import com.daose.ksanime.fragment.AnimeListFragment;
-import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.model.Anime;
 import com.squareup.picasso.Picasso;
 
@@ -68,7 +67,11 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
                     fragment.onNativeAdClick(v, ad);
                 }
             });
-            Picasso.with(ctx).load(ad.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            if (ad.getIconUrl().isEmpty()) {
+                Picasso.with(ctx).load(ad.getImageUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            } else {
+                Picasso.with(ctx).load(ad.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            }
         } else {
             int offsetPosition = position - offset;
             final Anime anime = animeList.get(offsetPosition);

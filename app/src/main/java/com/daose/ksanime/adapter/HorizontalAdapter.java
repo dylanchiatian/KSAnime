@@ -62,7 +62,11 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
                     fragment.onNativeAdClick(v, nativeAd);
                 }
             });
-            Picasso.with(ctx).load(nativeAd.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            if (nativeAd.getIconUrl().isEmpty()) {
+                Picasso.with(ctx).load(nativeAd.getImageUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            } else {
+                Picasso.with(ctx).load(nativeAd.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            }
         } else {
             int offsetPosition = position - offset;
             final Anime anime = animeList.get(offsetPosition);

@@ -1,7 +1,6 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -33,8 +32,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import io.realm.OrderedRealmCollection;
@@ -267,7 +264,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                                 query = Selector.POPULAR_IMAGE + "," + Selector.POPULAR_TITLE;
                                 break;
                             case Trending:
-                                query = Selector.HOT_IMAGE + "," + Selector.HOT_TITLE;
+                                query = Selector.TRENDING_IMAGE + "," + Selector.TRENDING_TITLE;
                                 break;
                             default:
                                 query = "";
@@ -275,11 +272,13 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                         realmAnimeList.animeList = getAnimeList(doc, query);
                     }
                 });
+                Log.d(TAG, "UI Start");
                 for (Anime anime : realmAnimeList.animeList) {
                     if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                        realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title));
+                        new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
                     }
                 }
+                Log.d(TAG, "UI End");
                 if (refreshBar.isShown()) refreshBar.dismiss();
             }
         });
@@ -345,4 +344,6 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         }
         return animeList;
     }
+
+
 }

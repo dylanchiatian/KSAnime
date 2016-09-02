@@ -15,51 +15,36 @@
             android:id="@+id/recent_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/activity_horizontal_margin"
             android:paddingEnd="@dimen/activity_horizontal_margin"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingStart="@dimen/activity_horizontal_margin"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <TextView
                 android:id="@+id/recent_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Recently viewed" />
-
-            <View
-                android:id="@+id/divider"
-                style="@style/Divider"
-                android:layout_below="@id/recent_title"
-                android:layout_marginLeft="0dp"
-                android:layout_marginRight="0dp" />
-
+                android:paddingBottom="16dp"
+                android:text="Recently viewed"
+                android:textColor="@android:color/white"
+                android:textSize="18sp" />
 
             <ImageView
                 android:id="@+id/recent_anime_cover"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/divider"
+                android:layout_below="@id/recent_title"
                 android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/placeholder" />
-
-
-            <TextView
-                android:id="@+id/recent_anime_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/divider"
-                android:layout_toEndOf="@id/recent_anime_cover"
-                android:layout_toRightOf="@id/recent_anime_cover"
-                android:text="Anime title" />
-
+                android:scaleType="fitCenter" />
 
             <TextView
                 android:id="@+id/recent_episode_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/recent_anime_title"
+                android:layout_centerVertical="true"
+                android:layout_margin="@dimen/title_margin"
                 android:layout_toEndOf="@id/recent_anime_cover"
                 android:layout_toRightOf="@id/recent_anime_cover"
                 android:text="Last watched episode name" />
@@ -69,19 +54,18 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingEnd="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            android:text="Trending" />
+            android:padding="@dimen/activity_horizontal_margin"
+            android:text="Trending"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
 
-        <View style="@style/Divider" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/trending_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
+            android:paddingBottom="16dp"
             android:paddingEnd="@dimen/activity_horizontal_margin"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
@@ -90,19 +74,18 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingEnd="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            android:text="Popular" />
+            android:padding="16dp"
+            android:text="Popular"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
 
-        <View style="@style/Divider" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/popular_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
+            android:paddingBottom="16dp"
             android:paddingEnd="@dimen/activity_horizontal_margin"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
@@ -112,13 +95,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingEnd="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            android:text="Just updated" />
+            android:padding="16dp"
+            android:text="Just updated"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
 
-        <View style="@style/Divider" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/updated_view"

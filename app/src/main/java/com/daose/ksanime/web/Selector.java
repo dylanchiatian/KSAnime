@@ -6,9 +6,11 @@ package com.daose.ksanime.web;
 public class Selector {
     public static final String POPULAR_TITLE = "div#tab-mostview span.title";
     public static final String POPULAR_IMAGE = "div#tab-mostview img";
+    public static final String POPULAR = POPULAR_IMAGE + "," + POPULAR_TITLE;
 
-    public static final String HOT_TITLE = "div#tab-trending span.title";
-    public static final String HOT_IMAGE = "div#tab-trending img";
+    public static final String TRENDING_TITLE = "div#tab-trending span.title";
+    public static final String TRENDING_IMAGE = "div#tab-trending img";
+    public static final String TRENDING = TRENDING_IMAGE + "," + TRENDING_TITLE;
 
     public static final String MAL_IMAGE = "div.picSurround img";
     public static final String MAL_IMAGE_ATTR = "abs:data-src";
@@ -17,6 +19,8 @@ public class Selector {
 
     public static final String ANIME_DESCRIPTION = "div.barContent div p:not(:has(a))";
     public static final String VIDEO = "div#divContentVideo video";
+
+    //latest update rightBox -> barContent below "Please help us by liking, sharing and commenting. Thanks!"
 
     public static final String SEARCH_LIST = "table.listing tr td:eq(0) a";
 }

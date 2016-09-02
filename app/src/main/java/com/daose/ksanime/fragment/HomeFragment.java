@@ -1,8 +1,12 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,8 +15,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
@@ -24,6 +30,15 @@ import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
+import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.HtmlListener;
+import com.daose.ksanime.web.Selector;
+import com.squareup.picasso.Picasso;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.List;
 
@@ -46,6 +61,8 @@ public class HomeFragment extends Fragment {
     private RecyclerView updatedView;
 
     private RelativeLayout recentView;
+
+    private Snackbar refreshBar;
 
     private Anime recentAnime;
 
@@ -83,6 +100,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        Log.d(TAG, "onViewCreated");
         trendingView = (RecyclerView) view.findViewById(R.id.trending_view);
         popularView = (RecyclerView) view.findViewById(R.id.popular_view);
 
@@ -92,27 +110,112 @@ public class HomeFragment extends Fragment {
         trendingView.setHasFixedSize(true);
         popularView.setHasFixedSize(true);
 
+        //TODO:: "more" button that takes you to the animelistfragment
         trendingView.setNestedScrollingEnabled(false);
         popularView.setNestedScrollingEnabled(false);
 
-        //---
-        if(recentAnime != null) {
-            recentView = (RelativeLayout) view.findViewById(R.id.recent_view);
-            TextView title = (TextView) recentView.findViewById(R.id.recent_anime_title);
-            title.setText(recentAnime.title);
-
-            RealmResults<Episode> watchedEpisodes = recentAnime.episodes.where().equalTo("hasWatched", true).findAllSorted("name", Sort.DESCENDING);
-            if(watchedEpisodes.size() > 0){
-                TextView episodeName = (TextView) recentView.findViewById(R.id.recent_episode_name);
-                episodeName.setText(watchedEpisodes.first().name);
+        recentView = (RelativeLayout) view.findViewById(R.id.recent_view);
+        recentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAnimeClick(v, recentAnime.title);
             }
-            recentView.setVisibility(View.VISIBLE);
-        }
+        });
 
+        refreshBar = Snackbar.make(view, getString(R.string.snackbar_refresh), Snackbar.LENGTH_INDEFINITE);
+        refreshBar.getView().setBackgroundColor(ContextCompat.getColor(getContext(), R.color.trans_base4));
 
         initAds();
         trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, trendingAd));
         popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, popularAd));
+
+        refresh();
+    }
+
+    private void refresh() {
+        if (Browser.getInstance(getContext()).isNetworkAvailable()) {
+            refreshBar.show();
+            Browser.getInstance(getContext()).load(Browser.BASE_URL, new HtmlListener() {
+                @Override
+                public void onPageLoaded(String html) {
+                    Browser.getInstance(getContext()).reset();
+                    final Document doc = Jsoup.parse(html);
+                    //trending, popular, updated
+                    if (getActivity() == null) {
+                        Log.e(TAG, "getActivity: refresh was null");
+                        return;
+                    }
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    updateAnimeList(realmTrendingList, doc, Selector.TRENDING);
+                                    updateAnimeList(realmPopularList, doc, Selector.POPULAR);
+                                }
+                            });
+
+                            for (Anime anime : realmPopularList.animeList) {
+                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                                }
+                            }
+
+                            for (Anime anime : realmTrendingList.animeList) {
+                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                                }
+                            }
+
+                            if (refreshBar.isShown()) refreshBar.dismiss();
+                        }
+                    });
+                }
+
+                @Override
+                public void onPageFailed() {
+                    Browser.getInstance(getContext()).reset();
+                    if (refreshBar.isShown()) refreshBar.dismiss();
+                    Toast.makeText(getContext(), "Refresh failed", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        Log.d(TAG, "onResume");
+        super.onResume();
+        setupRecentView();
+    }
+
+    private void setupRecentView() {
+        //TODO:: what about a horizontal blurred image that expands into AnimeActivity?
+        recentAnime = realm.where(Anime.class).equalTo("isLastWatched", true).findFirst();
+        if (recentAnime != null) {
+            final ImageView cover = (ImageView) recentView.findViewById(R.id.recent_anime_cover);
+            if (recentAnime.coverURL == null || recentAnime.coverURL.isEmpty()) {
+                //TODO:: no way of updating cover afterwards
+                new Utils.GetCoverURL().execute(recentAnime.title);
+            } else {
+                Picasso.with(getContext()).load(recentAnime.coverURL).placeholder(R.drawable.placeholder).into(cover);
+            }
+
+            //TODO:: could have lastwatched in anime field and set a listener for anime in animeactivity that updates when episode -> hasWatched
+            RealmResults<Episode> watchedEpisodes = recentAnime.episodes.where().equalTo("hasWatched", true).findAllSorted("name", Sort.DESCENDING);
+            if (watchedEpisodes.size() > 0) {
+                TextView episodeName = (TextView) recentView.findViewById(R.id.recent_episode_name);
+                episodeName.setText(watchedEpisodes.first().name);
+            }
+
+            recentView.setVisibility(View.VISIBLE);
+        } else {
+            recentView.setVisibility(View.GONE);
+        }
     }
 
     private void initAds() {
@@ -162,7 +265,6 @@ public class HomeFragment extends Fragment {
         realm = Realm.getDefaultInstance();
         realmPopularList = getList("Popular");
         realmTrendingList = getList("Trending");
-        recentAnime = realm.where(Anime.class).equalTo("isLastWatched", true).findFirst();
     }
 
     private AnimeList getList(final String list) {
@@ -235,6 +337,41 @@ public class HomeFragment extends Fragment {
                 .start();
     }
 
+    private void updateAnimeList(final AnimeList realmAnimeList, Document doc, String query) {
+        final Elements elements = doc.select(query);
+        if (elements == null || elements.size() == 0) {
+            Log.d(TAG, "doc is wrong");
+            Log.d(TAG, "html: " + doc.html());
+            Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final RealmList<Anime> animeList = new RealmList<Anime>();
+        int counter = 0;
+
+        for (Element animeElement : elements) {
+            switch (counter % 3) {
+                case 0:
+                    break;
+                case 1:
+                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
+                    if (anime == null) {
+                        anime = realm.createObject(Anime.class);
+                        anime.title = animeElement.text();
+                        anime.summaryURL = Browser.BASE_URL + animeElement.parentNode().attributes().get("href");
+                    }
+                    animeList.add(anime);
+                    break;
+                case 2:
+                    break;
+                default:
+                    break;
+            }
+            counter++;
+        }
+
+        realmAnimeList.animeList = animeList;
+    }
 
     public interface OnFragmentInteractionListener {
         void onAnimeClick(String animeTitle);

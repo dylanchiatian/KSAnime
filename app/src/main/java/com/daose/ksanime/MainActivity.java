@@ -13,7 +13,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
@@ -47,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements
     private DrawerLayout drawer;
     private SearchView searchView;
     private ArrayList<String> searchList;
-    private ImageView headerImage;
     public static List<AppLovinNativeAd> nativeAds;
 
+    //TODO:: list/grid view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
