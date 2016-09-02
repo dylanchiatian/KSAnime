@@ -1,27 +1,21 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
-import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
-import com.applovin.sdk.AppLovinSdk;
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
-import com.daose.ksanime.adapter.AnimeAdapter;
 import com.daose.ksanime.adapter.HorizontalAdapter;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
-
-import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -74,15 +68,20 @@ public class HomeFragment extends Fragment {
         popularView = (RecyclerView) view.findViewById(R.id.popular_view);
         trendingView = (RecyclerView) view.findViewById(R.id.trending_view);
 
+        popularView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        trendingView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+
         popularView.setHasFixedSize(true);
         trendingView.setHasFixedSize(true);
+
+        popularView.setNestedScrollingEnabled(false);
+        trendingView.setNestedScrollingEnabled(false);
 
         popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, MainActivity.nativeAds));
         trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, MainActivity.nativeAds));
 
         initAds();
     }
-    //TODO:: just use a different adapter, the layouts are all messed up (match_parent for width)
 
     private void initAds() {
     }

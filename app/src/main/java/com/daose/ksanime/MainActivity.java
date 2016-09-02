@@ -24,7 +24,6 @@ import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
 import com.lapism.searchview.SearchView;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements
         setupSearchView();
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance("Popular"));
+        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
     }
 
@@ -80,8 +79,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private void setupNavigationView() {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        headerImage = (ImageView) navigationView.getHeaderView(0);
-        Picasso.with(this).load(R.drawable.icon_landscape).fit().centerInside().into(headerImage);
         navigationView.getMenu().getItem(0).setChecked(true);
         setTitle(navigationView.getMenu().getItem(0).getTitle());
         navigationView.setNavigationItemSelectedListener(this);

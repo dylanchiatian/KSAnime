@@ -95,7 +95,6 @@ public class DownloadFragment extends Fragment {
         if (movies == null) return; //TODO:: better fail case here
         File[] animes = movies.listFiles();
         for (File animeFolder : animes) {
-            //TODO:: if it's an empty folder then delete it
             sections.add(new SectionAdapter.Section(animeIndex, animeFolder.getName().replaceAll("-", " ")));
             File[] downloadedFiles = animeFolder.listFiles();
             animeIndex += downloadedFiles.length;
