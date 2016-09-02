@@ -252,7 +252,17 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void setupBackground(Transformation type) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-            realm.executeTransactionAsync(new GetCoverURL(anime.title));
+            realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title), new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    Picasso.with(AnimeActivity.this).
+                            load(anime.coverURL)
+                            .fit()
+                            .centerCrop()
+                            .transform(new BlurTransformation(AnimeActivity.this))
+                            .into(cover);
+                }
+            });
         } else {
             if (type.equals(Transformation.BW)) {
                 Picasso.with(this).load(anime.coverURL)
@@ -505,49 +515,5 @@ public class AnimeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-    }
-
-    private class GetCoverURL implements Realm.Transaction {
-
-        private String title;
-
-        public GetCoverURL(String title) {
-            this.title = title;
-        }
-
-        @Override
-        public void execute(Realm realm) {
-            try {
-                final StringBuilder URLBuilder = new StringBuilder();
-                Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent(Utils.USER_AGENT).get();
-                Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
-                URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
-                List<String> pathSegments = rawUrl.getPathSegments();
-                if (rawUrl.getPathSegments().size() < 3) {
-                    anime.coverURL = "";
-                    return;
-                } else {
-                    for (int i = 2; i < pathSegments.size(); i++) {
-                        URLBuilder.append("/");
-                        URLBuilder.append(pathSegments.get(i));
-                    }
-                }
-                anime.coverURL = URLBuilder.toString();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Picasso.with(AnimeActivity.this).
-                                load(URLBuilder.toString())
-                                .fit()
-                                .centerCrop()
-                                .transform(new BlurTransformation(AnimeActivity.this))
-                                .into(cover);
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

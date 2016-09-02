@@ -14,8 +14,6 @@ import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.model.Anime;
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
-
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
 import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
@@ -25,7 +23,7 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
     private OrderedRealmCollection<Anime> animeList;
     private HomeFragment fragment;
     private Context ctx;
-    private List<AppLovinNativeAd> nativeAds;
+    private AppLovinNativeAd nativeAd;
 
     private static final String TAG = AnimeAdapter.class.getSimpleName();
     private int offset;
@@ -37,7 +35,7 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
 
     @Override
     public int getItemViewType(int position) {
-        return (position == 0 && nativeAds != null) ? Type.AD : Type.ANIME;
+        return (position == 0 && nativeAd != null) ? Type.AD : Type.ANIME;
     }
 
     @Override
@@ -56,16 +54,15 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof AdViewHolder) {
-            final AppLovinNativeAd ad = nativeAds.get(position);
             AdViewHolder vh = (AdViewHolder) holder;
-            vh.title.setText(ad.getTitle());
+            vh.title.setText(nativeAd.getTitle());
             vh.card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    fragment.onNativeAdClick(v, ad);
+                    fragment.onNativeAdClick(v, nativeAd);
                 }
             });
-            Picasso.with(ctx).load(ad.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+            Picasso.with(ctx).load(nativeAd.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
         } else {
             int offsetPosition = position - offset;
             final Anime anime = animeList.get(offsetPosition);
@@ -120,17 +117,17 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
 
     }
 
-    public HorizontalAdapter(HomeFragment fragment, OrderedRealmCollection<Anime> animeList, List<AppLovinNativeAd> nativeAds) {
+    public HorizontalAdapter(HomeFragment fragment, OrderedRealmCollection<Anime> animeList, AppLovinNativeAd nativeAds) {
         super(fragment.getContext(), animeList, true);
         this.fragment = fragment;
         this.ctx = fragment.getContext();
         this.animeList = animeList;
-        this.nativeAds = nativeAds;
+        this.nativeAd = nativeAds;
         if (nativeAds == null) {
             offset = 0;
         } else {
-            fragment.onNativeAdImpression(nativeAds.get(0));
-            offset = nativeAds.size();
+            fragment.onNativeAdImpression(nativeAd);
+            offset = 1;
         }
     }
 }

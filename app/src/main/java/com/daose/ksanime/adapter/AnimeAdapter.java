@@ -135,7 +135,7 @@ public class AnimeAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerView.V
             offset = 0;
         } else {
             fragment.onNativeAdImpression(nativeAds.get(0));
-            offset = nativeAds.size();
+            offset = 1;
         }
     }
 

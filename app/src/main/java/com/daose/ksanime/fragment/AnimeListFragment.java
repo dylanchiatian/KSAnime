@@ -34,6 +34,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import io.realm.OrderedRealmCollection;
@@ -62,9 +63,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
     private OnFragmentInteractionListener mListener;
 
-    public AnimeListFragment() {
-        // Required empty public constructor
-    }
+    public AnimeListFragment() {}
 
     public static AnimeListFragment newInstance(String key) {
         AnimeListFragment fragment = new AnimeListFragment();
@@ -176,7 +175,6 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         void onAnimeClick(String anime);
     }
 
-    //region listeners
     public void onNativeAdClick(View v, final AppLovinNativeAd ad) {
         ViewCompat.animate(v)
                 .setDuration(200)
@@ -186,6 +184,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 .setListener(new ViewPropertyAnimatorListener() {
                     @Override
                     public void onAnimationStart(View view) {
+                        if(refreshBar.isShown()) refreshBar.dismiss();
                     }
 
                     @Override
@@ -278,7 +277,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 });
                 for (Anime anime : realmAnimeList.animeList) {
                     if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                        new GetCoverURL().execute(anime.title);
+                        realm.executeTransactionAsync(new Utils.GetCoverURL(anime.title));
                     }
                 }
                 if (refreshBar.isShown()) refreshBar.dismiss();
@@ -310,57 +309,6 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                 }
             }
         });
-    }
-    //endregion
-
-    //region jsoup
-    private class GetCoverURL extends AsyncTask<String, Void, String> {
-
-        private StringBuilder URLBuilder;
-        private String title;
-
-        @Override
-        protected void onPreExecute() {
-            URLBuilder = new StringBuilder();
-
-        }
-
-        @Override
-        protected String doInBackground(String... titles) {
-            String url = "";
-            try {
-                this.title = titles[0];
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + title).userAgent("Mozilla/5.0").get();
-                Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
-                URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
-                List<String> pathSegments = rawUrl.getPathSegments();
-                if (rawUrl.getPathSegments().size() < 3) {
-                    return url;
-                } else {
-                    for (int i = 2; i < pathSegments.size(); i++) {
-                        URLBuilder.append("/");
-                        URLBuilder.append(pathSegments.get(i));
-                    }
-                }
-                url = URLBuilder.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return url;
-        }
-
-        @Override
-        protected void onPostExecute(final String url) {
-            Realm realm = Realm.getDefaultInstance();
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    final Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                    anime.coverURL = url;
-                }
-            });
-            realm.close();
-        }
     }
 
     private RealmList<Anime> getAnimeList(Document doc, String query) {
@@ -397,5 +345,4 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         }
         return animeList;
     }
-    //endregion
 }

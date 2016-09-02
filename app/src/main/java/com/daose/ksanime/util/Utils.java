@@ -1,6 +1,23 @@
 package com.daose.ksanime.util;
 
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
+
+import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.Selector;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
+import java.util.List;
+
+import io.realm.OrderedRealmCollection;
+import io.realm.Realm;
+import io.realm.RealmList;
 
 public class Utils {
 
@@ -50,7 +67,41 @@ public class Utils {
         }
     }
 
-    public static boolean isExternalStorageAvailable(){
+    public static boolean isExternalStorageAvailable() {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+    }
+
+
+    public static class GetCoverURL implements Realm.Transaction {
+
+        private String title;
+
+        public GetCoverURL(String title) {
+            this.title = title;
+        }
+
+        @Override
+        public void execute(Realm realm) {
+            Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+            try {
+                final StringBuilder URLBuilder = new StringBuilder();
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + anime.title).userAgent(Utils.USER_AGENT).get();
+                Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
+                URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
+                List<String> pathSegments = rawUrl.getPathSegments();
+                if (rawUrl.getPathSegments().size() < 3) {
+                    anime.coverURL = "";
+                    return;
+                } else {
+                    for (int i = 2; i < pathSegments.size(); i++) {
+                        URLBuilder.append("/");
+                        URLBuilder.append(pathSegments.get(i));
+                    }
+                }
+                anime.coverURL = URLBuilder.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

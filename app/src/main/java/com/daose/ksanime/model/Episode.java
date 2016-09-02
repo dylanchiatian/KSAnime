@@ -13,6 +13,7 @@ public class Episode extends RealmObject {
     @Index
     public String name;
 
+    @Index
     public boolean hasWatched;
 
     public Episode(){}
