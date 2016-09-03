@@ -185,6 +185,7 @@ public class AnimeActivity extends AppCompatActivity {
         cover = (ImageView) findViewById(R.id.background);
         fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
         fabStar = (FloatingActionButton) findViewById(R.id.fab_star);
+        //TODO:: prevent touch from going through when the menu is open
         fabMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
         preloadIndicator = (LinearLayout) findViewById(R.id.preload);
