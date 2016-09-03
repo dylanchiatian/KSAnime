@@ -64,7 +64,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4));
                 ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text));
             }
-            ((ViewHolder) holder).title.setText(episode.name);
+            ((ViewHolder) holder).title.setText(episode.name.replace(anime.title, ""));
         }
     }
 

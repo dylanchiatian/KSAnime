@@ -8,8 +8,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -17,8 +15,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -33,6 +29,8 @@ import com.daose.ksanime.web.Browser;
 import com.daose.ksanime.web.HtmlListener;
 import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -62,9 +60,8 @@ public class AnimeActivity extends AppCompatActivity {
     public static final Pattern pattern = Pattern.compile("[^a-zA-Z0-9.-]");
 
     private Anime anime;
-    private ImageView cover, star, starAnimation;
+    private ImageView cover;
     private SpotsDialog loadDialog;
-    private FloatingActionButton fab;
     private RecyclerView rv;
     private LinearLayout preloadIndicator;
 
@@ -73,6 +70,9 @@ public class AnimeActivity extends AppCompatActivity {
     private AppLovinIncentivizedInterstitial videoAd;
 
     private boolean inDownloadMode;
+
+    private FloatingActionButton fabDownload, fabStar;
+    private FloatingActionMenu fabMenu;
 
     //TODO:: since title is the only thing you get, why not load in the beginning and show everything at the same time? (title + description + episode list)
     //TODO:: put star/related/download into fab and keep activity ui clean (trello)
@@ -102,7 +102,6 @@ public class AnimeActivity extends AppCompatActivity {
     private void updateEpisodes() {
         if (!anime.episodes.isEmpty()) {
             preloadIndicator.setVisibility(View.GONE);
-            fab.show();
         }
         Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
             @Override
@@ -110,7 +109,6 @@ public class AnimeActivity extends AppCompatActivity {
                 final Document doc = Jsoup.parse(html);
                 if (doc.title().isEmpty()) {
                     preloadIndicator.setVisibility(View.GONE);
-                    if (!fab.isShown()) fab.show();
                     Toast.makeText(AnimeActivity.this, getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -140,7 +138,7 @@ public class AnimeActivity extends AppCompatActivity {
                                 }
 
                                 elements = doc.select(Selector.ANIME_DESCRIPTION);
-                                //TODO:: crashes if page returns error, some anime have link at very bottom (Fun Facts)
+                                //TODO:: everytime there are <br></br> add a \n ?
                                 if (elements.size() > 0) {
                                     anime.description = elements.get(0).text();
                                 } else {
@@ -150,12 +148,6 @@ public class AnimeActivity extends AppCompatActivity {
                         });
                         rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
                         preloadIndicator.setVisibility(View.GONE);
-                        fab.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                fab.show();
-                            }
-                        }, 1000);
                     }
                 });
             }
@@ -168,7 +160,6 @@ public class AnimeActivity extends AppCompatActivity {
                     public void run() {
                         Browser.getInstance(AnimeActivity.this).reset();
                         preloadIndicator.setVisibility(View.GONE);
-                        fab.show();
                         Toast.makeText(AnimeActivity.this, getString(R.string.update_failed), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -193,48 +184,65 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.hide();
+        fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
+        fabStar = (FloatingActionButton) findViewById(R.id.fab_star);
+        fabMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
         preloadIndicator = (LinearLayout) findViewById(R.id.preload);
-
-        final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
-        star = (ImageView) findViewById(R.id.star);
-        star.setSelected(anime.isStarred);
-        starAnimation = (ImageView) findViewById(R.id.star_animation);
 
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
         setupBackground(Transformation.BLUR);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        fabDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (inDownloadMode) {
                     inDownloadMode = false;
                     setupBackground(Transformation.BLUR);
-                    fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_file_download_black_24dp));
+                    fabMenu.close(true);
+                    fabDownload.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            fabDownload.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_file_download_black_24dp));
+                            fabDownload.setLabelText("Download Mode");
+                        }
+                    }, 500);
                 } else {
                     inDownloadMode = true;
-                    Snackbar.make(cover, getString(R.string.snackbar_download), Snackbar.LENGTH_SHORT).show();
                     setupBackground(Transformation.BW);
-                    fab.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
+                    fabMenu.close(true);
+                    fabDownload.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            fabDownload.setImageDrawable(ContextCompat.getDrawable(AnimeActivity.this, R.drawable.ic_remove_red_eye_black_24dp));
+                            fabDownload.setLabelText("Watch Mode");
+                        }
+                    }, 500);
                 }
             }
         });
 
-        starAnimation.setOnClickListener(new View.OnClickListener() {
+        if (anime.isStarred) {
+            fabStar.setImageResource(R.drawable.ic_star_black_24dp);
+        }
+
+        fabStar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                starAnimation.startAnimation(buttonAnim);
-                if (star.isSelected()) {
-                    star.setSelected(false);
-                    toggleStar(false);
+                if (anime.isStarred) {
+                    fabStar.setImageResource(R.drawable.ic_star_border_black_24dp);
                 } else {
-                    star.setSelected(true);
-                    toggleStar(true);
+                    fabStar.setImageResource(R.drawable.ic_star_black_24dp);
                 }
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        anime.isStarred = !anime.isStarred;
+                    }
+                });
             }
         });
 
@@ -281,15 +289,6 @@ public class AnimeActivity extends AppCompatActivity {
         } else if (rv.getAdapter().getItemCount() > 0) {
             rv.smoothScrollToPosition(rv.getAdapter().getItemCount() - 1);
         }
-    }
-
-    public void toggleStar(final boolean isStarred) {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                anime.isStarred = isStarred;
-            }
-        });
     }
 
     private void showSelectQualityDialog(final Episode episode, final JSONObject json) {

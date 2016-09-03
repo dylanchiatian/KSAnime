@@ -1,8 +1,6 @@
 package com.daose.ksanime;
 
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.applovin.sdk.AppLovinSdk;
 
@@ -21,6 +19,8 @@ public class MyApplication extends Application {
     @Override
     public void onCreate(){
         super.onCreate();
+
+        /*
         SharedPreferences settings = getSharedPreferences("daose", 0);
         if (settings.getBoolean("first_install", true)) {
             Log.d(TAG, "first install detected");
@@ -29,6 +29,7 @@ public class MyApplication extends Application {
             editor.putBoolean("first_install", false);
             editor.apply();
         }
+        */
 
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build();
         Realm.setDefaultConfiguration(realmConfiguration);
