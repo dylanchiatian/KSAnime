@@ -59,7 +59,7 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
         if (ignoreUrls.contains(url)) {
-            Log.d(TAG, "FAIL: " + url);
+            //Log.d(TAG, "FAIL: " + url);
             return dud;
         }
 
@@ -70,15 +70,15 @@ public class CustomWebClient extends WebViewClient {
             for (String key : ignoreKeys) {
                 if (url.contains(key)) {
                     ignoreUrls.add(url);
-                    Log.d(TAG, "FAIL: " + url);
+                    //Log.d(TAG, "FAIL: " + url);
                     return dud;
                 }
             }
-            Log.d(TAG, "PASS: " + url);
+            //Log.d(TAG, "PASS: " + url);
             return null;
         } else {
             ignoreUrls.add(url);
-            Log.d(TAG, "FAIL: " + url);
+            //Log.d(TAG, "FAIL: " + url);
             return dud;
         }
     }

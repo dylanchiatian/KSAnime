@@ -14,8 +14,12 @@
     <color name="light_background">#172d38</color>
 
     <color name="trans_base3">#DD172d38</color>
+
     <color name="trans_base4">#CC161a1b</color>
+    <color name="trans_base4_light">#33161a1b</color>
     <color name="trans_base4_inactive">#EE161a1b</color>
+
+    <color name="description_background">#55000000</color>
 
     <color name="black_overlay">#66000000</color>
 

@@ -19,10 +19,8 @@ public class Selector {
 
     public static final String EPISODE_LIST = "table.listing tbody tr td a";
 
-    public static final String ANIME_DESCRIPTION = "div.barContent div p:not(:has(a))";
+    public static final String ANIME_DESCRIPTION = "div.barContent p:not(:has(span.info))";
     public static final String VIDEO = "div#divContentVideo video";
-
-    //latest update rightBox -> barContent below "Please help us by liking, sharing and commenting. Thanks!"
 
     public static final String ANIME_LIST = "table.listing td:eq(0) a";
 }

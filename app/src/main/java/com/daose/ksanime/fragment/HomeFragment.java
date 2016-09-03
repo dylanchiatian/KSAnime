@@ -1,7 +1,6 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -219,7 +218,6 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Log.d(TAG, "onResume");
         super.onResume();
         setupRecentView();
     }

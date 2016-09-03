@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.applovin.adview.AppLovinIncentivizedInterstitial;
@@ -41,15 +42,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
-import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
@@ -65,10 +63,10 @@ public class AnimeActivity extends AppCompatActivity {
 
     private Anime anime;
     private ImageView cover, star, starAnimation;
-    private Snackbar updateBar;
     private SpotsDialog loadDialog;
     private FloatingActionButton fab;
     private RecyclerView rv;
+    private LinearLayout preloadIndicator;
 
     private Realm realm;
 
@@ -102,9 +100,8 @@ public class AnimeActivity extends AppCompatActivity {
     }
 
     private void updateEpisodes() {
-        if (anime.episodes.isEmpty()) {
-            updateBar.show();
-        } else {
+        if (!anime.episodes.isEmpty()) {
+            preloadIndicator.setVisibility(View.GONE);
             fab.show();
         }
         Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
@@ -112,7 +109,9 @@ public class AnimeActivity extends AppCompatActivity {
             public void onPageLoaded(String html) {
                 final Document doc = Jsoup.parse(html);
                 if (doc.title().isEmpty()) {
-                    Log.e(TAG, "this shouldn't happen: " + html);
+                    preloadIndicator.setVisibility(View.GONE);
+                    if (!fab.isShown()) fab.show();
+                    Toast.makeText(AnimeActivity.this, getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 runOnUiThread(new Runnable() {
@@ -139,19 +138,18 @@ public class AnimeActivity extends AppCompatActivity {
                                         anime.episodes.add(episode);
                                     }
                                 }
-                                /*
+
                                 elements = doc.select(Selector.ANIME_DESCRIPTION);
                                 //TODO:: crashes if page returns error, some anime have link at very bottom (Fun Facts)
-                                if (elements.size() > 1) {
-                                    anime.summary = elements.get(elements.size() - 2).text();
+                                if (elements.size() > 0) {
+                                    anime.description = elements.get(0).text();
+                                } else {
+                                    anime.description = "";
                                 }
-                                */
                             }
                         });
-                        ((EpisodeAdapter) rv.getAdapter()).setEpisodeList(anime.episodes.sort("name", Sort.DESCENDING));
-                        if (updateBar.isShownOrQueued()) {
-                            updateBar.dismiss();
-                        }
+                        rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
+                        preloadIndicator.setVisibility(View.GONE);
                         fab.postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -169,9 +167,7 @@ public class AnimeActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Browser.getInstance(AnimeActivity.this).reset();
-                        if (updateBar.isShown()) {
-                            updateBar.dismiss();
-                        }
+                        preloadIndicator.setVisibility(View.GONE);
                         fab.show();
                         Toast.makeText(AnimeActivity.this, getString(R.string.update_failed), Toast.LENGTH_SHORT).show();
                     }
@@ -197,11 +193,10 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        updateBar = Snackbar.make(cover, getString(R.string.snackbar_update), Snackbar.LENGTH_INDEFINITE);
-        updateBar.getView().setBackgroundColor(getResources().getColor(R.color.trans_base4_inactive));
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.hide();
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
+        preloadIndicator = (LinearLayout) findViewById(R.id.preload);
 
         final Animation buttonAnim = AnimationUtils.loadAnimation(this, R.anim.anim_button);
         star = (ImageView) findViewById(R.id.star);
@@ -210,7 +205,7 @@ public class AnimeActivity extends AppCompatActivity {
 
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(new EpisodeAdapter(this, anime));
+
         setupBackground(Transformation.BLUR);
 
         fab.setOnClickListener(new View.OnClickListener() {
@@ -250,6 +245,12 @@ public class AnimeActivity extends AppCompatActivity {
                 Browser.getInstance(AnimeActivity.this).reset();
             }
         });
+
+        if (!anime.episodes.isEmpty()) {
+            rv.setAdapter(new EpisodeAdapter(this, anime));
+        } else {
+            preloadIndicator.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setupBackground(Transformation type) {
@@ -398,7 +399,6 @@ public class AnimeActivity extends AppCompatActivity {
     //TODO:: bug that keeps looping forever, no idea of network?
     public void requestVideo(final Episode episode) {
         loadDialog.show();
-        if (updateBar.isShown()) updateBar.dismiss();
         if (inDownloadMode) {
             if (!videoAd.isAdReadyToDisplay()) {
                 videoAd.preload(null);

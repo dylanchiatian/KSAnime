@@ -1,41 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@drawable/gradient"
+    android:layout_height="match_parent">
 
-    <RelativeLayout
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/gradient">
-
-        <ImageView
-            android:id="@+id/arrow"
-            android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
-            android:tint="@color/colorAccent"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        android:layout_margin="12dp"
+        android:gravity="bottom"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/arrow"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:layout_toLeftOf="@id/star"
-            android:layout_toStartOf="@id/star"
             android:shadowColor="@color/base4"
             android:shadowDx="4"
             android:shadowDy="4"
             android:shadowRadius="8"
-            android:textSize="24sp"
+            android:padding="@dimen/activity_horizontal_margin"
             android:textColor="@android:color/white"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/description"
+            android:ellipsize="end"
+            android:maxLines="10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/description_background"
+            android:padding="@dimen/activity_horizontal_margin" />
+
+        <ImageView
+            android:id="@+id/arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
+            android:tint="@color/colorAccent" />
+
+    </LinearLayout>
 
 </FrameLayout>

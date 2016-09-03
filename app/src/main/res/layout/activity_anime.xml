@@ -29,9 +29,9 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_file_download_black_24dp"
             android:tint="@color/colorAccent"
+            android:visibility="visible"
             app:backgroundTint="@color/trans_base4"
-            app:borderWidth="0dp"
-            android:visibility="visible"/>
+            app:borderWidth="0dp" />
 
     </android.support.design.widget.CoordinatorLayout>
 
@@ -74,4 +74,18 @@
         android:scaleType="fitXY"
         android:src="@drawable/ic_star_border_black_24dp"
         android:tint="@color/colorAccent" />
+
+    <LinearLayout
+        android:id="@+id/preload"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/gradient"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
 </RelativeLayout>

@@ -16,7 +16,7 @@ public class Anime extends RealmObject implements Serializable {
     public boolean isLastWatched;
 
     public RealmList<Episode> episodes;
-    public String summary;
+    public String description;
     public String coverURL;
     public String summaryURL;
 

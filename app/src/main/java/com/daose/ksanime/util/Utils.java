@@ -3,7 +3,6 @@ package com.daose.ksanime.util;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.web.Browser;
@@ -11,6 +10,7 @@ import com.daose.ksanime.web.Selector;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.util.List;
@@ -78,11 +78,16 @@ public class Utils {
         @Override
         public String doInBackground(String... titles) {
             this.title = titles[0];
-            Log.d(TAG, "Start: " + title);
+            if (title.length() > 60) {
+                title = title.substring(0, 59);
+            }
             try {
                 final StringBuilder URLBuilder = new StringBuilder();
                 final Document doc = Jsoup.connect(Browser.IMAGE_URL + title).userAgent(Utils.USER_AGENT).get();
-                Log.d(TAG, "Connected: " + title);
+
+                Element imageElement = doc.select(Selector.MAL_IMAGE).first();
+                if (imageElement == null) return "";
+
                 Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();
@@ -98,7 +103,6 @@ public class Utils {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Log.d(TAG, "End: " + title);
             return "";
         }
 
@@ -109,6 +113,10 @@ public class Utils {
                 @Override
                 public void execute(Realm realm) {
                     Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
+                    if (anime == null) {
+                        anime = realm.createObject(Anime.class);
+                        anime.title = title;
+                    }
                     anime.coverURL = URL;
                 }
             });

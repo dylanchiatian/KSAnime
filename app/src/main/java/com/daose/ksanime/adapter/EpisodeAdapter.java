@@ -53,7 +53,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (holder instanceof HeaderViewHolder) {
             HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
             headerViewHolder.title.setText(anime.title);
-//            headerViewHolder.summary.setText(anime.summary);
+            headerViewHolder.description.setText(anime.description);
         } else {
             int offsetPosition = position - 1;
             Episode episode = episodeList.get(offsetPosition);
@@ -77,14 +77,14 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         private TextView title;
         private ImageView arrowButton;
-        private TextView summary;
+        private TextView description;
 
         public HeaderViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
             arrowButton = (ImageView) itemView.findViewById(R.id.arrow);
             arrowButton.setOnClickListener(this);
-            //summary = (TextView) itemView.findViewById(R.id.summary);
+            description = (TextView) itemView.findViewById(R.id.description);
         }
 
         @Override
@@ -117,10 +117,5 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.ctx = activity.getBaseContext();
         this.anime = anime;
         this.episodeList = anime.episodes.sort("name", Sort.DESCENDING);
-    }
-
-    public void setEpisodeList(RealmResults<Episode> episodeList) {
-        this.episodeList = episodeList;
-        notifyDataSetChanged();
     }
 }
