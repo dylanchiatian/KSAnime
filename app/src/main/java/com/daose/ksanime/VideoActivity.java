@@ -7,13 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
 public class VideoActivity extends AppCompatActivity {
 
     protected EMVideoView video;
+    //TODO:: look at alternative: https://github.com/afollestad/easy-video-player
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,5 +27,19 @@ public class VideoActivity extends AppCompatActivity {
         });
 
         video.setVideoURI(Uri.parse(getIntent().getStringExtra("url")));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        video.pause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!video.isPlaying()) {
+            video.start();
+        }
     }
 }
