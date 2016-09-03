@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -74,8 +75,6 @@ public class AnimeActivity extends AppCompatActivity {
     private FloatingActionButton fabDownload, fabStar;
     private FloatingActionMenu fabMenu;
 
-    //TODO:: since title is the only thing you get, why not load in the beginning and show everything at the same time? (title + description + episode list)
-    //TODO:: put star/related/download into fab and keep activity ui clean (trello)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,8 +139,8 @@ public class AnimeActivity extends AppCompatActivity {
                                 elements = doc.select(Selector.ANIME_DESCRIPTION);
                                 //TODO:: everytime there are <br></br> add a \n ?
                                 if (elements.size() > 0) {
-                                    anime.description = elements.get(0).text();
-                                } else {
+                                    anime.description = elements.get(0).html();
+                                } else if (anime.description == null || anime.description.isEmpty()) {
                                     anime.description = "";
                                 }
                             }
@@ -498,6 +497,20 @@ public class AnimeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    public void onDescriptionClick() {
+        new AlertDialog.Builder(this)
+                .setTitle("Description")
+                .setMessage(Html.fromHtml(anime.description))
+                .setPositiveButton("Back", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
     }
 
     private class GetHeaderURL extends Utils.GetCoverURL {

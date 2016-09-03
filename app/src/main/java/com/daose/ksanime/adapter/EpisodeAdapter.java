@@ -2,6 +2,7 @@ package com.daose.ksanime.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +54,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (holder instanceof HeaderViewHolder) {
             HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
             headerViewHolder.title.setText(anime.title);
-            headerViewHolder.description.setText(anime.description);
+            headerViewHolder.description.setText(Html.fromHtml(anime.description));
         } else {
             int offsetPosition = position - 1;
             Episode episode = episodeList.get(offsetPosition);
@@ -73,7 +74,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return episodeList.size() + 1;
     }
 
-    public class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class HeaderViewHolder extends RecyclerView.ViewHolder {
 
         private TextView title;
         private ImageView arrowButton;
@@ -83,13 +84,21 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
             arrowButton = (ImageView) itemView.findViewById(R.id.arrow);
-            arrowButton.setOnClickListener(this);
             description = (TextView) itemView.findViewById(R.id.description);
-        }
 
-        @Override
-        public void onClick(View v){
-            activity.onArrowClick();
+            arrowButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.onArrowClick();
+                }
+            });
+
+            description.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.onDescriptionClick();
+                }
+            });
         }
     }
 
