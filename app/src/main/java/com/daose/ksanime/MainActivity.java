@@ -10,6 +10,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,13 @@ import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
+import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.lapism.searchview.SearchView;
 
 import java.util.ArrayList;
@@ -48,6 +56,86 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<String> searchList;
     public static List<AppLovinNativeAd> nativeAds;
 
+    private CastContext castContext;
+
+
+    private CastSession mCastSession;
+    private SessionManagerListener<CastSession> mSessionManagerListener;
+
+    private void setupCastListener() {
+        mSessionManagerListener = new SessionManagerListener<CastSession>() {
+
+            @Override
+            public void onSessionEnded(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionResumed(CastSession session, boolean wasSuspended) {
+                Log.d(TAG, "onSessionResumed");
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionResumeFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarted(CastSession session, String sessionId) {
+                Log.d(TAG, "onSessionStarted");
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionStartFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarting(CastSession session) {
+            }
+
+            @Override
+            public void onSessionEnding(CastSession session) {
+            }
+
+            @Override
+            public void onSessionResuming(CastSession session, String sessionId) {
+            }
+
+            @Override
+            public void onSessionSuspended(CastSession session, int reason) {
+            }
+
+            private void onApplicationConnected(CastSession castSession) {
+                Log.d(TAG, "onApplicationConnected");
+                mCastSession = castSession;
+                invalidateOptionsMenu();
+            }
+
+            private void onApplicationDisconnected() {
+                invalidateOptionsMenu();
+            }
+        };
+    }
+
+    private void loadRemoteMedia(){
+        Log.d(TAG, "loadRemoteMedia");
+
+        //chromecast test
+        MediaMetadata animeMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+        animeMetadata.putString(MediaMetadata.KEY_TITLE, "Second test title");
+        MediaInfo animeInfo = new MediaInfo.Builder("https://r8---sn-gvbxgn-tt1d.googlevideo.com/videoplayback?requiressl=yes&id=33fc0754ecaea7f9&itag=22&source=webdrive&ttl=transient&app=texmex&ip=2607:fea8:4d60:27c:7589:4dc1:bcd6:4135&ipbits=0&expire=1473034853&sparams=expire,id,ip,ipbits,itag,mm,mn,ms,mv,pl,requiressl,source,ttl,usequic&signature=594B305B2BD0D61301CADC62A1BA70114883F0E5.384A0021F9D0F76F44451F12CAFB5C676FD4CCD1&key=cms1&pl=32&sc=yes&cms_redirect=yes&mm=31&mn=sn-gvbxgn-tt1d&ms=au&mt=1473021931&mv=m&usequic=no")
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setContentType("videos/mp4")
+                .setMetadata(animeMetadata)
+                .build();
+
+        RemoteMediaClient remoteMediaClient = mCastSession.getRemoteMediaClient();
+        Log.d(TAG, "loaded");
+        remoteMediaClient.load(animeInfo, true);
+    }
     //TODO:: list/grid view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +150,12 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
+
+
+        castContext = CastContext.getSharedInstance(this);
+        setupCastListener();
+        castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
+        mCastSession = castContext.getSessionManager().getCurrentCastSession();
     }
 
     private void setupToolbar() {
@@ -115,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);
         return true;
     }
 

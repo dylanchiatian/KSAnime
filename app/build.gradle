@@ -41,4 +41,8 @@ dependencies {
     compile 'jp.wasabeef:picasso-transformations:2.1.0'
     compile 'com.github.d-max:spots-dialog:0.7@aar'
     compile 'com.github.clans:fab:1.6.4'
+
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:mediarouter-v7:23.4.0'
+    compile 'com.google.android.gms:play-services-cast-framework:9.4.0'
 }

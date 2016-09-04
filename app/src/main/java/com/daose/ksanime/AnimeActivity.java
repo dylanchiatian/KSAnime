@@ -22,7 +22,6 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.applovin.adview.AppLovinIncentivizedInterstitial;
-import com.applovin.adview.AppLovinInterstitialAd;
 import com.daose.ksanime.adapter.EpisodeAdapter;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
@@ -33,6 +32,11 @@ import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -77,6 +81,9 @@ public class AnimeActivity extends AppCompatActivity {
 
     private boolean inDownloadMode;
 
+    private CastContext castContext;
+    private CastSession castSession;
+
     //TODO:: group episodes in 50s
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +94,9 @@ public class AnimeActivity extends AppCompatActivity {
         setupDatabase();
         initUI();
         setupAnime(getIntent().getStringExtra("anime"));
+
+        castContext = CastContext.getSharedInstance(getApplicationContext());
+        castSession = castContext.getSessionManager().getCurrentCastSession();
     }
 
     @Override
@@ -198,6 +208,7 @@ public class AnimeActivity extends AppCompatActivity {
                     public void run() {
                         Browser.getInstance(AnimeActivity.this).reset();
                         preloadIndicator.setVisibility(View.GONE);
+                        if (loadDialog.isShowing()) loadDialog.dismiss();
                         Toast.makeText(AnimeActivity.this, getString(R.string.update_failed), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -555,9 +566,25 @@ public class AnimeActivity extends AppCompatActivity {
 
                     }
                 });
-                Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
-                intent.putExtra(Utils.URL_KEY, url);
-                startActivity(intent);
+
+                //TODO:: get proper app_id
+                if (castSession != null && castSession.isConnected()) {
+                    MediaMetadata animeMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+                    animeMetadata.putString(MediaMetadata.KEY_TITLE, anime.title);
+                    MediaInfo animeInfo = new MediaInfo.Builder(url)
+                            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                            .setContentType("videos/mp4")
+                            .setMetadata(animeMetadata)
+                            .build();
+
+                    RemoteMediaClient remoteMediaClient = castSession.getRemoteMediaClient();
+                    remoteMediaClient.load(animeInfo, true);
+                } else {
+                    //TODO:: cast activity for seek and play/pause (load placeholder exoplayer to get duration?)
+                    Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
+                    intent.putExtra(Utils.URL_KEY, url);
+                    startActivity(intent);
+                }
             }
         });
     }
