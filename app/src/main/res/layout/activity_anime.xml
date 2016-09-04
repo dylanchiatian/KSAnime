@@ -29,10 +29,10 @@
         android:paddingEnd="@dimen/fab_margin"
         android:paddingRight="@dimen/fab_margin"
         fab:menu_backgroundColor="@color/trans_base4"
-        fab:menu_labels_colorRipple="@android:color/transparent"
         fab:menu_colorNormal="@color/trans_base4_light"
+        fab:menu_colorPressed="@color/base4"
         fab:menu_colorRipple="@android:color/transparent"
-        fab:menu_colorPressed="@color/base4">
+        fab:menu_labels_colorRipple="@android:color/transparent">
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fab_download"
@@ -45,6 +45,18 @@
             fab:fab_label="Download Mode"
             fab:fab_size="mini" />
 
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_related"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_subscriptions_black_24dp"
+            fab:fab_colorNormal="@color/trans_base4"
+            fab:fab_colorPressed="@color/base4"
+            fab:fab_colorRipple="@android:color/transparent"
+            fab:fab_label="Related"
+            fab:fab_size="mini" />
+
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fab_star"
             android:layout_width="wrap_content"
@@ -53,7 +65,7 @@
             fab:fab_colorNormal="@color/trans_base4"
             fab:fab_colorPressed="@color/base4"
             fab:fab_colorRipple="@color/colorAccent"
-            fab:fab_label="Star Anime"
+            fab:fab_label="Star"
             fab:fab_size="mini" />
 
     </com.github.clans.fab.FloatingActionMenu>

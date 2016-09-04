@@ -16,7 +16,7 @@
             android:title="Trending" />
         <item
             android:id="@+id/nav_starred"
-            android:icon="@drawable/ic_star_border_black_24dp"
+            android:icon="@drawable/ic_folder_special_black_24dp"
             android:title="Starred" />
 
         <item

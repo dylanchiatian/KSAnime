@@ -22,5 +22,7 @@ public class Selector {
     public static final String ANIME_DESCRIPTION = "div.barContent p:not(:has(span.info))";
     public static final String VIDEO = "div#divContentVideo video";
 
+    public static final String RELATED_ANIME_LIST = "div.rightBox a";
+
     public static final String ANIME_LIST = "table.listing td:eq(0) a";
 }

@@ -15,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -47,6 +48,8 @@ import java.util.regex.Pattern;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
@@ -60,30 +63,30 @@ public class AnimeActivity extends AppCompatActivity {
 
     public static final Pattern pattern = Pattern.compile("[^a-zA-Z0-9.-]");
 
-    private Anime anime;
     private ImageView cover;
     private SpotsDialog loadDialog;
     private RecyclerView rv;
     private LinearLayout preloadIndicator;
+    private FloatingActionButton fabDownload, fabStar, fabRelated;
+    private FloatingActionMenu fabMenu;
 
     private Realm realm;
+    private Anime anime;
 
     private AppLovinIncentivizedInterstitial videoAd;
 
     private boolean inDownloadMode;
 
-    private FloatingActionButton fabDownload, fabStar;
-    private FloatingActionMenu fabMenu;
-
+    //TODO:: group episodes in 50s
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anime);
 
-        initAds();
+        loadAds();
         setupDatabase();
         initUI();
-        updateEpisodes();
+        setupAnime(getIntent().getStringExtra("anime"));
     }
 
     @Override
@@ -96,6 +99,20 @@ public class AnimeActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         Browser.getInstance(this).reset();
+    }
+
+    private void setupAnime(String animeTitle) {
+        this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
+        setupBackground(Transformation.BLUR);
+        if (anime.isStarred) {
+            fabStar.setImageResource(R.drawable.ic_star_black_24dp);
+        }
+        if (!anime.episodes.isEmpty()) {
+            rv.setAdapter(new EpisodeAdapter(this, anime));
+        } else {
+            preloadIndicator.setVisibility(View.VISIBLE);
+        }
+        updateEpisodes();
     }
 
     private void updateEpisodes() {
@@ -137,11 +154,33 @@ public class AnimeActivity extends AppCompatActivity {
                                 }
 
                                 elements = doc.select(Selector.ANIME_DESCRIPTION);
-                                //TODO:: everytime there are <br></br> add a \n ?
                                 if (elements.size() > 0) {
                                     anime.description = elements.get(0).html();
                                 } else if (anime.description == null || anime.description.isEmpty()) {
                                     anime.description = "";
+                                }
+
+                                elements = doc.select(Selector.RELATED_ANIME_LIST);
+                                if (elements.size() > 0) {
+                                    anime.relatedAnimeList = new RealmList<Anime>();
+                                    for (Element relatedAnimeElement : elements) {
+                                        Uri uri = Uri.parse(Browser.BASE_URL + relatedAnimeElement.attr("href"));
+                                        if (uri.getPathSegments().size() > 2) {
+                                            //Not an anime, ex: /Anime/Anime_Name/Future_Episode
+                                            continue;
+                                        }
+                                        String title = relatedAnimeElement.text();
+                                        String summaryURL = uri.toString();
+                                        Anime relatedAnime = realm.where(Anime.class).equalTo("title", title).findFirst();
+                                        if (relatedAnime == null) {
+                                            relatedAnime = realm.createObject(Anime.class);
+                                            relatedAnime.title = title;
+                                            relatedAnime.summaryURL = summaryURL;
+                                            relatedAnime.relatedAnimeList.add(anime);
+                                        }
+                                        anime.relatedAnimeList.add(relatedAnime);
+                                    }
+
                                 }
                             }
                         });
@@ -166,34 +205,43 @@ public class AnimeActivity extends AppCompatActivity {
         });
     }
 
-    private void initAds() {
-        if (AppLovinInterstitialAd.isAdReadyToDisplay(this)) {
-            if (Math.random() > 0.5) {
-                AppLovinInterstitialAd.show(this);
-            }
-        }
+    private void loadAds() {
         videoAd = AppLovinIncentivizedInterstitial.create(this);
     }
 
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
-        String animeTitle = getIntent().getStringExtra("anime");
-        this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
     }
 
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
-        fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
-        fabStar = (FloatingActionButton) findViewById(R.id.fab_star);
-        //TODO:: prevent touch from going through when the menu is open
-        fabMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
+
         loadDialog = new SpotsDialog(this, R.style.LoadingTheme);
         preloadIndicator = (LinearLayout) findViewById(R.id.preload);
+        preloadIndicator.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                //prevent touches from going through
+                return true;
+            }
+        });
 
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        setupBackground(Transformation.BLUR);
+        fabMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
+        fabMenu.setClosedOnTouchOutside(true);
+        fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
+        fabRelated = (FloatingActionButton) findViewById(R.id.fab_related);
+        fabStar = (FloatingActionButton) findViewById(R.id.fab_star);
+
+        fabRelated.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showRelatedDialog();
+                fabMenu.close(true);
+            }
+        });
 
         fabDownload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,10 +273,6 @@ public class AnimeActivity extends AppCompatActivity {
             }
         });
 
-        if (anime.isStarred) {
-            fabStar.setImageResource(R.drawable.ic_star_black_24dp);
-        }
-
         fabStar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -253,12 +297,6 @@ public class AnimeActivity extends AppCompatActivity {
                 Browser.getInstance(AnimeActivity.this).reset();
             }
         });
-
-        if (!anime.episodes.isEmpty()) {
-            rv.setAdapter(new EpisodeAdapter(this, anime));
-        } else {
-            preloadIndicator.setVisibility(View.VISIBLE);
-        }
     }
 
     private void setupBackground(Transformation type) {
@@ -291,6 +329,30 @@ public class AnimeActivity extends AppCompatActivity {
         }
     }
 
+    private void showRelatedDialog() {
+        if (anime.relatedAnimeList.size() == 0) {
+            Toast.makeText(this, "No Related Animes", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        CharSequence[] relatedAnimeTitles = new CharSequence[anime.relatedAnimeList.size()];
+        for (int i = 0; i < anime.relatedAnimeList.size(); i++) {
+            relatedAnimeTitles[i] = anime.relatedAnimeList.get(i).title;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Related Animes")
+                .setSingleChoiceItems(relatedAnimeTitles, -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        setupAnime(anime.relatedAnimeList.get(which).title);
+                    }
+                })
+                .create()
+                .show();
+    }
+
     private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
         if (loadDialog.isShowing()) loadDialog.dismiss();
         Iterator<String> it = json.keys();
@@ -299,7 +361,7 @@ public class AnimeActivity extends AppCompatActivity {
             qualities.add(it.next());
         }
 
-        new AlertDialog.Builder(AnimeActivity.this)
+        new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.quality_title))
                 .setSingleChoiceItems(qualities.toArray(new CharSequence[qualities.size()]), -1, new DialogInterface.OnClickListener() {
                     @Override

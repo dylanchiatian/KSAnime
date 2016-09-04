@@ -20,6 +20,8 @@ public class Anime extends RealmObject implements Serializable {
     public String coverURL;
     public String summaryURL;
 
+    public RealmList<Anime> relatedAnimeList;
+
     @Index
     public boolean isStarred;
 

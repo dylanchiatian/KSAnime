@@ -34,12 +34,4 @@ public class VideoActivity extends AppCompatActivity {
         super.onPause();
         video.pause();
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (!video.isPlaying()) {
-            video.start();
-        }
-    }
 }
