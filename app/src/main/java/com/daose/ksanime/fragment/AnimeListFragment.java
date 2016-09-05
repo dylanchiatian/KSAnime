@@ -3,11 +3,14 @@ package com.daose.ksanime.fragment;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -256,6 +259,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                     @Override
                     public void onAnimationStart(View view) {
                         if (refreshBar.isShown()) refreshBar.dismiss();
+                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override
@@ -306,6 +310,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
                     @Override
                     public void onAnimationStart(View view) {
                         if (refreshBar.isShown()) refreshBar.dismiss();
+                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override

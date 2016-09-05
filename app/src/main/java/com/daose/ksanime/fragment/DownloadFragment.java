@@ -26,6 +26,8 @@ public class DownloadFragment extends Fragment {
 
     private RecyclerView rv;
 
+    private File moviesFolder;
+
     private OnFragmentInteractionListener mListener;
 
     public DownloadFragment() {
@@ -39,21 +41,29 @@ public class DownloadFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        moviesFolder = getContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_download, container, false);
+        View view;
+        if (moviesFolder == null || moviesFolder.list().length == 0) {
+            view = inflater.inflate(R.layout.fragment_download_default, container, false);
+        } else {
+            view = inflater.inflate(R.layout.fragment_download, container, false);
+        }
+        return view;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedBundleInstance) {
-        rv = (RecyclerView) view.findViewById(R.id.recycler_view);
-        rv.setLayoutManager(new LinearLayoutManager(getContext()));
-        rv.setHasFixedSize(true);
-        refreshAdapter();
+        if (moviesFolder != null && moviesFolder.list().length != 0) {
+            rv = (RecyclerView) view.findViewById(R.id.recycler_view);
+            rv.setLayoutManager(new LinearLayoutManager(getContext()));
+            rv.setHasFixedSize(true);
+            refreshAdapter();
+        }
     }
 
     @Override
@@ -91,9 +101,8 @@ public class DownloadFragment extends Fragment {
         int animeIndex = 0;
         List<SectionAdapter.Section> sections = new ArrayList<SectionAdapter.Section>();
         ArrayList<File> downloadedEpisodes = new ArrayList<File>();
-        File movies = getContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-        if (movies == null) return; //TODO:: better fail case here
-        File[] animes = movies.listFiles();
+        if (moviesFolder == null) return;
+        File[] animes = moviesFolder.listFiles();
         for (File animeFolder : animes) {
             sections.add(new SectionAdapter.Section(animeIndex, animeFolder.getName().replaceAll("-", " ")));
             File[] downloadedFiles = animeFolder.listFiles();

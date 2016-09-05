@@ -53,11 +53,11 @@ public class MainActivity extends AppCompatActivity implements
     private boolean isNewMenuItem = false;
     private DrawerLayout drawer;
     private SearchView searchView;
+    private Toolbar toolbar;
     private ArrayList<String> searchList;
     public static List<AppLovinNativeAd> nativeAds;
 
     private CastContext castContext;
-
 
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-    private void loadRemoteMedia(){
+    private void loadRemoteMedia() {
         Log.d(TAG, "loadRemoteMedia");
 
         //chromecast test
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "loaded");
         remoteMediaClient.load(animeInfo, true);
     }
+
     //TODO:: list/grid view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,9 +160,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setNavigationContentDescription(getResources().getString(R.string.app_name));
         toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
+        toolbar.setTranslationY(toolbar.getHeight());
         setSupportActionBar(toolbar);
     }
 

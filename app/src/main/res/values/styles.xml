@@ -10,6 +10,12 @@
         <item name="android:colorBackground">@color/background</item>
     </style>
 
+    <style name="AppTheme.Toolbar" parent="AppTheme">
+        <item name="colorPrimary">@color/base3</item>
+        <item name="android:background">@color/base3</item>
+        <item name="android:windowBackground">@color/base3</item>
+    </style>
+
     <style name="FullscreenTheme" parent="AppTheme">
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>

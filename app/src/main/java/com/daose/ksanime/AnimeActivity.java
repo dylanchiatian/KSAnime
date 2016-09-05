@@ -468,7 +468,6 @@ public class AnimeActivity extends AppCompatActivity {
         }
     }
 
-    //TODO:: bug that keeps looping forever, no idea of network?
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (inDownloadMode) {
@@ -573,7 +572,7 @@ public class AnimeActivity extends AppCompatActivity {
                     animeMetadata.putString(MediaMetadata.KEY_TITLE, anime.title);
                     MediaInfo animeInfo = new MediaInfo.Builder(url)
                             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                            .setContentType("videos/mp4")
+                            .setContentType("video/mp4")
                             .setMetadata(animeMetadata)
                             .build();
 

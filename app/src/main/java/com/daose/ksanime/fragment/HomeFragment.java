@@ -228,7 +228,6 @@ public class HomeFragment extends Fragment {
         if (recentAnime != null) {
             final ImageView cover = (ImageView) recentView.findViewById(R.id.recent_anime_cover);
             if (recentAnime.coverURL == null || recentAnime.coverURL.isEmpty()) {
-                //TODO:: no way of updating cover afterwards
                 new Utils.GetCoverURL().execute(recentAnime.title);
             } else {
                 Picasso.with(getContext()).load(recentAnime.coverURL).placeholder(R.drawable.placeholder).into(cover);
@@ -253,7 +252,7 @@ public class HomeFragment extends Fragment {
             popularAd = null;
             updatedAd = null;
         } else {
-            switch(MainActivity.nativeAds.size()){
+            switch (MainActivity.nativeAds.size()) {
                 case 1:
                     trendingAd = MainActivity.nativeAds.get(0);
                     popularAd = null;
@@ -261,7 +260,7 @@ public class HomeFragment extends Fragment {
                     break;
                 case 2:
                     trendingAd = MainActivity.nativeAds.get(0);
-                    popularAd  = MainActivity.nativeAds.get(1);
+                    popularAd = MainActivity.nativeAds.get(1);
                     updatedAd = null;
                     break;
                 case 3:
@@ -341,7 +340,8 @@ public class HomeFragment extends Fragment {
                 .setListener(new ViewPropertyAnimatorListener() {
                     @Override
                     public void onAnimationStart(View view) {
-                        //todo:: update bar dismiss
+                        if (refreshBar.isShown()) refreshBar.dismiss();
+                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override
@@ -366,7 +366,8 @@ public class HomeFragment extends Fragment {
                 .setListener(new ViewPropertyAnimatorListener() {
                     @Override
                     public void onAnimationStart(View view) {
-                        //todo:: update bar dismiss
+                        if (refreshBar.isShown()) refreshBar.dismiss();
+                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override

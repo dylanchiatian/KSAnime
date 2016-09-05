@@ -15,8 +15,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:minHeight="?attr/actionBarSize"
-            app:layout_scrollFlags="scroll|enterAlways|snap" />
+            style="@style/AppTheme.Toolbar"
+            android:minHeight="?attr/actionBarSize"/>
 
     </android.support.design.widget.AppBarLayout>
 
