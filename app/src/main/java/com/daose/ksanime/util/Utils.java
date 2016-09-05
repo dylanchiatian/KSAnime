@@ -30,6 +30,7 @@ public class Utils {
     public static String MARKET_URL = "https://play.google.com/store/apps/details?id=com.daose.ksanime";
 
     public static String URL_KEY = "url";
+    public static String ANIME_KEY = "title";
 
     public static String USER_AGENT = "Mozilla/5.0";
 

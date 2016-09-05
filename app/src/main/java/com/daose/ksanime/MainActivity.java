@@ -120,23 +120,6 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-    private void loadRemoteMedia() {
-        Log.d(TAG, "loadRemoteMedia");
-
-        //chromecast test
-        MediaMetadata animeMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-        animeMetadata.putString(MediaMetadata.KEY_TITLE, "Second test title");
-        MediaInfo animeInfo = new MediaInfo.Builder("https://r8---sn-gvbxgn-tt1d.googlevideo.com/videoplayback?requiressl=yes&id=33fc0754ecaea7f9&itag=22&source=webdrive&ttl=transient&app=texmex&ip=2607:fea8:4d60:27c:7589:4dc1:bcd6:4135&ipbits=0&expire=1473034853&sparams=expire,id,ip,ipbits,itag,mm,mn,ms,mv,pl,requiressl,source,ttl,usequic&signature=594B305B2BD0D61301CADC62A1BA70114883F0E5.384A0021F9D0F76F44451F12CAFB5C676FD4CCD1&key=cms1&pl=32&sc=yes&cms_redirect=yes&mm=31&mn=sn-gvbxgn-tt1d&ms=au&mt=1473021931&mv=m&usequic=no")
-                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                .setContentType("videos/mp4")
-                .setMetadata(animeMetadata)
-                .build();
-
-        RemoteMediaClient remoteMediaClient = mCastSession.getRemoteMediaClient();
-        Log.d(TAG, "loaded");
-        remoteMediaClient.load(animeInfo, true);
-    }
-
     //TODO:: list/grid view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,7 +134,6 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
-
 
         castContext = CastContext.getSharedInstance(this);
         setupCastListener();
@@ -317,6 +299,13 @@ public class MainActivity extends AppCompatActivity implements
         }
         realm.close();
         return false;
+    }
+
+    @Override
+    public void onShowMore(String title) {
+        setTitle(title);
+        Fragment fragment = AnimeListFragment.newInstance(title);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
     }
 
     @Override

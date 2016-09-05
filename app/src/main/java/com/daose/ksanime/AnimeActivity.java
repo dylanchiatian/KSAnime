@@ -149,6 +149,7 @@ public class AnimeActivity extends AppCompatActivity {
                                 for (Element episodeElement : elements) {
                                     String name = episodeElement.text();
                                     String url = Browser.BASE_URL + episodeElement.attributes().get("href");
+                                    Log.d(TAG, "Name: " + name + " url: " + url);
 
                                     //GOOGLE PLAY
                                     if (Utils.containsIgnoreCase(name, "censored"))
@@ -194,6 +195,7 @@ public class AnimeActivity extends AppCompatActivity {
                                 }
                             }
                         });
+                        Log.d(TAG, "adapter updated");
                         rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
                         preloadIndicator.setVisibility(View.GONE);
                     }
@@ -566,24 +568,16 @@ public class AnimeActivity extends AppCompatActivity {
                     }
                 });
 
-                //TODO:: get proper app_id
+                Class activityClass;
                 if (castSession != null && castSession.isConnected()) {
-                    MediaMetadata animeMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-                    animeMetadata.putString(MediaMetadata.KEY_TITLE, anime.title);
-                    MediaInfo animeInfo = new MediaInfo.Builder(url)
-                            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                            .setContentType("video/mp4")
-                            .setMetadata(animeMetadata)
-                            .build();
-
-                    RemoteMediaClient remoteMediaClient = castSession.getRemoteMediaClient();
-                    remoteMediaClient.load(animeInfo, true);
+                    activityClass = CastActivity.class;
                 } else {
-                    //TODO:: cast activity for seek and play/pause (load placeholder exoplayer to get duration?)
-                    Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
-                    intent.putExtra(Utils.URL_KEY, url);
-                    startActivity(intent);
+                    activityClass = FullScreenVideoPlayerActivity.class;
                 }
+                Intent intent = new Intent(AnimeActivity.this, activityClass);
+                intent.putExtra(Utils.URL_KEY, url);
+                intent.putExtra(Utils.ANIME_KEY, anime.title);
+                startActivity(intent);
             }
         });
     }

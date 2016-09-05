@@ -46,7 +46,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
     private static final String TAG = AnimeListFragment.class.getSimpleName();
     private static final String KEY = "key";
 
-    private enum Type {
+    public enum Type {
         Popular, Trending, Starred
     }
 

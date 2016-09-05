@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -59,6 +60,9 @@ public class HomeFragment extends Fragment {
     private RecyclerView popularView;
     private RecyclerView trendingView;
     private RecyclerView updatedView;
+
+    private Button morePopular;
+    private Button moreTrending;
 
     private RelativeLayout recentView;
 
@@ -128,6 +132,23 @@ public class HomeFragment extends Fragment {
 
         refreshBar = Snackbar.make(view, getString(R.string.snackbar_refresh), Snackbar.LENGTH_INDEFINITE);
         refreshBar.getView().setBackgroundColor(ContextCompat.getColor(getContext(), R.color.trans_base4));
+
+        moreTrending = (Button) view.findViewById(R.id.more_trending);
+        morePopular = (Button) view.findViewById(R.id.more_popular);
+
+        moreTrending.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onShowMore(AnimeListFragment.Type.Trending.name());
+            }
+        });
+
+        morePopular.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onShowMore(AnimeListFragment.Type.Popular.name());
+            }
+        });
 
         initAds();
         trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, trendingAd));
@@ -421,7 +442,8 @@ public class HomeFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onAnimeClick(String animeTitle);
-
         void onNativeAdClick(AppLovinNativeAd ad);
+
+        void onShowMore(String key);
     }
 }
