@@ -568,13 +568,7 @@ public class AnimeActivity extends AppCompatActivity {
                     }
                 });
 
-                Class activityClass;
-                if (castSession != null && castSession.isConnected()) {
-                    activityClass = CastActivity.class;
-                } else {
-                    activityClass = FullScreenVideoPlayerActivity.class;
-                }
-                Intent intent = new Intent(AnimeActivity.this, activityClass);
+                Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
                 intent.putExtra(Utils.URL_KEY, url);
                 intent.putExtra(Utils.ANIME_KEY, anime.title);
                 startActivity(intent);

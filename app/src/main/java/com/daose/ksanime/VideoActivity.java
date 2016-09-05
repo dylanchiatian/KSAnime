@@ -68,6 +68,7 @@ public class VideoActivity extends AppCompatActivity {
                     mediaClient.addListener(new RemoteMediaClient.Listener() {
                         @Override
                         public void onStatusUpdated() {
+                            Log.d(TAG, "onStatusUpdated");
                             Intent intent = new Intent(VideoActivity.this, CastActivity.class);
                             startActivity(intent);
                             mediaClient.removeListener(this);
@@ -82,7 +83,8 @@ public class VideoActivity extends AppCompatActivity {
                         @Override
                         public void onSendingRemoteMediaRequest() {}
                     });
-                    mediaClient.load(animeInfo, true);
+                    mediaClient.load(animeInfo, true, 0);
+                    Log.d(TAG, "mediaClient.load called");
                 } else {
                     video.start();
                 }

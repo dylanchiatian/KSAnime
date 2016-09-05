@@ -117,7 +117,6 @@ public class HomeFragment extends Fragment {
         popularView.setHasFixedSize(true);
         updatedView.setHasFixedSize(true);
 
-        //TODO:: "more" button that takes you to the animelistfragment
         trendingView.setNestedScrollingEnabled(false);
         popularView.setNestedScrollingEnabled(false);
         updatedView.setNestedScrollingEnabled(false);
