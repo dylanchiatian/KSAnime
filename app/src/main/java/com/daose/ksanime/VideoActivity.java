@@ -84,7 +84,6 @@ public class VideoActivity extends AppCompatActivity {
                         public void onSendingRemoteMediaRequest() {}
                     });
                     mediaClient.load(animeInfo, true, 0);
-                    Log.d(TAG, "mediaClient.load called");
                 } else {
                     video.start();
                 }

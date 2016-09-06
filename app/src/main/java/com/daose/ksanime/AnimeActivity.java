@@ -141,7 +141,7 @@ public class AnimeActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Browser.getInstance(AnimeActivity.this).reset();
+                        //Browser.getInstance(AnimeActivity.this).reset();
                         realm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
@@ -149,7 +149,6 @@ public class AnimeActivity extends AppCompatActivity {
                                 for (Element episodeElement : elements) {
                                     String name = episodeElement.text();
                                     String url = Browser.BASE_URL + episodeElement.attributes().get("href");
-                                    Log.d(TAG, "Name: " + name + " url: " + url);
 
                                     //GOOGLE PLAY
                                     if (Utils.containsIgnoreCase(name, "censored"))
@@ -195,7 +194,6 @@ public class AnimeActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                        Log.d(TAG, "adapter updated");
                         rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
                         preloadIndicator.setVisibility(View.GONE);
                     }
@@ -470,6 +468,7 @@ public class AnimeActivity extends AppCompatActivity {
         }
     }
 
+    //TODO:: clicking this soon after entering this screen results in fail first time around
     public void requestVideo(final Episode episode) {
         loadDialog.show();
         if (inDownloadMode) {
