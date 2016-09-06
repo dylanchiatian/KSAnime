@@ -274,19 +274,19 @@ public class HomeFragment extends Fragment {
         } else {
             switch (MainActivity.nativeAds.size()) {
                 case 1:
-                    trendingAd = MainActivity.nativeAds.get(0);
+                    updatedAd = MainActivity.nativeAds.get(0);
+                    trendingAd = null;
                     popularAd = null;
-                    updatedAd = null;
                     break;
                 case 2:
-                    trendingAd = MainActivity.nativeAds.get(0);
-                    popularAd = MainActivity.nativeAds.get(1);
-                    updatedAd = null;
+                    updatedAd = MainActivity.nativeAds.get(0);
+                    trendingAd = MainActivity.nativeAds.get(1);
+                    popularAd = null;
                     break;
                 case 3:
-                    trendingAd = MainActivity.nativeAds.get(0);
-                    popularAd = MainActivity.nativeAds.get(1);
-                    updatedAd = MainActivity.nativeAds.get(2);
+                    updatedAd = MainActivity.nativeAds.get(0);
+                    trendingAd = MainActivity.nativeAds.get(1);
+                    popularAd = MainActivity.nativeAds.get(2);
                     break;
                 default:
                     trendingAd = popularAd = updatedAd = null;
@@ -302,9 +302,9 @@ public class HomeFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            trendingView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmTrendingList.animeList, (AppLovinNativeAd) list.get(0)), false);
-                            popularView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmPopularList.animeList, (AppLovinNativeAd) list.get(1)), false);
-                            updatedView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmUpdatedList.animeList, (AppLovinNativeAd) list.get(2)), false);
+                            updatedView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmUpdatedList.animeList, (AppLovinNativeAd) list.get(0)), false);
+                            trendingView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmTrendingList.animeList, (AppLovinNativeAd) list.get(1)), false);
+                            popularView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmPopularList.animeList, (AppLovinNativeAd) list.get(2)), false);
                         }
                     });
 
