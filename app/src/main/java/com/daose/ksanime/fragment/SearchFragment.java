@@ -44,8 +44,7 @@ public class SearchFragment extends Fragment implements HtmlListener {
 
     private OnFragmentInteractionListener mListener;
 
-    public SearchFragment() {
-    }
+    public SearchFragment() {}
 
     public static SearchFragment newInstance(String key) {
         SearchFragment fragment = new SearchFragment();
@@ -117,6 +116,14 @@ public class SearchFragment extends Fragment implements HtmlListener {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                final Element searchCheck = doc.select(Selector.SEARCH_CHECK).first();
+                if (!searchCheck.text().equals("Result")) {
+                    searchIndicator.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "BUG: Try a shorter word", Toast.LENGTH_SHORT).show();
+                    return;
+                    //var disqus_url contains current url
+                }
+
                 final Elements animeElements = doc.select(Selector.ANIME_LIST);
                 final ArrayList<String> searchList = new ArrayList<String>();
                 realm.executeTransactionAsync(new Realm.Transaction() {

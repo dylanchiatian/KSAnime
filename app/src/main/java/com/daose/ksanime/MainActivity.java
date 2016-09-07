@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onSessionResumed(CastSession session, boolean wasSuspended) {
-                Log.d(TAG, "onSessionResumed");
                 onApplicationConnected(session);
             }
 
@@ -83,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onSessionStarted(CastSession session, String sessionId) {
-                Log.d(TAG, "onSessionStarted");
                 onApplicationConnected(session);
             }
 
@@ -206,8 +204,9 @@ public class MainActivity extends AppCompatActivity implements
             case android.R.id.home:
                 drawer.openDrawer(GravityCompat.START);
                 return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

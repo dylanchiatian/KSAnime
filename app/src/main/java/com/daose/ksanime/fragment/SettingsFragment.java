@@ -1,24 +1,22 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.daose.ksanime.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SettingsFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SettingsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import io.realm.Realm;
+
 public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedChangeListener {
 
     private OnFragmentInteractionListener mListener;
@@ -45,6 +43,7 @@ public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedCh
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         RadioGroup qualities = (RadioGroup) view.findViewById(R.id.qualities);
+        Button resetButton = (Button) view.findViewById(R.id.reset);
         prefs = getActivity().getSharedPreferences("daose", Context.MODE_PRIVATE);
         String quality = prefs.getString("quality", "720p");
         switch (quality) {
@@ -65,6 +64,41 @@ public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedCh
                 break;
         }
         qualities.setOnCheckedChangeListener(this);
+
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showResetDialog();
+            }
+        });
+    }
+
+    private void showResetDialog() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Reset?")
+                .setMessage("Reset will erase favorites and all cached data")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Realm realm = Realm.getDefaultInstance();
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                realm.deleteAll();
+                                Toast.makeText(getContext(), "Reset success", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        realm.close();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
     }
 
     @Override

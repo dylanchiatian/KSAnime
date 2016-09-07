@@ -25,4 +25,5 @@ public class Selector {
     public static final String RELATED_ANIME_LIST = "div.rightBox a";
 
     public static final String ANIME_LIST = "table.listing td:eq(0) a";
+    public static final String SEARCH_CHECK = "div.bigBarContainer div.barTitle";
 }
