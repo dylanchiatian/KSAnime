@@ -16,7 +16,7 @@ public class CustomWebClient extends WebViewClient {
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook", "favicon"};
-    //TODO:: bug "asp is not defined"
+    //TODO:: bug "asp is not defined", maybe just check if there are not enough characters for it to be a page
     private static final String javascript = "javascript:" +
             "if (document.documentElement == null || document.body.innerHTML == \"The service is unavailable.\") {\n" +
             "    HtmlHandler.handleError();\n" +
@@ -60,7 +60,7 @@ public class CustomWebClient extends WebViewClient {
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
         if (ignoreUrls.contains(url)) {
             //Log.d(TAG, "FAIL: " + url);
-            return dud;
+            //return dud;
         }
 
         //cloudflare, pass
@@ -86,8 +86,10 @@ public class CustomWebClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        //TODO:: this is getting called way too early
         //Log.d(TAG, "onPageFinished: " + url);
         //get post-javascript html and pass it to HtmlHandler.handleHtml()
+        Log.d(TAG, "pageFinished: " + url);
         view.loadUrl(javascript);
     }
 }

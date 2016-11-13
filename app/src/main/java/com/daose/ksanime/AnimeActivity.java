@@ -32,11 +32,8 @@ import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
-import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
-import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -53,7 +50,6 @@ import java.util.regex.Pattern;
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
 import io.realm.RealmList;
-import io.realm.Sort;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
@@ -83,6 +79,10 @@ public class AnimeActivity extends AppCompatActivity {
 
     private CastContext castContext;
     private CastSession castSession;
+
+    public Anime getAnime() {
+        return anime;
+    }
 
     //TODO:: group episodes in 50s
     @Override
@@ -141,7 +141,6 @@ public class AnimeActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //Browser.getInstance(AnimeActivity.this).reset();
                         realm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
@@ -224,6 +223,7 @@ public class AnimeActivity extends AppCompatActivity {
         realm = Realm.getDefaultInstance();
     }
 
+    //TODO:: close dialog when you click "star"
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
 
@@ -239,6 +239,7 @@ public class AnimeActivity extends AppCompatActivity {
 
         rv = (RecyclerView) findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setNestedScrollingEnabled(false);
 
         fabMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fabMenu.setClosedOnTouchOutside(true);

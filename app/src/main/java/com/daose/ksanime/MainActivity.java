@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
@@ -23,6 +24,8 @@ import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.HtmlListener;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastButtonFactory;
@@ -132,6 +135,23 @@ public class MainActivity extends AppCompatActivity implements
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
+
+        /*
+        FrameLayout mainLayout = (FrameLayout) findViewById(R.id.fragment_placeholder);
+        mainLayout.addView(Browser.getInstance(this).getWebView());
+
+        Browser.getInstance(this).load(Browser.BASE_URL, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                Log.d(TAG, "html: " + html);
+            }
+
+            @Override
+            public void onPageFailed() {
+
+            }
+        });
+        */
 
         castContext = CastContext.getSharedInstance(this);
         setupCastListener();
