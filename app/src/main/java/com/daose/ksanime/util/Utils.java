@@ -82,10 +82,10 @@ public class Utils {
             if (title.length() > 60) {
                 title = title.substring(0, 59);
             }
-            title = title.replace(' ', '+');
+            String malTitle = title.replace(' ', '+');
             try {
                 final StringBuilder URLBuilder = new StringBuilder();
-                final Document doc = Jsoup.connect(Browser.IMAGE_URL + title).userAgent(Utils.USER_AGENT).get();
+                final Document doc = Jsoup.connect(Browser.IMAGE_URL + malTitle).userAgent(Utils.USER_AGENT).get();
 
                 Element imageElement = doc.select(Selector.MAL_IMAGE).first();
                 if (imageElement == null) return "";

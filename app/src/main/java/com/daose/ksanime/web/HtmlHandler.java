@@ -31,6 +31,9 @@ public class HtmlHandler {
 
     @JavascriptInterface
     public void handleHtml(String html) {
+        if(html.length() < 10000){
+            handleError("unfinished page");
+        }
         if (listener != null) {
             if (html.equals(BLANK_HTML)) {
                 listener.onPageFailed();
@@ -41,8 +44,8 @@ public class HtmlHandler {
     }
 
     @JavascriptInterface
-    public void handleError() {
-        Log.e(TAG, "page failed to load");
+    public void handleError(String error) {
+        Log.e(TAG, "page failed to load: " + error);
         if(listener != null){
             listener.onPageFailed();
         }

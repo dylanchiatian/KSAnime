@@ -299,6 +299,7 @@ public class AnimeActivity extends AppCompatActivity {
                         anime.isStarred = !anime.isStarred;
                     }
                 });
+                fabMenu.close(true);
             }
         });
 
@@ -358,7 +359,9 @@ public class AnimeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        setupAnime(anime.relatedAnimeList.get(which).title);
+                        Intent intent = new Intent(AnimeActivity.this, AnimeActivity.class);
+                        intent.putExtra("anime", anime.relatedAnimeList.get(which).title);
+                        startActivity(intent);
                     }
                 })
                 .create()

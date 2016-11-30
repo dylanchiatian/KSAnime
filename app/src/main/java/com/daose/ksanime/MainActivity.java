@@ -110,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements
             }
 
             private void onApplicationConnected(CastSession castSession) {
-                Log.d(TAG, "onApplicationConnected");
                 mCastSession = castSession;
                 invalidateOptionsMenu();
             }

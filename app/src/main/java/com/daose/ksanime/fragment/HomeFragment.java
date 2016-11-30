@@ -105,7 +105,6 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        Log.d(TAG, "onViewCreated");
         trendingView = (RecyclerView) view.findViewById(R.id.trending_view);
         popularView = (RecyclerView) view.findViewById(R.id.popular_view);
         updatedView = (RecyclerView) view.findViewById(R.id.updated_view);

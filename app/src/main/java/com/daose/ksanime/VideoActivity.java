@@ -68,7 +68,6 @@ public class VideoActivity extends AppCompatActivity {
                     mediaClient.addListener(new RemoteMediaClient.Listener() {
                         @Override
                         public void onStatusUpdated() {
-                            Log.d(TAG, "onStatusUpdated");
                             Intent intent = new Intent(VideoActivity.this, CastActivity.class);
                             startActivity(intent);
                             mediaClient.removeListener(this);
