@@ -15,8 +15,8 @@ public class Browser {
     private static final String TAG = Browser.class.getSimpleName();
 
     private static Browser ourInstance;
-    public static final String BASE_URL = "http://kissanime.to/";
-    public static final String SEARCH_URL = "http://kissanime.to/Search/Anime/";
+    public static final String BASE_URL = "http://kissanime.ru/";
+    public static final String SEARCH_URL = BASE_URL + "Search/Anime/";
     public static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
     public static final String MOST_POPULAR = "AnimeList/MostPopular";
     public static final String NEW_AND_HOT = "AnimeList/NewAndHot";

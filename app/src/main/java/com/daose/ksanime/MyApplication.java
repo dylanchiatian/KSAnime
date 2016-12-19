@@ -23,6 +23,7 @@ public class MyApplication extends Application {
         super.onCreate();
 
         SharedPreferences settings = getSharedPreferences("daose", 0);
+        //TODO:: if not first_install, display message that I had to flush their database, maybe list all their favourites before I do it
         if (settings.getBoolean("first_install", true)) {
             Log.d(TAG, "first install detected");
             copyBundledRealmFile(getResources().openRawResource(R.raw.export), "default.realm");

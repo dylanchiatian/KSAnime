@@ -21,7 +21,7 @@ public class CustomWebClient extends WebViewClient {
             "    HtmlHandler.handleError(\"null document\");\n" +
             "} else if (document.title === \"Please wait 5 seconds...\") {\n" +
             "} else if (document.documentElement.innerHTML.length < 150){\n" +
-            "    HtmlHandler.handleError(\"KissAnime website error\");\n" +
+            "    HtmlHandler.handleError(\"KissAnime website error: \" + document.documentElement.innerHTML);\n" +
             "} else if (document.documentElement.innerHTML.length < 10000){\n" +
             "} else if (document.getElementById(\"selectQuality\") !== null) {\n" +
             "    var qualities = document.getElementById(\"selectQuality\").options;\n" +
