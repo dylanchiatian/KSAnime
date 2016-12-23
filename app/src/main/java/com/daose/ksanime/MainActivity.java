@@ -1,6 +1,8 @@
 package com.daose.ksanime;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -8,6 +10,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -40,6 +43,7 @@ import java.util.List;
 
 import io.realm.Case;
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements
@@ -130,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements
         setupDrawer();
         setupNavigationView();
         setupSearchView();
-
+        displayAlert();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
@@ -194,6 +198,42 @@ public class MainActivity extends AppCompatActivity implements
             searchView.setShadowColor(ContextCompat.getColor(this, R.color.search_shadow_layout));
             searchView.setOnQueryTextListener(this);
             searchView.setOnOpenCloseListener(this);
+        }
+    }
+
+    private void displayAlert() {
+        SharedPreferences settings = getSharedPreferences("daose", 0);
+
+        final Realm realm = Realm.getDefaultInstance();
+
+        if(!settings.getBoolean("to_to_ru", false) && !settings.getBoolean("first_install", true)) {
+            RealmResults<Anime> starredList = realm.where(Anime.class).equalTo("isStarred", true).findAll();
+            if(starredList.size() > 0) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Due to KissAnime moving from .to to .ru, starred animes will be wiped. Sorry for the inconvenience. \n\nHere is your list: ");
+
+                for (Anime anime : starredList) {
+                    sb.append("\n - ");
+                    sb.append(anime.title);
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle(".to TO .ru CHANGE")
+                        .setMessage(sb.toString())
+                        .setPositiveButton("OK", null)
+                        .create()
+                        .show();
+            }
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.deleteAll();
+                }
+            });
+            realm.close();
+
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean("to_to_ru", true);
+            editor.apply();
         }
     }
 
