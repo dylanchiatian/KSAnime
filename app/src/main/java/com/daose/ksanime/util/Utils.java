@@ -72,6 +72,7 @@ public class Utils {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
+    //TODO:: get rid of sub/dub at the end
     public static class GetCoverURL extends AsyncTask<String, Void, String> {
 
         private String title;
@@ -90,7 +91,7 @@ public class Utils {
                 Element imageElement = doc.select(Selector.MAL_IMAGE).first();
                 if (imageElement == null) return "";
 
-                Uri rawUrl = Uri.parse(doc.select(Selector.MAL_IMAGE).first().attr(Selector.MAL_IMAGE_ATTR));
+                Uri rawUrl = Uri.parse(imageElement.attr(Selector.MAL_IMAGE_ATTR));
                 URLBuilder.append(rawUrl.getScheme()).append("://").append(rawUrl.getHost());
                 List<String> pathSegments = rawUrl.getPathSegments();
                 if (rawUrl.getPathSegments().size() < 3) {
