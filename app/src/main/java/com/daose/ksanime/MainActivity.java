@@ -3,6 +3,7 @@ package com.daose.ksanime;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -27,6 +28,7 @@ import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
 import com.daose.ksanime.web.HtmlListener;
 import com.google.android.gms.cast.MediaInfo;
@@ -388,8 +390,18 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onVideoClick(String path) {
-        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
-        intent.putExtra("url", path);
-        startActivity(intent);
+
+
+        Uri uri = Uri.parse("file://" + path);
+        Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
+        extIntent.setDataAndType(uri, "video/mp4");
+
+        if(extIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(extIntent);
+        } else {
+            Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
+            intent.putExtra("url", path);
+            startActivity(intent);
+        }
     }
 }

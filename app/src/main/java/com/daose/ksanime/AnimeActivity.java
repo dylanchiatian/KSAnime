@@ -90,7 +90,7 @@ public class AnimeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anime);
 
-        loadAds();
+        //loadAds();
         setupDatabase();
         initUI();
         setupAnime(getIntent().getStringExtra("anime"));
@@ -148,10 +148,6 @@ public class AnimeActivity extends AppCompatActivity {
                                 for (Element episodeElement : elements) {
                                     String name = episodeElement.text();
                                     String url = Browser.BASE_URL + episodeElement.attributes().get("href");
-
-                                    //GOOGLE PLAY
-                                    if (Utils.containsIgnoreCase(name, "censored"))
-                                        continue;
 
                                     Episode episode = realm.where(Episode.class).equalTo("url", url).findFirst();
                                     if (episode == null) {
@@ -396,8 +392,6 @@ public class AnimeActivity extends AppCompatActivity {
                         if (inDownloadMode) {
                             if (isFirstDownload()) {
                                 showRatingDialog();
-                            } else {
-                                showAdDialog();
                             }
                             downloadVideo(episode, json.optString(qualities.get(which)));
                         } else {
@@ -448,28 +442,6 @@ public class AnimeActivity extends AppCompatActivity {
                 })
                 .create()
                 .show();
-    }
-
-    private void showAdDialog() {
-        if (videoAd.isAdReadyToDisplay()) {
-            new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.ad_title))
-                    .setMessage(getString(R.string.ad_message))
-                    .setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            videoAd.show(AnimeActivity.this);
-                        }
-                    })
-                    .setNegativeButton("</3", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    })
-                    .create()
-                    .show();
-        }
     }
 
     //TODO:: clicking this soon after entering this screen results in fail first time around
@@ -571,10 +543,18 @@ public class AnimeActivity extends AppCompatActivity {
                     }
                 });
 
-                Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
-                intent.putExtra(Utils.URL_KEY, url);
-                intent.putExtra(Utils.ANIME_KEY, anime.title);
-                startActivity(intent);
+                Uri uri = Uri.parse(url);
+                Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
+                extIntent.setDataAndType(uri, "video/mp4");
+
+                if(extIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(extIntent);
+                } else {
+                    Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
+                    intent.putExtra(Utils.URL_KEY, url);
+                    intent.putExtra(Utils.ANIME_KEY, anime.title);
+                    startActivity(intent);
+                }
             }
         });
     }

@@ -71,8 +71,6 @@ public class HomeFragment extends Fragment {
 
     private Anime recentAnime;
 
-    private AppLovinNativeAd trendingAd, popularAd, updatedAd;
-
     public HomeFragment() {
     }
 
@@ -149,10 +147,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        initAds();
-        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, trendingAd));
-        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, popularAd));
-        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList, updatedAd));
+        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, null));
+        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, null));
+        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList, null));
 
         refresh();
     }
@@ -165,7 +162,6 @@ public class HomeFragment extends Fragment {
                 public void onPageLoaded(String html) {
                     Browser.getInstance(getContext()).reset();
                     final Document doc = Jsoup.parse(html);
-                    //trending, popular, updated
                     if (getActivity() == null) {
                         Log.e(TAG, "getActivity: refresh was null");
                         return;
@@ -201,11 +197,12 @@ public class HomeFragment extends Fragment {
                                 }
                             });
 
-                            for (Anime anime : realmPopularList.animeList) {
+                            for (Anime anime : realmUpdatedList.animeList) {
                                 if (anime.coverURL == null || anime.coverURL.isEmpty()) {
                                     new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
                                 }
                             }
+
 
                             for (Anime anime : realmTrendingList.animeList) {
                                 if (anime.coverURL == null || anime.coverURL.isEmpty()) {
@@ -213,7 +210,7 @@ public class HomeFragment extends Fragment {
                                 }
                             }
 
-                            for (Anime anime : realmUpdatedList.animeList) {
+                            for (Anime anime : realmPopularList.animeList) {
                                 if (anime.coverURL == null || anime.coverURL.isEmpty()) {
                                     new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
                                 }
@@ -264,58 +261,6 @@ public class HomeFragment extends Fragment {
         } else {
             recentView.setVisibility(View.GONE);
         }
-    }
-
-    private void initAds() {
-        if (MainActivity.nativeAds == null) {
-            trendingAd = null;
-            popularAd = null;
-            updatedAd = null;
-        } else {
-            switch (MainActivity.nativeAds.size()) {
-                case 1:
-                    updatedAd = MainActivity.nativeAds.get(0);
-                    trendingAd = null;
-                    popularAd = null;
-                    break;
-                case 2:
-                    updatedAd = MainActivity.nativeAds.get(0);
-                    trendingAd = MainActivity.nativeAds.get(1);
-                    popularAd = null;
-                    break;
-                case 3:
-                    updatedAd = MainActivity.nativeAds.get(0);
-                    trendingAd = MainActivity.nativeAds.get(1);
-                    popularAd = MainActivity.nativeAds.get(2);
-                    break;
-                default:
-                    trendingAd = popularAd = updatedAd = null;
-                    break;
-            }
-        }
-
-        AppLovinSdk.getInstance(getContext()).getNativeAdService().loadNativeAds(3, new AppLovinNativeAdLoadListener() {
-            @Override
-            public void onNativeAdsLoaded(final List list) {
-                MainActivity.nativeAds = (List<AppLovinNativeAd>) list;
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            updatedView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmUpdatedList.animeList, (AppLovinNativeAd) list.get(0)), false);
-                            trendingView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmTrendingList.animeList, (AppLovinNativeAd) list.get(1)), false);
-                            popularView.swapAdapter(new HorizontalAdapter(HomeFragment.this, realmPopularList.animeList, (AppLovinNativeAd) list.get(2)), false);
-                        }
-                    });
-
-                }
-            }
-
-            @Override
-            public void onNativeAdsFailedToLoad(int i) {
-                Log.e(TAG, "onNativeAdsFailedToLoad: " + i);
-            }
-        });
     }
 
     @Override

@@ -72,7 +72,6 @@ public class Utils {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
-    //TODO:: get rid of sub/dub at the end
     public static class GetCoverURL extends AsyncTask<String, Void, String> {
 
         private String title;
@@ -83,7 +82,7 @@ public class Utils {
             if (title.length() > 60) {
                 title = title.substring(0, 59);
             }
-            String malTitle = title.replace(' ', '+');
+            String malTitle = title.replace(' ', '+').replace("(Sub)", "").replace("(Dub)", "");
             try {
                 final StringBuilder URLBuilder = new StringBuilder();
                 final Document doc = Jsoup.connect(Browser.IMAGE_URL + malTitle).userAgent(Utils.USER_AGENT).get();
