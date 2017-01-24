@@ -73,8 +73,6 @@ public class AnimeActivity extends AppCompatActivity {
     private Realm realm;
     private Anime anime;
 
-    private AppLovinIncentivizedInterstitial videoAd;
-
     private boolean inDownloadMode;
 
     private CastContext castContext;
@@ -441,11 +439,6 @@ public class AnimeActivity extends AppCompatActivity {
     //TODO:: clicking this soon after entering this screen results in fail first time around
     public void requestVideo(final Episode episode) {
         loadDialog.show();
-        if (inDownloadMode) {
-            if (!videoAd.isAdReadyToDisplay()) {
-                videoAd.preload(null);
-            }
-        }
         Browser.getInstance(this).addJSONListener(new JSONListener() {
             @Override
             public void onJSONReceived(final JSONObject json) {
