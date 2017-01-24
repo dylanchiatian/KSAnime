@@ -90,7 +90,6 @@ public class AnimeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anime);
 
-        //loadAds();
         setupDatabase();
         initUI();
         setupAnime(getIntent().getStringExtra("anime"));
@@ -211,15 +210,10 @@ public class AnimeActivity extends AppCompatActivity {
         });
     }
 
-    private void loadAds() {
-        videoAd = AppLovinIncentivizedInterstitial.create(this);
-    }
-
     private void setupDatabase() {
         realm = Realm.getDefaultInstance();
     }
 
-    //TODO:: close dialog when you click "star"
     private void initUI() {
         cover = (ImageView) findViewById(R.id.background);
 
@@ -547,7 +541,8 @@ public class AnimeActivity extends AppCompatActivity {
                 Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
                 extIntent.setDataAndType(uri, "video/mp4");
 
-                if(extIntent.resolveActivity(getPackageManager()) != null) {
+                if(extIntent.resolveActivity(getPackageManager()) != null &&
+                        !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
                     startActivity(extIntent);
                 } else {
                     Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);

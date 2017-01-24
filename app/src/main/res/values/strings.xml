@@ -35,4 +35,7 @@
     <string name="snackbar_update">Updating...</string>
     <string name="snackbar_refresh">Refreshing...</string>
     <string name="snackbar_download">Select episode to download</string>
+
+    <string name="shared_preferences_key">daose</string>
+    <string name="use_internal_player">useInternalPlayer</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.daose.ksanime;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -390,13 +391,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onVideoClick(String path) {
-
-
         Uri uri = Uri.parse("file://" + path);
         Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
         extIntent.setDataAndType(uri, "video/mp4");
 
-        if(extIntent.resolveActivity(getPackageManager()) != null) {
+        if(extIntent.resolveActivity(getPackageManager()) != null &&
+                !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
             startActivity(extIntent);
         } else {
             Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);

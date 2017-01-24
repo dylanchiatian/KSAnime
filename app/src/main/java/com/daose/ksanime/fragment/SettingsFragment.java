@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -17,7 +19,7 @@ import com.daose.ksanime.R;
 
 import io.realm.Realm;
 
-public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedChangeListener {
+public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedChangeListener, CheckBox.OnCheckedChangeListener {
 
     private OnFragmentInteractionListener mListener;
     private SharedPreferences prefs;
@@ -65,6 +67,11 @@ public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedCh
         }
         qualities.setOnCheckedChangeListener(this);
 
+        boolean useInternalPlayer = prefs.getBoolean("useInternalPlayer", false);
+        CheckBox checkVideoPlayer = (CheckBox) view.findViewById(R.id.check_video_player);
+        checkVideoPlayer.setChecked(useInternalPlayer);
+        checkVideoPlayer.setOnCheckedChangeListener(this);
+
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,14 +111,6 @@ public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedCh
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        /*
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-        */
     }
 
     @Override
@@ -143,7 +142,13 @@ public class SettingsFragment extends Fragment implements RadioGroup.OnCheckedCh
         editor.apply();
     }
 
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(getString(R.string.use_internal_player), isChecked);
+        editor.apply();
+    }
+
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction();
     }
 }
