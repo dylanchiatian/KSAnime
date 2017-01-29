@@ -32,8 +32,12 @@ import com.daose.ksanime.web.JSONListener;
 import com.daose.ksanime.web.Selector;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.common.images.WebImage;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -534,17 +538,57 @@ public class AnimeActivity extends AppCompatActivity {
                 Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
                 extIntent.setDataAndType(uri, "video/mp4");
 
+                if(castSession != null && castSession.isConnected()){
+                    castVideo(anime, url);
+                    return;
+                }
+
                 if(extIntent.resolveActivity(getPackageManager()) != null &&
                         !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
                     startActivity(extIntent);
-                } else {
-                    Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
-                    intent.putExtra(Utils.URL_KEY, url);
-                    intent.putExtra(Utils.ANIME_KEY, anime.title);
-                    startActivity(intent);
+                    return;
                 }
+
+                Intent intent = new Intent(AnimeActivity.this, FullScreenVideoPlayerActivity.class);
+                intent.putExtra(Utils.URL_KEY, url);
+                intent.putExtra(Utils.ANIME_KEY, anime.title);
+                startActivity(intent);
             }
         });
+    }
+
+    private void castVideo(Anime anime, String url){
+        final RemoteMediaClient mediaClient = castSession.getRemoteMediaClient();
+        MediaMetadata animeMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+        animeMetadata.putString(MediaMetadata.KEY_TITLE, anime.title);
+        if(anime.coverURL != null && !anime.coverURL.isEmpty()) {
+            animeMetadata.addImage(new WebImage(Uri.parse(anime.coverURL)));
+        }
+        MediaInfo animeInfo = new MediaInfo.Builder(url)
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setContentType("video/mp4")
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setMetadata(animeMetadata)
+                .build();
+
+        mediaClient.addListener(new RemoteMediaClient.Listener() {
+            @Override
+            public void onStatusUpdated() {
+                Intent intent = new Intent(AnimeActivity.this, CastActivity.class);
+                startActivity(intent);
+                mediaClient.removeListener(this);
+                finish();
+            }
+            @Override
+            public void onMetadataUpdated() {}
+            @Override
+            public void onQueueStatusUpdated() {}
+            @Override
+            public void onPreloadStatusUpdated() {}
+            @Override
+            public void onSendingRemoteMediaRequest() {}
+        });
+        mediaClient.load(animeInfo, true, 0);
     }
 
     public void onDescriptionClick() {
