@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements
             searchView.getAdapter().notifyItemRangeInserted(minSize, querySize - minSize);
         } else {
             for (int i = minSize; i < searchSize; i++) {
-                searchList.remove(minSize);
+                searchList.remove(i);
             }
             searchView.getAdapter().notifyItemRangeRemoved(minSize, searchSize - minSize);
         }
