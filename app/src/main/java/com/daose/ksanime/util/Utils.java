@@ -21,18 +21,18 @@ public class Utils {
 
     private static final String TAG = Utils.class.getSimpleName();
 
-    public static String PREFS_FILE = "daose";
-    public static String FIRST_DOWNLOAD_KEY = "first_download";
-    public static String SELECT_QUALITY_KEY = "quality";
-    public static String DEFAULT_QUALITY = "720p";
+    public static final String PREFS_FILE = "daose";
+    public static final String FIRST_DOWNLOAD_KEY = "first_download";
+    public static final String SELECT_QUALITY_KEY = "quality";
+    public static final String DEFAULT_QUALITY = "720p";
 
-    public static String MARKET_DEEPLINK = "market://details?id=com.daose.ksanime";
-    public static String MARKET_URL = "https://play.google.com/store/apps/details?id=com.daose.ksanime";
+    public static final String MARKET_DEEPLINK = "market://details?id=com.daose.ksanime";
+    public static final String MARKET_URL = "https://play.google.com/store/apps/details?id=com.daose.ksanime";
 
-    public static String URL_KEY = "url";
-    public static String ANIME_KEY = "title";
+    public static final String URL_KEY = "url";
+    public static final String ANIME_KEY = "title";
 
-    public static String USER_AGENT = "Mozilla/5.0";
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0";
 
 
     public static boolean containsIgnoreCase(String src, String what) {

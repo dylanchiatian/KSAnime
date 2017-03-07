@@ -15,7 +15,7 @@ public class Selector {
     public static final String UPDATED = "div.barContent";
 
     public static final String MAL_IMAGE = "div.picSurround img";
-    public static final String MAL_IMAGE_ATTR = "abs:src";
+    public static final String MAL_IMAGE_ATTR = "data-src";
 
     public static final String EPISODE_LIST = "table.listing tbody tr td a";
 
