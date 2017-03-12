@@ -35,4 +35,9 @@
 
     <string name="shared_preferences_key">daose</string>
     <string name="use_internal_player">useInternalPlayer</string>
+    <string name="recently_viewed">Recently viewed</string>
+    <string name="just_updated">Just updated</string>
+    <string name="trending">Trending</string>
+    <string name="more">MORE</string>
+    <string name="popular">Popular</string>
 </resources>

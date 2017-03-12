@@ -25,6 +25,11 @@
 
     <color name="spots_dialog_color">@color/base0</color>
 
-    <color name="text">#B9BBBC</color>
     <color name="text_inactive">#919191</color>
+
+    <!-- Typography -->
+    <color name="display">#8fffffff</color>
+    <color name="text">#deffffff</color>
+    <color name="caption">#8fffffff</color>
+
 </resources>
