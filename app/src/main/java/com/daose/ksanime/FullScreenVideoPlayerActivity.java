@@ -9,19 +9,12 @@ import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 
-/**
- * Created by STUDENT on 2016-08-18.
- */
 public class FullScreenVideoPlayerActivity extends VideoActivity {
     private FullScreenListener fullScreenListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-            fullScreenListener = new FullScreenListener();
-        }
 
         goFullscreen();
         if(video.getVideoControls() != null) {

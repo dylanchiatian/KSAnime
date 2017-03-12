@@ -13,8 +13,7 @@ public class HtmlHandler {
     private JSONListener JSONListener;
     private static final String BLANK_HTML = "<head></head><body></body>";
 
-    public HtmlHandler() {
-    }
+    public HtmlHandler() {}
 
     public void addHtmlListener(HtmlListener listener) {
         this.listener = listener;
