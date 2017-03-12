@@ -14,9 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
-import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
-import com.applovin.sdk.AppLovinSdk;
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.AnimeAdapter;
@@ -39,7 +36,7 @@ import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
 import io.realm.RealmList;
 
-public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadListener {
+public class AnimeListFragment extends Fragment {
     private static final String TAG = AnimeListFragment.class.getSimpleName();
     private static final String KEY = "key";
 
@@ -118,17 +115,12 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
         if (type == Type.Starred && animeList.isEmpty()) return;
         rv = (AutofitRecyclerView) view.findViewById(R.id.recycler_view);
         rv.setHasFixedSize(true);
-        rv.setAdapter(new AnimeAdapter(this, animeList, MainActivity.nativeAds));
+        rv.setAdapter(new AnimeAdapter(this, animeList));
         refreshBar = Snackbar.make(rv, getString(R.string.snackbar_refresh), Snackbar.LENGTH_INDEFINITE);
         refreshBar.getView().setBackgroundColor(ContextCompat.getColor(getContext(), R.color.trans_base4));
-        initAds();
         if (type != Type.Starred) {
             update();
         }
-    }
-
-    private void initAds() {
-        AppLovinSdk.getInstance(getContext()).getNativeAdService().loadNativeAds(1, this);
     }
 
     private void update() {
@@ -241,60 +233,7 @@ public class AnimeListFragment extends Fragment implements AppLovinNativeAdLoadL
 
 
     public interface OnFragmentInteractionListener {
-        void onNativeAdClick(AppLovinNativeAd ad);
-
         void onAnimeClick(String anime);
-    }
-
-    public void onNativeAdClick(View v, final AppLovinNativeAd ad) {
-        ViewCompat.animate(v)
-                .setDuration(200)
-                .scaleX(0.9f)
-                .scaleY(0.9f)
-                .setInterpolator(new Utils.CycleInterpolator())
-                .setListener(new ViewPropertyAnimatorListener() {
-                    @Override
-                    public void onAnimationStart(View view) {
-                        if (refreshBar.isShown()) refreshBar.dismiss();
-                        Browser.getInstance(getActivity()).reset();
-                    }
-
-                    @Override
-                    public void onAnimationEnd(View view) {
-                        mListener.onNativeAdClick(ad);
-                    }
-
-                    @Override
-                    public void onAnimationCancel(View view) {
-                    }
-                })
-                .withLayer()
-                .start();
-    }
-
-
-    public void onNativeAdImpression(AppLovinNativeAd ad) {
-        AppLovinSdk.getInstance(getContext()).getPostbackService().dispatchPostbackAsync(
-                ad.getImpressionTrackingUrl(), null
-        );
-    }
-
-    @Override
-    public void onNativeAdsLoaded(final List list) {
-        MainActivity.nativeAds = (List<AppLovinNativeAd>) list;
-        if (getActivity() == null) return;
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                rv.swapAdapter(new AnimeAdapter(AnimeListFragment.this, animeList, MainActivity.nativeAds), false);
-            }
-        });
-    }
-
-    @Override
-    public void onNativeAdsFailedToLoad(int i) {
-        Log.e(TAG, "onNativeAdsFailedToLoad: " + i);
     }
 
     public void onAnimeClick(View v, final String anime) {

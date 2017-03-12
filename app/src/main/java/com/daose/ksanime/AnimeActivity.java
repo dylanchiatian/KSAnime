@@ -21,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.daose.ksanime.adapter.EpisodeAdapter;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;

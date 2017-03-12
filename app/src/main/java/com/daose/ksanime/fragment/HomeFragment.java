@@ -21,9 +21,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
-import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
-import com.applovin.sdk.AppLovinSdk;
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
@@ -147,9 +144,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, null));
-        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, null));
-        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList, null));
+        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList));
+        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList));
+        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList));
 
         refresh();
     }
@@ -291,38 +288,6 @@ public class HomeFragment extends Fragment {
         return realm.where(AnimeList.class).equalTo("key", list).findFirst();
     }
 
-    public void onNativeAdImpression(AppLovinNativeAd ad) {
-        AppLovinSdk.getInstance(getContext()).getPostbackService().dispatchPostbackAsync(
-                ad.getImpressionTrackingUrl(), null
-        );
-    }
-
-    public void onNativeAdClick(View v, final AppLovinNativeAd ad) {
-        ViewCompat.animate(v)
-                .setDuration(200)
-                .scaleX(0.9f)
-                .scaleY(0.9f)
-                .setInterpolator(new Utils.CycleInterpolator())
-                .setListener(new ViewPropertyAnimatorListener() {
-                    @Override
-                    public void onAnimationStart(View view) {
-                        if (refreshBar.isShown()) refreshBar.dismiss();
-                        Browser.getInstance(getActivity()).reset();
-                    }
-
-                    @Override
-                    public void onAnimationEnd(View view) {
-                        mListener.onNativeAdClick(ad);
-                    }
-
-                    @Override
-                    public void onAnimationCancel(View view) {
-                    }
-                })
-                .withLayer()
-                .start();
-    }
-
     public void onAnimeClick(View v, final String animeTitle) {
         ViewCompat.animate(v)
                 .setDuration(200)
@@ -387,8 +352,6 @@ public class HomeFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onAnimeClick(String animeTitle);
-        void onNativeAdClick(AppLovinNativeAd ad);
-
         void onShowMore(String key);
     }
 }

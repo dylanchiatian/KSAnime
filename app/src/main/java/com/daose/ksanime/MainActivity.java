@@ -21,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.DownloadFragment;
@@ -60,111 +59,45 @@ public class MainActivity extends AppCompatActivity implements
         SearchView.OnOpenCloseListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
     private boolean isNewMenuItem = false;
+    private ArrayList<String> searchList;
+
+    // UI
     private DrawerLayout drawer;
     private SearchView searchView;
     private Toolbar toolbar;
-    private ArrayList<String> searchList;
-    public static List<AppLovinNativeAd> nativeAds;
 
+    // Chromecast
     private CastContext castContext;
-
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
 
-    private void setupCastListener() {
-        mSessionManagerListener = new SessionManagerListener<CastSession>() {
-
-            @Override
-            public void onSessionEnded(CastSession session, int error) {
-                onApplicationDisconnected();
-            }
-
-            @Override
-            public void onSessionResumed(CastSession session, boolean wasSuspended) {
-                onApplicationConnected(session);
-            }
-
-            @Override
-            public void onSessionResumeFailed(CastSession session, int error) {
-                onApplicationDisconnected();
-            }
-
-            @Override
-            public void onSessionStarted(CastSession session, String sessionId) {
-                onApplicationConnected(session);
-            }
-
-            @Override
-            public void onSessionStartFailed(CastSession session, int error) {
-                onApplicationDisconnected();
-            }
-
-            @Override
-            public void onSessionStarting(CastSession session) {
-            }
-
-            @Override
-            public void onSessionEnding(CastSession session) {
-            }
-
-            @Override
-            public void onSessionResuming(CastSession session, String sessionId) {
-            }
-
-            @Override
-            public void onSessionSuspended(CastSession session, int reason) {
-            }
-
-            private void onApplicationConnected(CastSession castSession) {
-                mCastSession = castSession;
-                invalidateOptionsMenu();
-            }
-
-            private void onApplicationDisconnected() {
-                invalidateOptionsMenu();
-            }
-        };
-    }
-
-    //TODO:: list/grid view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Setup UI
         setupToolbar();
         setupDrawer();
         setupNavigationView();
         setupSearchView();
         displayAlert();
+
+        // Mount fragment
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
         ft.commit();
 
-        /*
-        FrameLayout mainLayout = (FrameLayout) findViewById(R.id.fragment_placeholder);
-        mainLayout.addView(Browser.getInstance(this).getWebView());
-
-        Browser.getInstance(this).load(Browser.BASE_URL, new HtmlListener() {
-            @Override
-            public void onPageLoaded(String html) {
-                Log.d(TAG, "html: " + html);
-            }
-
-            @Override
-            public void onPageFailed() {
-
-            }
-        });
-        */
-
+        // Setup chromecast
         castContext = CastContext.getSharedInstance(this);
         setupCastListener();
         castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
         mCastSession = castContext.getSessionManager().getCurrentCastSession();
     }
 
+    /** SETUP UI **/
     private void setupToolbar() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setNavigationContentDescription(getResources().getString(R.string.app_name));
@@ -204,42 +137,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    private void displayAlert() {
-        SharedPreferences settings = getSharedPreferences("daose", 0);
+    /**
+     * Alerts that need to display on start can be shown here
+     */
+    private void displayAlert() {}
 
-        final Realm realm = Realm.getDefaultInstance();
-
-        if(!settings.getBoolean("to_to_ru", false) && !settings.getBoolean("first_install", true)) {
-            RealmResults<Anime> starredList = realm.where(Anime.class).equalTo("isStarred", true).findAll();
-            if(starredList.size() > 0) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Due to KissAnime moving from .to to .ru, starred animes will be wiped. Sorry for the inconvenience. \n\nHere is your list: ");
-
-                for (Anime anime : starredList) {
-                    sb.append("\n - ");
-                    sb.append(anime.title);
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle(".to TO .ru CHANGE")
-                        .setMessage(sb.toString())
-                        .setPositiveButton("OK", null)
-                        .create()
-                        .show();
-            }
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    realm.deleteAll();
-                }
-            });
-            realm.close();
-
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putBoolean("to_to_ru", true);
-            editor.apply();
-        }
-    }
-
+    /** TOOLBAR AND NAVBAR **/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -277,11 +180,6 @@ public class MainActivity extends AppCompatActivity implements
         setTitle(item.getTitle());
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onNativeAdClick(AppLovinNativeAd ad) {
-        ad.launchClickTarget(this);
     }
 
     @Override
@@ -403,5 +301,60 @@ public class MainActivity extends AppCompatActivity implements
             intent.putExtra("url", path);
             startActivity(intent);
         }
+    }
+
+    private void setupCastListener() {
+        mSessionManagerListener = new SessionManagerListener<CastSession>() {
+
+            @Override
+            public void onSessionEnded(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionResumed(CastSession session, boolean wasSuspended) {
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionResumeFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarted(CastSession session, String sessionId) {
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionStartFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarting(CastSession session) {
+            }
+
+            @Override
+            public void onSessionEnding(CastSession session) {
+            }
+
+            @Override
+            public void onSessionResuming(CastSession session, String sessionId) {
+            }
+
+            @Override
+            public void onSessionSuspended(CastSession session, int reason) {
+            }
+
+            private void onApplicationConnected(CastSession castSession) {
+                mCastSession = castSession;
+                invalidateOptionsMenu();
+            }
+
+            private void onApplicationDisconnected() {
+                invalidateOptionsMenu();
+            }
+        };
     }
 }
