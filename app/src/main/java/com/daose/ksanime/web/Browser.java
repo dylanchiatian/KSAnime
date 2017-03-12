@@ -46,6 +46,13 @@ public class Browser {
 
     public void load(String url, HtmlListener listener){
         htmlHandler.addHtmlListener(listener);
+        htmlHandler.setActiveUrl(url);
+        loadUrl(url);
+    }
+
+    public void load(String url, JSONListener listener) {
+        htmlHandler.addJSONListener(listener);
+        htmlHandler.setActiveUrl(url);
         loadUrl(url);
     }
 

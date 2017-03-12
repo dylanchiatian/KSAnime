@@ -16,6 +16,8 @@ public class FullScreenVideoPlayerActivity extends VideoActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
+        fullScreenListener = new FullScreenListener();
+
         goFullscreen();
         if(video.getVideoControls() != null) {
             video.getVideoControls().setVisibilityListener(new ControlsVisibilityListener());

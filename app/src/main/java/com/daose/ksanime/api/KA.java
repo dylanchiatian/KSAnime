@@ -5,9 +5,11 @@ import android.util.Log;
 
 import com.daose.ksanime.R;
 import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
 import com.daose.ksanime.web.HtmlListener;
+import com.daose.ksanime.web.JSONListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,10 +23,10 @@ public class KA {
     private static final String TAG = KA.class.getSimpleName();
 
     private static final String BASE_URL = "http://kissanime.ru/";
-    private static final String SEARCH_URL = BASE_URL + "Search/Anime/";
+    private static final String SEARCH_URL = BASE_URL + "/Search/Anime/";
     private static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
-    private static final String MOST_POPULAR = "AnimeList/MostPopular";
-    private static final String NEW_AND_HOT = "AnimeList/NewAndHot";
+    private static final String MOST_POPULAR = "/AnimeList/MostPopular";
+    private static final String NEW_AND_HOT = "/AnimeList/NewAndHot";
 
     private static final String POPULAR_TITLE = "div#tab-mostview span.title";
     private static final String POPULAR_IMAGE = "div#tab-mostview img";
@@ -38,7 +40,7 @@ public class KA {
     private static final String EPISODE_LIST = "table.listing tbody tr td a";
     private static final String ANIME_DESCRIPTION = "div.barContent p:not(:has(span.info))";
     private static final String VIDEO = "div#divContentVideo video";
-    private static final String RELATED_ANIME_LIST = "div.rightBox a";
+    private static final String RELATED_ANIME_LIST = "div.rightBox a:not([title])";
     private static final String ANIME_LIST = "table.listing td:eq(0) a";
     private static final String SEARCH_CHECK = "div.bigBarContainer div.barTitle";
 
@@ -106,6 +108,86 @@ public class KA {
 
             @Override
             public void onPageFailed() {
+                callback.onError(context.getResources().getString(R.string.fail_message));
+            }
+        });
+    }
+
+    public static void getAnime(final Context context, final String path, final OnPageLoaded callback) {
+        if(!Utils.isNetworkAvailable(context)) {
+            callback.onError(context.getResources().getString(R.string.fail_internet));
+            return;
+        }
+        final String url = path.startsWith("http") ? path : BASE_URL + path; // For older versions, who have full URL paths
+        Browser.getInstance(context).load(url, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                try {
+                    final Document doc = Jsoup.parse(html);
+                    if(doc.title().isEmpty()) {
+                        callback.onError(context.getResources().getString(R.string.fail_message));
+                        return;
+                    }
+
+                    final JSONObject ret = new JSONObject();
+                    final JSONArray episodes = new JSONArray();
+
+                    final Elements episodeElements = doc.select(EPISODE_LIST);
+                    for(final Element element : episodeElements) {
+                        final JSONObject episode = new JSONObject();
+                        episode.put(Episode.NAME, element.text());
+                        episode.put(Episode.URL, element.attributes().get("href"));
+                        episodes.put(episode);
+                    }
+                    ret.put(Anime.EPISODES, episodes);
+
+                    final Element descElement = doc.select(ANIME_DESCRIPTION).first();
+                    ret.put(Anime.DESCRIPTION, descElement == null ? "" : descElement.html());
+
+                    final Elements relatedElements = doc.select(RELATED_ANIME_LIST);
+                    if(relatedElements.size() > 0) {
+                        final JSONArray relatedList = new JSONArray();
+                        for(final Element element : relatedElements) {
+                            final JSONObject anime = new JSONObject();
+                            anime.put(Anime.TITLE, element.text());
+                            anime.put(Anime.SUMMARY_URL, element.attr("href"));
+                            relatedList.put(anime);
+                        }
+                        ret.put(Anime.RELATED_LIST, relatedList);
+                    } else {
+                        ret.put(Anime.RELATED_LIST, new JSONArray());
+                    }
+
+                    callback.onSuccess(ret);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed updating episodes: " + path, e);
+                    callback.onError(context.getResources().getString(R.string.update_failed));
+                }
+            }
+
+            @Override
+            public void onPageFailed() {
+                callback.onError(context.getResources().getString(R.string.update_failed));
+            }
+        });
+    }
+
+    public static void getVideo(final Context context, final String path, final OnPageLoaded callback) {
+        if(!Utils.isNetworkAvailable(context)) {
+            callback.onError(context.getResources().getString(R.string.fail_internet));
+            return;
+        }
+        final String url = path.startsWith("http") ? path : BASE_URL + path;
+        Browser.getInstance(context).load(url, new JSONListener() {
+            @Override
+            public void onJSONReceived(JSONObject json) {
+                Browser.getInstance(context).reset();
+                callback.onSuccess(json);
+            }
+
+            @Override
+            public void onPageFailed() {
+                Browser.getInstance(context).reset();
                 callback.onError(context.getResources().getString(R.string.fail_message));
             }
         });

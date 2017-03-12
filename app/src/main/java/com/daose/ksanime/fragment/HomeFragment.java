@@ -179,7 +179,6 @@ public class HomeFragment extends Fragment {
     private void fetchThumbnails(RealmList<Anime> list) {
         for(Anime anime : list) {
             if(anime.coverURL == null || anime.coverURL.isEmpty()) {
-                Log.d(TAG, "getting new thumbnail for: " + anime.title);
                 new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
             }
         }
@@ -289,7 +288,6 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onAnimationStart(View view) {
                         if (refreshBar.isShown()) refreshBar.dismiss();
-                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override

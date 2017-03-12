@@ -17,6 +17,11 @@ public class Episode extends RealmObject {
     @Index
     public boolean hasWatched;
 
+    @Ignore
+    public static final String URL = "url";
+    @Ignore
+    public static final String NAME = "name";
+
     public Episode(){}
 
     public Episode(String name, String url){

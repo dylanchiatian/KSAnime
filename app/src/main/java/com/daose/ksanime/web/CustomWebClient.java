@@ -11,7 +11,6 @@ import java.util.Map;
 
 public class CustomWebClient extends WebViewClient {
     private static final String TAG = CustomWebClient.class.getSimpleName();
-    private static final WebResourceResponse dud = new WebResourceResponse("text/plain", "utf-8", null);
 
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
@@ -31,7 +30,7 @@ public class CustomWebClient extends WebViewClient {
             "    }\n" +
             "    HtmlHandler.handleJSON(JSON.stringify(dictionary));\n" +
             "} else {\n" +
-            "    HtmlHandler.handleHtml(document.documentElement.innerHTML);\n" +
+            "    HtmlHandler.handleHtml(document.documentElement.innerHTML, window.location.href);\n" +
             "}";
 
     public CustomWebClient() {
