@@ -28,7 +28,7 @@ public class Browser {
 
     public static Browser getInstance(Context ctx) {
         if(ourInstance == null){
-            ourInstance = new Browser(ctx);
+            ourInstance = new Browser(ctx.getApplicationContext());
         }
         return ourInstance;
     }
