@@ -16,29 +16,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
+import com.daose.ksanime.api.KA;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
-import com.daose.ksanime.web.HtmlListener;
-import com.daose.ksanime.web.Selector;
 import com.squareup.picasso.Picasso;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -68,9 +62,7 @@ public class HomeFragment extends Fragment {
 
     private Anime recentAnime;
 
-    public HomeFragment() {
-    }
-
+    public HomeFragment() {}
     public static HomeFragment newInstance() {
         return new HomeFragment();
     }
@@ -151,83 +143,79 @@ public class HomeFragment extends Fragment {
         refresh();
     }
 
-    private void refresh() {
-        if (Browser.getInstance(getContext()).isNetworkAvailable()) {
-            refreshBar.show();
-            Browser.getInstance(getContext()).load(Browser.BASE_URL, new HtmlListener() {
-                @Override
-                public void onPageLoaded(String html) {
-                    Browser.getInstance(getContext()).reset();
-                    final Document doc = Jsoup.parse(html);
-                    if (getActivity() == null) {
-                        Log.e(TAG, "getActivity: refresh was null");
-                        return;
+    private static void saveToRealm(final JSONArray list, final String key) {
+        final Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                try {
+                    final AnimeList realmList = new AnimeList();
+                    realmList.key = key;
+                    for (int i = 0; i < list.length(); i++) {
+                        final JSONObject obj = list.getJSONObject(i);
+                        final Anime anime = realm.createOrUpdateObjectFromJson(Anime.class, list.getJSONObject(i));
+                        realmList.animeList.add(anime);
                     }
-
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            realm.executeTransaction(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
-                                    updateAnimeList(realmTrendingList, doc, Selector.TRENDING);
-                                    updateAnimeList(realmPopularList, doc, Selector.POPULAR);
-
-                                    RealmList<Anime> updatedList = new RealmList<Anime>();
-                                    Elements elements = doc.select(Selector.UPDATED).last().select("a");
-                                    for (int i = 0; i < elements.size(); i += 2) {
-                                        String title = elements.get(i).text();
-                                        String summaryURL = elements.get(i).attr("href");
-                                        if (title.equals("More...")) {
-                                            break;
-                                        }
-
-                                        Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                                        if (anime == null) {
-                                            anime = realm.createObject(Anime.class);
-                                            anime.title = title;
-                                            anime.summaryURL = Browser.BASE_URL + summaryURL;
-                                        }
-                                        updatedList.add(anime);
-                                    }
-                                    realmUpdatedList.animeList = updatedList;
-                                }
-                            });
-
-                            for (Anime anime : realmUpdatedList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-
-                            for (Anime anime : realmTrendingList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-                            for (Anime anime : realmPopularList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-                            if (refreshBar.isShown()) refreshBar.dismiss();
-                        }
-                    });
+                    realm.insertOrUpdate(realmList);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+            }
+        });
+        realm.close();
+    }
 
-                @Override
-                public void onPageFailed() {
-                    Browser.getInstance(getContext()).reset();
-                    if (refreshBar.isShown()) refreshBar.dismiss();
-                    Toast.makeText(getContext(), "Refresh failed", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
+    private void fetchThumbnails() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fetchThumbnails(realmUpdatedList.animeList);
+                fetchThumbnails(realmTrendingList.animeList);
+                fetchThumbnails(realmPopularList.animeList);
+            }
+        });
+    }
+
+    private void fetchThumbnails(RealmList<Anime> list) {
+        for(Anime anime : list) {
+            if(anime.coverURL == null || anime.coverURL.isEmpty()) {
+                Log.d(TAG, "getting new thumbnail for: " + anime.title);
+                new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+            }
         }
+    }
+
+    private void refresh() {
+        refreshBar.show();
+        KA.getHomePage(getContext(), new KA.OnPageLoaded() {
+            @Override
+            public void onSuccess(final JSONObject json) {
+                try {
+                    final JSONArray updatedList = json.getJSONArray(KA.UPDATED_LIST);
+                    saveToRealm(updatedList, AnimeList.UPDATED);
+
+                    final JSONArray trendingList = json.getJSONArray(KA.TRENDING_LIST);
+                    saveToRealm(trendingList, AnimeList.TRENDING);
+
+                    final JSONArray popularList = json.getJSONArray(KA.POPULAR_LIST);
+                    saveToRealm(popularList, AnimeList.POPULAR);
+
+                    fetchThumbnails();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Home page onSuccess error", e);
+                    Toast.makeText(getContext(), getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
+                } finally {
+                    refreshBar.dismiss();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, error);
+                refreshBar.dismiss();
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -265,6 +253,9 @@ public class HomeFragment extends Fragment {
         super.onDetach();
         if(refreshBar.isShown()) refreshBar.dismiss();
         mListener = null;
+        if(realm != null) {
+            realm.close();
+        }
     }
 
     private void setupDatabase() {
@@ -312,42 +303,6 @@ public class HomeFragment extends Fragment {
                 })
                 .withLayer()
                 .start();
-    }
-
-    private void updateAnimeList(final AnimeList realmAnimeList, Document doc, String query) {
-        final Elements elements = doc.select(query);
-        if (elements == null || elements.size() == 0) {
-            Log.d(TAG, "doc is wrong");
-            Log.d(TAG, "html: " + doc.html());
-            Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final RealmList<Anime> animeList = new RealmList<Anime>();
-        int counter = 0;
-
-        for (Element animeElement : elements) {
-            switch (counter % 3) {
-                case 0:
-                    break;
-                case 1:
-                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
-                    if (anime == null) {
-                        anime = realm.createObject(Anime.class);
-                        anime.title = animeElement.text();
-                        anime.summaryURL = Browser.BASE_URL + animeElement.parentNode().attributes().get("href");
-                    }
-                    animeList.add(anime);
-                    break;
-                case 2:
-                    break;
-                default:
-                    break;
-            }
-            counter++;
-        }
-
-        realmAnimeList.animeList = animeList;
     }
 
     public interface OnFragmentInteractionListener {

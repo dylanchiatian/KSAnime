@@ -1,8 +1,5 @@
 package com.daose.ksanime.web;
 
-/**
- * Created by STUDENT on 2016-08-17.
- */
 public class Selector {
     public static final String POPULAR_TITLE = "div#tab-mostview span.title";
     public static final String POPULAR_IMAGE = "div#tab-mostview img";

@@ -4,11 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.WebView;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Browser {
 

@@ -66,10 +66,8 @@ public class MainActivity extends AppCompatActivity implements
     // UI
     private DrawerLayout drawer;
     private SearchView searchView;
-    private Toolbar toolbar;
 
     // Chromecast
-    private CastContext castContext;
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
 
@@ -78,28 +76,22 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Setup UI
+        setupUI();
+        displayAlert();
+        mountView();
+        setupChromecast();
+    }
+
+    /** SETUP UI **/
+    private void setupUI() {
         setupToolbar();
         setupDrawer();
         setupNavigationView();
         setupSearchView();
-        displayAlert();
-
-        // Mount fragment
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
-        ft.commit();
-
-        // Setup chromecast
-        castContext = CastContext.getSharedInstance(this);
-        setupCastListener();
-        castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
-        mCastSession = castContext.getSessionManager().getCurrentCastSession();
     }
 
-    /** SETUP UI **/
     private void setupToolbar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setNavigationContentDescription(getResources().getString(R.string.app_name));
         toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
         toolbar.setTranslationY(toolbar.getHeight());
@@ -142,6 +134,12 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void displayAlert() {}
 
+    private void mountView() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
+        ft.commit();
+    }
+
     /** TOOLBAR AND NAVBAR **/
     @Override
     public void onBackPressed() {
@@ -183,13 +181,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onAnimeClick(String anime) {
-        Intent intent = new Intent(this, AnimeActivity.class);
-        intent.putExtra("anime", anime);
-        startActivity(intent);
-    }
-
-    @Override
     public void onDrawerSlide(View drawerView, float slideOffset) {
     }
 
@@ -226,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onDrawerStateChanged(int newState) {
     }
 
+    /** SEARCH **/
     @Override
     public boolean onQueryTextChange(String newText) {
         if (newText.length() < 1) {
@@ -261,13 +253,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onShowMore(String title) {
-        setTitle(title);
-        Fragment fragment = AnimeListFragment.newInstance(title);
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
-    }
-
-    @Override
     public boolean onQueryTextSubmit(String query) {
         searchView.close(true);
         isNewMenuItem = true;
@@ -287,6 +272,21 @@ public class MainActivity extends AppCompatActivity implements
         searchList.clear();
     }
 
+    /** CALLBACKS **/
+    @Override
+    public void onAnimeClick(String anime) {
+        Intent intent = new Intent(this, AnimeActivity.class);
+        intent.putExtra("anime", anime);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onShowMore(String title) {
+        setTitle(title);
+        Fragment fragment = AnimeListFragment.newInstance(title);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+    }
+
     @Override
     public void onVideoClick(String path) {
         Uri uri = Uri.parse("file://" + path);
@@ -303,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /** CHROMECAST **/
     private void setupCastListener() {
         mSessionManagerListener = new SessionManagerListener<CastSession>() {
 
@@ -357,4 +358,12 @@ public class MainActivity extends AppCompatActivity implements
             }
         };
     }
+
+    private void setupChromecast() {
+        CastContext castContext = CastContext.getSharedInstance(this);
+        setupCastListener();
+        castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
+        mCastSession = castContext.getSessionManager().getCurrentCastSession();
+    }
+
 }

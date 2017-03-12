@@ -21,11 +21,9 @@
 
     <string name="quality_title">Select Quality</string>
 
-    <string name="ad_title">Downloading...</string>
-    <string name="ad_message">Watch a video advertisement while downloading?</string>
-
     <string name="fail_message">Try again later</string>
     <string name="update_failed">Update failed</string>
+    <string name="fail_internet">No internet</string>
 
     <string name="storage_unavailable">Cannot save file</string>
     <string name="download_unavailable">Cannot download file</string>
