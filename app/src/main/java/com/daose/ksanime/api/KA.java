@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.daose.ksanime.R;
 import com.daose.ksanime.model.Anime;
+import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
@@ -43,10 +44,6 @@ public class KA {
     private static final String RELATED_ANIME_LIST = "div.rightBox a:not([title])";
     private static final String ANIME_LIST = "table.listing td:eq(0) a";
     private static final String SEARCH_CHECK = "div.bigBarContainer div.barTitle";
-
-    public static final String UPDATED_LIST = "updated_list";
-    public static final String POPULAR_LIST = "popular_list";
-    public static final String TRENDING_LIST = "trending_list";
 
     public static void getHomePage(final Context context, final OnPageLoaded callback) {
         if(!Utils.isNetworkAvailable(context)) {
@@ -92,9 +89,9 @@ public class KA {
                         anime.put(Anime.SUMMARY_URL, updatedElements.get(i).attr("href"));
                         updatedList.put(anime);
                     }
-                    ret.put(UPDATED_LIST, updatedList);
-                    ret.put(TRENDING_LIST, getAnimeList(doc, TRENDING));
-                    ret.put(POPULAR_LIST, getAnimeList(doc, POPULAR));
+                    ret.put(AnimeList.UPDATED, updatedList);
+                    ret.put(AnimeList.TRENDING, getAnimeList(doc, TRENDING));
+                    ret.put(AnimeList.POPULAR, getAnimeList(doc, POPULAR));
 
                     callback.onSuccess(ret);
                 } catch (JSONException e) {
@@ -118,6 +115,7 @@ public class KA {
             callback.onError(context.getResources().getString(R.string.fail_internet));
             return;
         }
+
         final String url = path.startsWith("http") ? path : BASE_URL + path; // For older versions, who have full URL paths
         Browser.getInstance(context).load(url, new HtmlListener() {
             @Override
@@ -177,6 +175,7 @@ public class KA {
             callback.onError(context.getResources().getString(R.string.fail_internet));
             return;
         }
+
         final String url = path.startsWith("http") ? path : BASE_URL + path;
         Browser.getInstance(context).load(url, new JSONListener() {
             @Override
@@ -188,6 +187,49 @@ public class KA {
             @Override
             public void onPageFailed() {
                 Browser.getInstance(context).reset();
+                callback.onError(context.getResources().getString(R.string.fail_message));
+            }
+        });
+    }
+
+    public static void getPopularList(final Context context, final OnPageLoaded callback) {
+        getList(context, BASE_URL + MOST_POPULAR, callback);
+    }
+
+    public static void getTrendingList(final Context context, final OnPageLoaded callback) {
+        getList(context, BASE_URL + NEW_AND_HOT, callback);
+    }
+
+    private static void getList(final Context context, final String url, final OnPageLoaded callback) {
+        if(!Utils.isNetworkAvailable(context)) {
+            callback.onError(context.getResources().getString(R.string.fail_internet));
+            return;
+        }
+
+        Browser.getInstance(context).load(url, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html) {
+                try {
+                    final Document doc = Jsoup.parse(html);
+                    final Elements elements = doc.select(ANIME_LIST);
+                    final JSONObject ret = new JSONObject();
+                    final JSONArray list = new JSONArray();
+                    for (final Element element : elements) {
+                        final JSONObject anime = new JSONObject();
+                        anime.put(Anime.TITLE, element.text());
+                        anime.put(Anime.SUMMARY_URL, element.attributes().get("href"));
+                        list.put(anime);
+                    }
+                    ret.put(AnimeList.LIST, list);
+                    callback.onSuccess(ret);
+                } catch (JSONException e) {
+                    Log.e(TAG, "getList json error: " + url, e);
+                    callback.onError(context.getResources().getString(R.string.fail_message));
+                }
+            }
+
+            @Override
+            public void onPageFailed() {
                 callback.onError(context.getResources().getString(R.string.fail_message));
             }
         });

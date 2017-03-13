@@ -18,6 +18,15 @@ public class AnimeList extends RealmObject{
     public static final String TRENDING = "home_trending";
     @Ignore
     public static final String POPULAR = "home_popular";
+    @Ignore
+    public static final String MORE_TRENDING = "Trending";
+    @Ignore
+    public static final String MORE_POPULAR = "Popular";
+
+    @Ignore
+    public static final String KEY = "key";
+    @Ignore
+    public static final String LIST = "animeList";
 
     public AnimeList(){
         animeList = new RealmList<Anime>();

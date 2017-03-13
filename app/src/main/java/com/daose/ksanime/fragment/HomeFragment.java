@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
 import com.daose.ksanime.api.KA;
+import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
@@ -125,14 +126,14 @@ public class HomeFragment extends Fragment {
         moreTrending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onShowMore(AnimeListFragment.Type.Trending.name());
+                mListener.onShowMore(AnimeList.MORE_TRENDING);
             }
         });
 
         morePopular.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onShowMore(AnimeListFragment.Type.Popular.name());
+                mListener.onShowMore(AnimeList.MORE_POPULAR);
             }
         });
 
@@ -141,28 +142,6 @@ public class HomeFragment extends Fragment {
         updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList));
 
         refresh();
-    }
-
-    private static void saveToRealm(final JSONArray list, final String key) {
-        final Realm realm = Realm.getDefaultInstance();
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                try {
-                    final AnimeList realmList = new AnimeList();
-                    realmList.key = key;
-                    for (int i = 0; i < list.length(); i++) {
-                        final JSONObject obj = list.getJSONObject(i);
-                        final Anime anime = realm.createOrUpdateObjectFromJson(Anime.class, list.getJSONObject(i));
-                        realmList.animeList.add(anime);
-                    }
-                    realm.insertOrUpdate(realmList);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        realm.close();
     }
 
     private void fetchThumbnails() {
@@ -190,28 +169,28 @@ public class HomeFragment extends Fragment {
             @Override
             public void onSuccess(final JSONObject json) {
                 try {
-                    final JSONArray updatedList = json.getJSONArray(KA.UPDATED_LIST);
-                    saveToRealm(updatedList, AnimeList.UPDATED);
+                    final JSONArray updatedList = json.getJSONArray(AnimeList.UPDATED);
+                    ApiHelper.saveListToRealm(updatedList, AnimeList.UPDATED);
 
-                    final JSONArray trendingList = json.getJSONArray(KA.TRENDING_LIST);
-                    saveToRealm(trendingList, AnimeList.TRENDING);
+                    final JSONArray trendingList = json.getJSONArray(AnimeList.TRENDING);
+                    ApiHelper.saveListToRealm(trendingList, AnimeList.TRENDING);
 
-                    final JSONArray popularList = json.getJSONArray(KA.POPULAR_LIST);
-                    saveToRealm(popularList, AnimeList.POPULAR);
+                    final JSONArray popularList = json.getJSONArray(AnimeList.POPULAR);
+                    ApiHelper.saveListToRealm(popularList, AnimeList.POPULAR);
 
                     fetchThumbnails();
                 } catch (JSONException e) {
                     Log.e(TAG, "Home page onSuccess error", e);
                     Toast.makeText(getContext(), getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
                 } finally {
-                    refreshBar.dismiss();
+                    if(refreshBar.isShown()) refreshBar.dismiss();
                 }
             }
 
             @Override
             public void onError(String error) {
                 Log.e(TAG, error);
-                refreshBar.dismiss();
+                if(refreshBar.isShown()) refreshBar.dismiss();
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
