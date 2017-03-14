@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements
         isNewMenuItem = true;
         setTitle("Search Results");
         Fragment fragment = SearchFragment.newInstance(query);
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).addToBackStack(null).commit();
         return false;
     }
 
@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onShowMore(String title) {
         setTitle(title);
         Fragment fragment = AnimeListFragment.newInstance(title);
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).addToBackStack(null).commit();
     }
 
     @Override
