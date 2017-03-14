@@ -43,51 +43,53 @@ public class KA {
     private static final String VIDEO = "div#divContentVideo video";
     private static final String RELATED_ANIME_LIST = "div.rightBox a:not([title])";
     private static final String ANIME_LIST = "table.listing td:eq(0) a";
-    private static final String SEARCH_CHECK = "div.bigBarContainer div.barTitle";
+    private static final String SEARCH_CHECK = ".bigChar";
 
+    public static final String REDIRECTED = "redirected";
+    public static final String ANIME = "anime";
+
+    //TODO:: get application context
     public static void getHomePage(final Context context, final OnPageLoaded callback) {
         if(!Utils.isNetworkAvailable(context)) {
-            callback.onError(context.getResources().getString(R.string.fail_internet));
+            callback.onError(context.getString(R.string.fail_internet));
             return;
         }
 
         Browser.getInstance(context).load(BASE_URL, new HtmlListener() {
             @Override
-            public void onPageLoaded(final String html) {
+            public void onPageLoaded(final String html, String url) {
                 try {
                     final Document doc = Jsoup.parse(html);
                     final JSONObject ret = new JSONObject();
 
                     final Elements updatedElements = doc.select(UPDATED).last().select("a");
                     if(updatedElements == null || updatedElements.size() == 0) {
-                        callback.onError(context.getResources().getString(R.string.fail_message));
+                        callback.onError(context.getString(R.string.fail_message));
                         return;
                     }
 
                     final Elements trendingElements = doc.select(TRENDING);
                     if(trendingElements.size() == 0) {
-                        callback.onError(context.getResources().getString(R.string.fail_message));
+                        callback.onError(context.getString(R.string.fail_message));
                         return;
                     }
 
                     final Elements popularElements = doc.select(POPULAR);
                     if(popularElements.size() == 0) {
-                        callback.onError(context.getResources().getString(R.string.fail_message));
+                        callback.onError(context.getString(R.string.fail_message));
                         return;
                     }
 
                     final JSONArray updatedList = new JSONArray();
                     for (int i = 0; i < updatedElements.size(); i += 2) {
-                        final String title = updatedElements.get(i).text();
-                        final String summaryURL = updatedElements.get(i).attr("href");
+                        final Element element = updatedElements.get(i);
+                        final String title = element.text();
+                        final String summaryURL = element.attr("href");
                         if (title.equals("More...")) {
                             break;
                         }
 
-                        final JSONObject anime = new JSONObject();
-                        anime.put(Anime.TITLE, updatedElements.get(i).text());
-                        anime.put(Anime.SUMMARY_URL, updatedElements.get(i).attr("href"));
-                        updatedList.put(anime);
+                        updatedList.put(getAnimeFromElement(element));
                     }
                     ret.put(AnimeList.UPDATED, updatedList);
                     ret.put(AnimeList.TRENDING, getAnimeList(doc, TRENDING));
@@ -96,34 +98,34 @@ public class KA {
                     callback.onSuccess(ret);
                 } catch (JSONException e) {
                     Log.e(TAG, "Failed getting home page", e);
-                    callback.onError(context.getResources().getString(R.string.fail_message));
+                    callback.onError(context.getString(R.string.fail_message));
                 } catch (Exception e) {
                     Log.d(TAG, "Failed getting home page", e);
-                    callback.onError(context.getResources().getString(R.string.fail_message));
+                    callback.onError(context.getString(R.string.fail_message));
                 }
             }
 
             @Override
             public void onPageFailed() {
-                callback.onError(context.getResources().getString(R.string.fail_message));
+                callback.onError(context.getString(R.string.fail_message));
             }
         });
     }
 
     public static void getAnime(final Context context, final String path, final OnPageLoaded callback) {
         if(!Utils.isNetworkAvailable(context)) {
-            callback.onError(context.getResources().getString(R.string.fail_internet));
+            callback.onError(context.getString(R.string.fail_internet));
             return;
         }
 
         final String url = path.startsWith("http") ? path : BASE_URL + path; // For older versions, who have full URL paths
         Browser.getInstance(context).load(url, new HtmlListener() {
             @Override
-            public void onPageLoaded(String html) {
+            public void onPageLoaded(String html, String url) {
                 try {
                     final Document doc = Jsoup.parse(html);
                     if(doc.title().isEmpty()) {
-                        callback.onError(context.getResources().getString(R.string.fail_message));
+                        callback.onError(context.getString(R.string.fail_message));
                         return;
                     }
 
@@ -159,20 +161,20 @@ public class KA {
                     callback.onSuccess(ret);
                 } catch (JSONException e) {
                     Log.e(TAG, "Failed updating episodes: " + path, e);
-                    callback.onError(context.getResources().getString(R.string.update_failed));
+                    callback.onError(context.getString(R.string.update_failed));
                 }
             }
 
             @Override
             public void onPageFailed() {
-                callback.onError(context.getResources().getString(R.string.update_failed));
+                callback.onError(context.getString(R.string.update_failed));
             }
         });
     }
 
     public static void getVideo(final Context context, final String path, final OnPageLoaded callback) {
         if(!Utils.isNetworkAvailable(context)) {
-            callback.onError(context.getResources().getString(R.string.fail_internet));
+            callback.onError(context.getString(R.string.fail_internet));
             return;
         }
 
@@ -187,7 +189,7 @@ public class KA {
             @Override
             public void onPageFailed() {
                 Browser.getInstance(context).reset();
-                callback.onError(context.getResources().getString(R.string.fail_message));
+                callback.onError(context.getString(R.string.fail_message));
             }
         });
     }
@@ -200,37 +202,71 @@ public class KA {
         getList(context, BASE_URL + NEW_AND_HOT, callback);
     }
 
-    private static void getList(final Context context, final String url, final OnPageLoaded callback) {
-        if(!Utils.isNetworkAvailable(context)) {
-            callback.onError(context.getResources().getString(R.string.fail_internet));
+    public static void search(final Context context, final String query, final OnPageLoaded callback) {
+        if (!Utils.isNetworkAvailable(context)) {
+            callback.onError(context.getString(R.string.fail_internet));
             return;
         }
 
-        Browser.getInstance(context).load(url, new HtmlListener() {
+        Browser.getInstance(context).load(SEARCH_URL + query, new HtmlListener() {
             @Override
-            public void onPageLoaded(String html) {
+            public void onPageLoaded(final String html, String url) {
                 try {
                     final Document doc = Jsoup.parse(html);
-                    final Elements elements = doc.select(ANIME_LIST);
+                    final Element anime = doc.select(SEARCH_CHECK).first();
+                    final boolean redirected = anime != null;
                     final JSONObject ret = new JSONObject();
-                    final JSONArray list = new JSONArray();
-                    for (final Element element : elements) {
-                        final JSONObject anime = new JSONObject();
-                        anime.put(Anime.TITLE, element.text());
-                        anime.put(Anime.SUMMARY_URL, element.attributes().get("href"));
-                        list.put(anime);
+                    ret.put(REDIRECTED, false);
+                    if (redirected) {
+                        ret.put(ANIME, getAnimeFromElement(anime));
+                        ret.put(REDIRECTED, true);
+                    } else {
+                        final Elements elements = doc.select(ANIME_LIST);
+                        if (elements.size() == 0) {
+                            callback.onError(context.getString(R.string.search_no_results));
+                            return;
+                        } else {
+                            ret.put(AnimeList.LIST, getListFromElements(elements));
+                        }
                     }
-                    ret.put(AnimeList.LIST, list);
                     callback.onSuccess(ret);
                 } catch (JSONException e) {
-                    Log.e(TAG, "getList json error: " + url, e);
-                    callback.onError(context.getResources().getString(R.string.fail_message));
+                    Log.e(TAG, "search json error, query: " + query, e);
+                    callback.onError(context.getString(R.string.fail_search));
                 }
             }
 
             @Override
             public void onPageFailed() {
-                callback.onError(context.getResources().getString(R.string.fail_message));
+                callback.onError(context.getString(R.string.fail_message));
+            }
+        });
+    }
+
+    private static void getList(final Context context, final String url, final OnPageLoaded callback) {
+        if(!Utils.isNetworkAvailable(context)) {
+            callback.onError(context.getString(R.string.fail_internet));
+            return;
+        }
+
+        Browser.getInstance(context).load(url, new HtmlListener() {
+            @Override
+            public void onPageLoaded(String html, String url) {
+                try {
+                    final Document doc = Jsoup.parse(html);
+                    final Elements elements = doc.select(ANIME_LIST);
+                    final JSONObject ret = new JSONObject();
+                    ret.put(AnimeList.LIST, getListFromElements(elements));
+                    callback.onSuccess(ret);
+                } catch (JSONException e) {
+                    Log.e(TAG, "getList json error: " + url, e);
+                    callback.onError(context.getString(R.string.fail_message));
+                }
+            }
+
+            @Override
+            public void onPageFailed() {
+                callback.onError(context.getString(R.string.fail_message));
             }
         });
     }
@@ -255,6 +291,21 @@ public class KA {
         }
 
         return list;
+    }
+
+    private static JSONArray getListFromElements(final Elements elements) throws JSONException {
+        final JSONArray list = new JSONArray();
+        for (final Element element : elements) {
+            list.put(getAnimeFromElement(element));
+        }
+        return list;
+    }
+
+    private static JSONObject getAnimeFromElement(final Element element) throws JSONException {
+        final JSONObject anime = new JSONObject();
+        anime.put(Anime.TITLE, element.text());
+        anime.put(Anime.SUMMARY_URL, element.attributes().get("href"));
+        return anime;
     }
 
     public interface OnPageLoaded {

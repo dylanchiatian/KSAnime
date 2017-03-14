@@ -15,23 +15,7 @@ public class CustomWebClient extends WebViewClient {
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook", "favicon"};
-    //TODO:: bug "asp is not defined", maybe have two clients (one specifically for home page?)
-    private static final String javascript = "javascript: " + "if(document.documentElement === null){\n" +
-            "    HtmlHandler.handleError(\"null document\");\n" +
-            "} else if (document.title === \"Please wait 5 seconds...\") {\n" +
-            "} else if (document.documentElement.innerHTML.length < 150){\n" +
-            "    HtmlHandler.handleError(\"KissAnime website error: \" + document.documentElement.innerHTML);\n" +
-            "} else if (document.documentElement.innerHTML.length < 10000){\n" +
-            "} else if (document.getElementById(\"selectQuality\") !== null) {\n" +
-            "    var qualities = document.getElementById(\"selectQuality\").options;\n" +
-            "    var dictionary = {};\n" +
-            "    for(var i = 0; i < qualities.length; i++){\n" +
-            "        dictionary[qualities[i].text] = asp.wrap(qualities[i].value);\n" +
-            "    }\n" +
-            "    HtmlHandler.handleJSON(JSON.stringify(dictionary));\n" +
-            "} else {\n" +
-            "    HtmlHandler.handleHtml(document.documentElement.innerHTML, window.location.href);\n" +
-            "}";
+    private static final String javascript = "if(document.documentElement===null){HtmlHandler.handleError('null document')}else if(document.title!=='Please wait 5 seconds...'){if(document.documentElement.innerHTML.length<150){HtmlHandler.handleError(document.documentElement.innerHTML)}else if(document.documentElement.innerHTML.length>10000){if(document.getElementById('selectQuality')!==null){var qualities=document.getElementById('selectQuality').options;var dictionary={};for(var i=0;i<qualities.length;i+=1){dictionary[qualities[i].text]=asp.wrap(qualities[i].value)}HtmlHandler.handleJSON(JSON.stringify(dictionary))}else if(window.location.href===currentUrl){HtmlHandler.handleHtml(document.documentElement.innerHTML,window.location.href)}}}";
 
     public CustomWebClient() {
         super();
@@ -88,7 +72,11 @@ public class CustomWebClient extends WebViewClient {
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
         if(!ignoreUrls.contains(url)) {
-            view.loadUrl(javascript);
+            view.loadUrl(injectScript(url));
         }
+    }
+
+    private String injectScript(final String currentUrl) {
+        return String.format("javascript:var currentUrl=encodeURI('%s');%s", currentUrl, javascript);
     }
 }

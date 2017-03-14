@@ -22,6 +22,8 @@ public class AnimeList extends RealmObject{
     public static final String MORE_TRENDING = "Trending";
     @Ignore
     public static final String MORE_POPULAR = "Popular";
+    @Ignore
+    public static final String SEARCH_RESULTS = "search";
 
     @Ignore
     public static final String KEY = "key";

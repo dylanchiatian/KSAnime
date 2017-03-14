@@ -11,7 +11,6 @@ public class HtmlHandler {
 
     private HtmlListener listener;
     private JSONListener JSONListener;
-    private String activeUrl = "";
     private static final String BLANK_HTML = "<head></head><body></body>";
 
     public HtmlHandler() {}
@@ -29,17 +28,8 @@ public class HtmlHandler {
         this.JSONListener = null;
     }
 
-    public void setActiveUrl(String url) {
-        activeUrl = url;
-    }
-
     @JavascriptInterface
     public void handleHtml(String html, String url) {
-        if(!activeUrl.equals(url)) {
-            // Html fetched too late
-            return;
-        }
-
         if(html.length() < 10000){
             handleError("unfinished page");
         }
@@ -47,7 +37,7 @@ public class HtmlHandler {
             if (html.equals(BLANK_HTML)) {
                 listener.onPageFailed();
             } else {
-                listener.onPageLoaded(html);
+                listener.onPageLoaded(html, url);
             }
         }
     }

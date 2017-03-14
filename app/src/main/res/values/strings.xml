@@ -24,6 +24,8 @@
     <string name="fail_message">Try again later</string>
     <string name="update_failed">Update failed</string>
     <string name="fail_internet">No internet</string>
+    <string name="fail_search">Search error</string>
+    <string name="search_no_results">0 Results</string>
 
     <string name="storage_unavailable">Cannot save file</string>
     <string name="download_unavailable">Cannot download file</string>

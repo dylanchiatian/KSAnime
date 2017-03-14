@@ -28,7 +28,6 @@ import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
-import com.daose.ksanime.web.Browser;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -243,18 +242,18 @@ public class HomeFragment extends Fragment {
         realmUpdatedList = getList("home_updated");
     }
 
-    private AnimeList getList(final String list) {
+    private AnimeList getList(final String key) {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                if (realm.where(AnimeList.class).equalTo("key", list).findFirst() == null) {
+                if (realm.where(AnimeList.class).equalTo(AnimeList.KEY, key).findFirst() == null) {
                     AnimeList animeList = realm.createObject(AnimeList.class);
-                    animeList.key = list;
+                    animeList.key = key;
                     animeList.animeList = new RealmList<Anime>();
                 }
             }
         });
-        return realm.where(AnimeList.class).equalTo("key", list).findFirst();
+        return realm.where(AnimeList.class).equalTo(AnimeList.KEY, key).findFirst();
     }
 
     public void onAnimeClick(View v, final String animeTitle) {

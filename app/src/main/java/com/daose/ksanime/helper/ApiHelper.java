@@ -32,4 +32,15 @@ public class ApiHelper {
         });
         realm.close();
     }
+
+    public static void saveAnimeToRealm(final JSONObject obj) {
+        final Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createOrUpdateObjectFromJson(Anime.class, obj);
+            }
+        });
+        realm.close();
+    }
 }
