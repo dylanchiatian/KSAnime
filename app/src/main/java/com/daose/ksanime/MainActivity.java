@@ -25,6 +25,7 @@ import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.DownloadFragment;
 import com.daose.ksanime.fragment.HomeFragment;
+import com.daose.ksanime.fragment.NewsFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
@@ -203,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements
                     break;
                 case "Home":
                     fragment = HomeFragment.newInstance();
+                    break;
+                case "News":
+                    fragment = NewsFragment.newInstance();
                     break;
                 default:
                     fragment = AnimeListFragment.newInstance(title);
