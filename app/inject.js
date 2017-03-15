@@ -14,11 +14,11 @@ if(document.documentElement === null) {
     if(document.documentElement.innerHTML.length < 150) {
         HtmlHandler.handleError(document.documentElement.innerHTML);
     } else if(document.documentElement.innerHTML.length > 10000) {
-        if(document.getElementById('selectQuality') !== null) {
-            var qualities = document.getElementById('selectQuality').options;
+        if(document.getElementById('slcQualix') !== null) {
+            var qualities = document.getElementById('slcQualix').options;
             var dictionary = {};
             for(var i = 0; i < qualities.length; i++) {
-                dictionary[qualities[i].text] = asp.wrap(qualities[i].value);
+                dictionary[qualities[i].text] = ovelWrap(qualities[i].value);
             }
             HtmlHandler.handleJSON(JSON.stringify(dictionary));
         } else if(window.location.href === currentUrl) {
