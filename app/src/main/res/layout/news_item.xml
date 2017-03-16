@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
+    android:id="@+id/background"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/layout_margin">
@@ -11,31 +12,22 @@
         android:id="@+id/thumbnail"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginLeft="@dimen/item_margin"
-        android:layout_marginStart="@dimen/item_margin"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_width="@dimen/thumbnail_width"
-        android:layout_height="@dimen/thumbnail_height" />
+        android:layout_height="@dimen/thumbnail_width" />
 
     <TextView
         android:id="@+id/title"
         android:textColor="@color/text"
-        android:layout_toLeftOf="@id/thumbnail"
-        android:layout_toStartOf="@id/thumbnail"
-        android:textSize="@dimen/body"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <com.daose.ksanime.widget.OverflowView
-        android:id="@+id/description"
-        android:layout_below="@id/title"
-        android:layout_toLeftOf="@id/thumbnail"
-        android:layout_toStartOf="@id/thumbnail"
-        android:layout_width="match_parent"
-        android:layout_alignBottom="@id/thumbnail"
+        android:layout_toRightOf="@id/thumbnail"
+        android:layout_toEndOf="@id/thumbnail"
+        android:textSize="20dp"
+        android:maxLines="5"
         android:ellipsize="end"
-        android:textColor="@color/caption"
-        android:textSize="@dimen/caption"
+        android:layout_marginLeft="@dimen/layout_margin"
+        android:layout_marginStart="@dimen/layout_margin"
+        android:layout_centerVertical="true"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </RelativeLayout>

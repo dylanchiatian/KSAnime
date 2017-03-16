@@ -22,17 +22,11 @@ import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
-import com.daose.ksanime.web.HtmlListener;
-import com.daose.ksanime.web.Selector;
 import com.daose.ksanime.widget.AutofitRecyclerView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.Realm;

@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements
         SearchFragment.OnFragmentInteractionListener,
         DownloadFragment.OnFragmentInteractionListener,
         HomeFragment.OnFragmentInteractionListener,
+        NewsFragment.OnFragmentInteractionListener,
         DrawerLayout.DrawerListener,
         SearchView.OnQueryTextListener,
         SearchView.OnOpenCloseListener {
@@ -281,6 +282,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onAnimeClick(String anime) {
         Intent intent = new Intent(this, AnimeActivity.class);
         intent.putExtra("anime", anime);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onNewsItemClick(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(intent);
     }
 
