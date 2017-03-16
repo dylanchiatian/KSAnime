@@ -8,19 +8,19 @@
 
     <ImageView
         android:id="@+id/image_view"
-        android:layout_width="120dp"
-        android:layout_height="171dp"
+        android:layout_width="@dimen/thumbnail_width"
+        android:layout_height="@dimen/thumbnail_height"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop" />
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="120dp"
+        android:layout_width="@dimen/thumbnail_width"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
-        android:textSize="12sp" />
+        android:textSize="@dimen/caption" />
 
 </LinearLayout>

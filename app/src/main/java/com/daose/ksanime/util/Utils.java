@@ -1,5 +1,8 @@
 package com.daose.ksanime.util;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -34,6 +37,7 @@ public class Utils {
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0";
 
+    public Utils() {}
 
     public static boolean containsIgnoreCase(String src, String what) {
         final int length = what.length();
@@ -56,9 +60,6 @@ public class Utils {
         return false;
     }
 
-    public Utils() {
-    }
-
     public static class CycleInterpolator implements android.view.animation.Interpolator {
         private final float mCycles = 0.5f;
 
@@ -70,6 +71,28 @@ public class Utils {
 
     public static boolean isExternalStorageAvailable() {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+    }
+
+    public static boolean isNetworkAvailable(Context ctx) {
+        ConnectivityManager connectivity = (ConnectivityManager) ctx
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity == null) {
+            return false;
+        }
+
+        NetworkInfo[] info = connectivity.getAllNetworkInfo();
+
+        // make sure that there is at least one interface to test against
+        if (info != null) {
+            // iterate through the interfaces
+            for (int i = 0; i < info.length; i++) {
+                // check this interface for a connected state
+                if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static class GetCoverURL extends AsyncTask<String, Void, String> {

@@ -21,11 +21,11 @@
 
     <string name="quality_title">Select Quality</string>
 
-    <string name="ad_title">Downloading...</string>
-    <string name="ad_message">Watch a video advertisement while downloading?</string>
-
     <string name="fail_message">Try again later</string>
     <string name="update_failed">Update failed</string>
+    <string name="fail_internet">No internet</string>
+    <string name="fail_search">Search error</string>
+    <string name="search_no_results">0 Results</string>
 
     <string name="storage_unavailable">Cannot save file</string>
     <string name="download_unavailable">Cannot download file</string>
@@ -37,4 +37,9 @@
 
     <string name="shared_preferences_key">daose</string>
     <string name="use_internal_player">useInternalPlayer</string>
+    <string name="recently_viewed">Recently viewed</string>
+    <string name="just_updated">Just updated</string>
+    <string name="trending">Trending</string>
+    <string name="more">MORE</string>
+    <string name="popular">Popular</string>
 </resources>

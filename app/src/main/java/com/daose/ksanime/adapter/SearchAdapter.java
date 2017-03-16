@@ -8,14 +8,12 @@ import android.widget.TextView;
 
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
-import com.daose.ksanime.fragment.SearchFragment;
 
 import java.util.ArrayList;
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
 
     private ArrayList<String> searchList;
-    private SearchFragment fragment;
     private MainActivity activity;
 
     private static final String TAG = SearchAdapter.class.getSimpleName();
@@ -33,11 +31,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
         holder.title.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (fragment != null) {
-                    fragment.onAnimeClick(v, animeTitle);
-                } else if (activity != null) {
                     activity.onAnimeClick(animeTitle);
-                }
             }
         });
     }
@@ -54,11 +48,6 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.anime);
         }
-    }
-
-    public SearchAdapter(SearchFragment fragment, ArrayList<String> searchList) {
-        this.fragment = fragment;
-        this.searchList = searchList;
     }
 
     public SearchAdapter(MainActivity activity, ArrayList<String> searchList) {

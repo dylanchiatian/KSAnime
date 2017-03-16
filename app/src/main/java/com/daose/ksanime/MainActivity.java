@@ -21,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.DownloadFragment;
@@ -60,18 +59,251 @@ public class MainActivity extends AppCompatActivity implements
         SearchView.OnOpenCloseListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
     private boolean isNewMenuItem = false;
+    private ArrayList<String> searchList;
+
+    // UI
     private DrawerLayout drawer;
     private SearchView searchView;
-    private Toolbar toolbar;
-    private ArrayList<String> searchList;
-    public static List<AppLovinNativeAd> nativeAds;
 
-    private CastContext castContext;
-
+    // Chromecast
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        setupUI();
+        displayAlert();
+        mountView();
+        setupChromecast();
+    }
+
+    /** SETUP UI **/
+    private void setupUI() {
+        setupToolbar();
+        setupDrawer();
+        setupNavigationView();
+        setupSearchView();
+    }
+
+    private void setupToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationContentDescription(getResources().getString(R.string.app_name));
+        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
+        toolbar.setTranslationY(toolbar.getHeight());
+        setSupportActionBar(toolbar);
+    }
+
+    private void setupDrawer() {
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.addDrawerListener(this);
+    }
+
+    private void setupNavigationView() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.getMenu().getItem(0).setChecked(true);
+        setTitle(navigationView.getMenu().getItem(0).getTitle());
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void setupSearchView() {
+        searchList = new ArrayList<String>();
+        searchView = (SearchView) findViewById(R.id.search_view);
+        if (searchView != null) {
+            searchView.setVersion(SearchView.VERSION_MENU_ITEM);
+            searchView.setVersionMargins(SearchView.VERSION_MARGINS_MENU_ITEM);
+            searchView.setTextSize(16);
+            searchView.setHint("Search");
+            searchView.setDivider(false);
+            searchView.setVoice(false);
+            searchView.setAdapter(new SearchAdapter(this, searchList));
+            searchView.setTheme(SearchView.THEME_DARK);
+            searchView.setAnimationDuration(SearchView.ANIMATION_DURATION);
+            searchView.setShadowColor(ContextCompat.getColor(this, R.color.search_shadow_layout));
+            searchView.setOnQueryTextListener(this);
+            searchView.setOnOpenCloseListener(this);
+        }
+    }
+
+    /**
+     * Alerts that need to display on start can be shown here
+     */
+    private void displayAlert() {}
+
+    private void mountView() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
+        ft.commit();
+    }
+
+    /** TOOLBAR AND NAVBAR **/
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                searchView.open(true, item);
+                return true;
+            case android.R.id.home:
+                drawer.openDrawer(GravityCompat.START);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        isNewMenuItem = true;
+        setTitle(item.getTitle());
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {
+    }
+
+    @Override
+    public void onDrawerOpened(View drawerView) {
+        isNewMenuItem = false;
+    }
+
+    @Override
+    public void onDrawerClosed(View drawerView) {
+        if (isNewMenuItem) {
+            Fragment fragment;
+            String title = getTitle().toString();
+            switch (title) {
+                case "Settings":
+                    fragment = SettingsFragment.newInstance();
+                    break;
+                case "Downloaded":
+                    fragment = DownloadFragment.newInstance();
+                    break;
+                case "Home":
+                    fragment = HomeFragment.newInstance();
+                    break;
+                default:
+                    fragment = AnimeListFragment.newInstance(title);
+                    break;
+            }
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
+        }
+        isNewMenuItem = false;
+    }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {
+    }
+
+    /** SEARCH **/
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (newText.length() < 1) {
+            int items = searchList.size();
+            searchList.clear();
+            searchView.getAdapter().notifyItemRangeRemoved(0, items);
+            return false;
+        }
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<Anime> queryResult = realm.where(Anime.class).beginsWith("title", newText, Case.INSENSITIVE).findAll();
+        int searchSize = searchList.size();
+        int querySize = queryResult.size();
+        int minSize = (searchSize > querySize) ? querySize : searchSize;
+        for (int i = 0; i < minSize; i++) {
+            if (!searchList.get(i).equals(queryResult.get(i).title)) {
+                searchList.set(i, queryResult.get(i).title);
+                searchView.getAdapter().notifyItemChanged(i);
+            }
+        }
+        if (querySize > searchSize) {
+            for (int i = minSize; i < querySize; i++) {
+                searchList.add(queryResult.get(i).title);
+            }
+            searchView.getAdapter().notifyItemRangeInserted(minSize, querySize - minSize);
+        } else {
+            for (int i = minSize; i < searchSize; i++) {
+                searchList.remove(minSize);
+            }
+            searchView.getAdapter().notifyItemRangeRemoved(minSize, searchSize - minSize);
+        }
+        realm.close();
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        searchView.close(true);
+        isNewMenuItem = true;
+        setTitle("Search Results");
+        Fragment fragment = SearchFragment.newInstance(query);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).addToBackStack(null).commit();
+        return false;
+    }
+
+    @Override
+    public void onClose() {
+        searchList.clear();
+    }
+
+    @Override
+    public void onOpen() {
+        searchList.clear();
+    }
+
+    /** CALLBACKS **/
+    @Override
+    public void onAnimeClick(String anime) {
+        Intent intent = new Intent(this, AnimeActivity.class);
+        intent.putExtra("anime", anime);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onShowMore(String title) {
+        setTitle(title);
+        Fragment fragment = AnimeListFragment.newInstance(title);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).addToBackStack(null).commit();
+    }
+
+    @Override
+    public void onVideoClick(String path) {
+        Uri uri = Uri.parse("file://" + path);
+        Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
+        extIntent.setDataAndType(uri, "video/mp4");
+
+        if(extIntent.resolveActivity(getPackageManager()) != null &&
+                !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
+            startActivity(extIntent);
+        } else {
+            Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
+            intent.putExtra("url", path);
+            startActivity(intent);
+        }
+    }
+
+    /** CHROMECAST **/
     private void setupCastListener() {
         mSessionManagerListener = new SessionManagerListener<CastSession>() {
 
@@ -127,281 +359,11 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-    //TODO:: list/grid view
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        setupToolbar();
-        setupDrawer();
-        setupNavigationView();
-        setupSearchView();
-        displayAlert();
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
-        ft.commit();
-
-        /*
-        FrameLayout mainLayout = (FrameLayout) findViewById(R.id.fragment_placeholder);
-        mainLayout.addView(Browser.getInstance(this).getWebView());
-
-        Browser.getInstance(this).load(Browser.BASE_URL, new HtmlListener() {
-            @Override
-            public void onPageLoaded(String html) {
-                Log.d(TAG, "html: " + html);
-            }
-
-            @Override
-            public void onPageFailed() {
-
-            }
-        });
-        */
-
-        castContext = CastContext.getSharedInstance(this);
+    private void setupChromecast() {
+        CastContext castContext = CastContext.getSharedInstance(this);
         setupCastListener();
         castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
         mCastSession = castContext.getSessionManager().getCurrentCastSession();
     }
 
-    private void setupToolbar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setNavigationContentDescription(getResources().getString(R.string.app_name));
-        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
-        toolbar.setTranslationY(toolbar.getHeight());
-        setSupportActionBar(toolbar);
-    }
-
-    private void setupDrawer() {
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.addDrawerListener(this);
-    }
-
-    private void setupNavigationView() {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.getMenu().getItem(0).setChecked(true);
-        setTitle(navigationView.getMenu().getItem(0).getTitle());
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    private void setupSearchView() {
-        searchList = new ArrayList<String>();
-        searchView = (SearchView) findViewById(R.id.search_view);
-        if (searchView != null) {
-            searchView.setVersion(SearchView.VERSION_MENU_ITEM);
-            searchView.setVersionMargins(SearchView.VERSION_MARGINS_MENU_ITEM);
-            searchView.setTextSize(16);
-            searchView.setHint("Search");
-            searchView.setDivider(false);
-            searchView.setVoice(false);
-            searchView.setAdapter(new SearchAdapter(this, searchList));
-            searchView.setTheme(SearchView.THEME_DARK);
-            searchView.setAnimationDuration(SearchView.ANIMATION_DURATION);
-            searchView.setShadowColor(ContextCompat.getColor(this, R.color.search_shadow_layout));
-            searchView.setOnQueryTextListener(this);
-            searchView.setOnOpenCloseListener(this);
-        }
-    }
-
-    private void displayAlert() {
-        SharedPreferences settings = getSharedPreferences("daose", 0);
-
-        final Realm realm = Realm.getDefaultInstance();
-
-        if(!settings.getBoolean("to_to_ru", false) && !settings.getBoolean("first_install", true)) {
-            RealmResults<Anime> starredList = realm.where(Anime.class).equalTo("isStarred", true).findAll();
-            if(starredList.size() > 0) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Due to KissAnime moving from .to to .ru, starred animes will be wiped. Sorry for the inconvenience. \n\nHere is your list: ");
-
-                for (Anime anime : starredList) {
-                    sb.append("\n - ");
-                    sb.append(anime.title);
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle(".to TO .ru CHANGE")
-                        .setMessage(sb.toString())
-                        .setPositiveButton("OK", null)
-                        .create()
-                        .show();
-            }
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    realm.deleteAll();
-                }
-            });
-            realm.close();
-
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putBoolean("to_to_ru", true);
-            editor.apply();
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_search:
-                searchView.open(true, item);
-                return true;
-            case android.R.id.home:
-                drawer.openDrawer(GravityCompat.START);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        isNewMenuItem = true;
-        setTitle(item.getTitle());
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    @Override
-    public void onNativeAdClick(AppLovinNativeAd ad) {
-        ad.launchClickTarget(this);
-    }
-
-    @Override
-    public void onAnimeClick(String anime) {
-        Intent intent = new Intent(this, AnimeActivity.class);
-        intent.putExtra("anime", anime);
-        startActivity(intent);
-    }
-
-    @Override
-    public void onDrawerSlide(View drawerView, float slideOffset) {
-    }
-
-    @Override
-    public void onDrawerOpened(View drawerView) {
-        isNewMenuItem = false;
-    }
-
-    @Override
-    public void onDrawerClosed(View drawerView) {
-        if (isNewMenuItem) {
-            Fragment fragment;
-            String title = getTitle().toString();
-            switch (title) {
-                case "Settings":
-                    fragment = SettingsFragment.newInstance();
-                    break;
-                case "Downloaded":
-                    fragment = DownloadFragment.newInstance();
-                    break;
-                case "Home":
-                    fragment = HomeFragment.newInstance();
-                    break;
-                default:
-                    fragment = AnimeListFragment.newInstance(title);
-                    break;
-            }
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
-        }
-        isNewMenuItem = false;
-    }
-
-    @Override
-    public void onDrawerStateChanged(int newState) {
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        if (newText.length() < 1) {
-            int items = searchList.size();
-            searchList.clear();
-            searchView.getAdapter().notifyItemRangeRemoved(0, items);
-            return false;
-        }
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<Anime> queryResult = realm.where(Anime.class).beginsWith("title", newText, Case.INSENSITIVE).findAll();
-        int searchSize = searchList.size();
-        int querySize = queryResult.size();
-        int minSize = (searchSize > querySize) ? querySize : searchSize;
-        for (int i = 0; i < minSize; i++) {
-            if (!searchList.get(i).equals(queryResult.get(i).title)) {
-                searchList.set(i, queryResult.get(i).title);
-                searchView.getAdapter().notifyItemChanged(i);
-            }
-        }
-        if (querySize > searchSize) {
-            for (int i = minSize; i < querySize; i++) {
-                searchList.add(queryResult.get(i).title);
-            }
-            searchView.getAdapter().notifyItemRangeInserted(minSize, querySize - minSize);
-        } else {
-            for (int i = minSize; i < searchSize; i++) {
-                searchList.remove(minSize);
-            }
-            searchView.getAdapter().notifyItemRangeRemoved(minSize, searchSize - minSize);
-        }
-        realm.close();
-        return false;
-    }
-
-    @Override
-    public void onShowMore(String title) {
-        setTitle(title);
-        Fragment fragment = AnimeListFragment.newInstance(title);
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        searchView.close(true);
-        isNewMenuItem = true;
-        setTitle("Search Results");
-        Fragment fragment = SearchFragment.newInstance(query);
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_placeholder, fragment).commit();
-        return false;
-    }
-
-    @Override
-    public void onClose() {
-        searchList.clear();
-    }
-
-    @Override
-    public void onOpen() {
-        searchList.clear();
-    }
-
-    @Override
-    public void onVideoClick(String path) {
-        Uri uri = Uri.parse("file://" + path);
-        Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
-        extIntent.setDataAndType(uri, "video/mp4");
-
-        if(extIntent.resolveActivity(getPackageManager()) != null &&
-                !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
-            startActivity(extIntent);
-        } else {
-            Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
-            intent.putExtra("url", path);
-            startActivity(intent);
-        }
-    }
 }

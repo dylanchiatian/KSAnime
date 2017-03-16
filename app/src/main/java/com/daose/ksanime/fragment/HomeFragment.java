@@ -16,32 +16,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
-import com.applovin.nativeAds.AppLovinNativeAdLoadListener;
-import com.applovin.sdk.AppLovinSdk;
-import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
+import com.daose.ksanime.api.KA;
+import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
-import com.daose.ksanime.web.Browser;
-import com.daose.ksanime.web.HtmlListener;
-import com.daose.ksanime.web.Selector;
 import com.squareup.picasso.Picasso;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -71,9 +62,7 @@ public class HomeFragment extends Fragment {
 
     private Anime recentAnime;
 
-    public HomeFragment() {
-    }
-
+    public HomeFragment() {}
     public static HomeFragment newInstance() {
         return new HomeFragment();
     }
@@ -136,101 +125,74 @@ public class HomeFragment extends Fragment {
         moreTrending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onShowMore(AnimeListFragment.Type.Trending.name());
+                mListener.onShowMore(AnimeList.MORE_TRENDING);
             }
         });
 
         morePopular.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onShowMore(AnimeListFragment.Type.Popular.name());
+                mListener.onShowMore(AnimeList.MORE_POPULAR);
             }
         });
 
-        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList, null));
-        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList, null));
-        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList, null));
+        trendingView.setAdapter(new HorizontalAdapter(this, realmTrendingList.animeList));
+        popularView.setAdapter(new HorizontalAdapter(this, realmPopularList.animeList));
+        updatedView.setAdapter(new HorizontalAdapter(this, realmUpdatedList.animeList));
 
         refresh();
     }
 
-    private void refresh() {
-        if (Browser.getInstance(getContext()).isNetworkAvailable()) {
-            refreshBar.show();
-            Browser.getInstance(getContext()).load(Browser.BASE_URL, new HtmlListener() {
-                @Override
-                public void onPageLoaded(String html) {
-                    Browser.getInstance(getContext()).reset();
-                    final Document doc = Jsoup.parse(html);
-                    if (getActivity() == null) {
-                        Log.e(TAG, "getActivity: refresh was null");
-                        return;
-                    }
+    private void fetchThumbnails() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fetchThumbnails(realmUpdatedList.animeList);
+                fetchThumbnails(realmTrendingList.animeList);
+                fetchThumbnails(realmPopularList.animeList);
+            }
+        });
+    }
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            realm.executeTransaction(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
-                                    updateAnimeList(realmTrendingList, doc, Selector.TRENDING);
-                                    updateAnimeList(realmPopularList, doc, Selector.POPULAR);
-
-                                    RealmList<Anime> updatedList = new RealmList<Anime>();
-                                    Elements elements = doc.select(Selector.UPDATED).last().select("a");
-                                    for (int i = 0; i < elements.size(); i += 2) {
-                                        String title = elements.get(i).text();
-                                        String summaryURL = elements.get(i).attr("href");
-                                        if (title.equals("More...")) {
-                                            break;
-                                        }
-
-                                        Anime anime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                                        if (anime == null) {
-                                            anime = realm.createObject(Anime.class);
-                                            anime.title = title;
-                                            anime.summaryURL = Browser.BASE_URL + summaryURL;
-                                        }
-                                        updatedList.add(anime);
-                                    }
-                                    realmUpdatedList.animeList = updatedList;
-                                }
-                            });
-
-                            for (Anime anime : realmUpdatedList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-
-                            for (Anime anime : realmTrendingList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-                            for (Anime anime : realmPopularList.animeList) {
-                                if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                                    new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
-                                }
-                            }
-
-                            if (refreshBar.isShown()) refreshBar.dismiss();
-                        }
-                    });
-                }
-
-                @Override
-                public void onPageFailed() {
-                    Browser.getInstance(getContext()).reset();
-                    if (refreshBar.isShown()) refreshBar.dismiss();
-                    Toast.makeText(getContext(), "Refresh failed", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            Toast.makeText(getContext(), "No internet", Toast.LENGTH_SHORT).show();
+    private void fetchThumbnails(RealmList<Anime> list) {
+        for(Anime anime : list) {
+            if(anime.coverURL == null || anime.coverURL.isEmpty()) {
+                new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+            }
         }
+    }
+
+    private void refresh() {
+        refreshBar.show();
+        KA.getHomePage(getContext(), new KA.OnPageLoaded() {
+            @Override
+            public void onSuccess(final JSONObject json) {
+                try {
+                    final JSONArray updatedList = json.getJSONArray(AnimeList.UPDATED);
+                    ApiHelper.saveListToRealm(updatedList, AnimeList.UPDATED);
+
+                    final JSONArray trendingList = json.getJSONArray(AnimeList.TRENDING);
+                    ApiHelper.saveListToRealm(trendingList, AnimeList.TRENDING);
+
+                    final JSONArray popularList = json.getJSONArray(AnimeList.POPULAR);
+                    ApiHelper.saveListToRealm(popularList, AnimeList.POPULAR);
+
+                    fetchThumbnails();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Home page onSuccess error", e);
+                    Toast.makeText(getContext(), getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
+                } finally {
+                    if(refreshBar.isShown()) refreshBar.dismiss();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, error);
+                if(refreshBar.isShown()) refreshBar.dismiss();
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -268,6 +230,9 @@ public class HomeFragment extends Fragment {
         super.onDetach();
         if(refreshBar.isShown()) refreshBar.dismiss();
         mListener = null;
+        if(realm != null) {
+            realm.close();
+        }
     }
 
     private void setupDatabase() {
@@ -277,50 +242,18 @@ public class HomeFragment extends Fragment {
         realmUpdatedList = getList("home_updated");
     }
 
-    private AnimeList getList(final String list) {
+    private AnimeList getList(final String key) {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                if (realm.where(AnimeList.class).equalTo("key", list).findFirst() == null) {
+                if (realm.where(AnimeList.class).equalTo(AnimeList.KEY, key).findFirst() == null) {
                     AnimeList animeList = realm.createObject(AnimeList.class);
-                    animeList.key = list;
+                    animeList.key = key;
                     animeList.animeList = new RealmList<Anime>();
                 }
             }
         });
-        return realm.where(AnimeList.class).equalTo("key", list).findFirst();
-    }
-
-    public void onNativeAdImpression(AppLovinNativeAd ad) {
-        AppLovinSdk.getInstance(getContext()).getPostbackService().dispatchPostbackAsync(
-                ad.getImpressionTrackingUrl(), null
-        );
-    }
-
-    public void onNativeAdClick(View v, final AppLovinNativeAd ad) {
-        ViewCompat.animate(v)
-                .setDuration(200)
-                .scaleX(0.9f)
-                .scaleY(0.9f)
-                .setInterpolator(new Utils.CycleInterpolator())
-                .setListener(new ViewPropertyAnimatorListener() {
-                    @Override
-                    public void onAnimationStart(View view) {
-                        if (refreshBar.isShown()) refreshBar.dismiss();
-                        Browser.getInstance(getActivity()).reset();
-                    }
-
-                    @Override
-                    public void onAnimationEnd(View view) {
-                        mListener.onNativeAdClick(ad);
-                    }
-
-                    @Override
-                    public void onAnimationCancel(View view) {
-                    }
-                })
-                .withLayer()
-                .start();
+        return realm.where(AnimeList.class).equalTo(AnimeList.KEY, key).findFirst();
     }
 
     public void onAnimeClick(View v, final String animeTitle) {
@@ -333,7 +266,6 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onAnimationStart(View view) {
                         if (refreshBar.isShown()) refreshBar.dismiss();
-                        Browser.getInstance(getActivity()).reset();
                     }
 
                     @Override
@@ -349,46 +281,8 @@ public class HomeFragment extends Fragment {
                 .start();
     }
 
-    private void updateAnimeList(final AnimeList realmAnimeList, Document doc, String query) {
-        final Elements elements = doc.select(query);
-        if (elements == null || elements.size() == 0) {
-            Log.d(TAG, "doc is wrong");
-            Log.d(TAG, "html: " + doc.html());
-            Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final RealmList<Anime> animeList = new RealmList<Anime>();
-        int counter = 0;
-
-        for (Element animeElement : elements) {
-            switch (counter % 3) {
-                case 0:
-                    break;
-                case 1:
-                    Anime anime = realm.where(Anime.class).equalTo("title", animeElement.text()).findFirst();
-                    if (anime == null) {
-                        anime = realm.createObject(Anime.class);
-                        anime.title = animeElement.text();
-                        anime.summaryURL = Browser.BASE_URL + animeElement.parentNode().attributes().get("href");
-                    }
-                    animeList.add(anime);
-                    break;
-                case 2:
-                    break;
-                default:
-                    break;
-            }
-            counter++;
-        }
-
-        realmAnimeList.animeList = animeList;
-    }
-
     public interface OnFragmentInteractionListener {
         void onAnimeClick(String animeTitle);
-        void onNativeAdClick(AppLovinNativeAd ad);
-
         void onShowMore(String key);
     }
 }

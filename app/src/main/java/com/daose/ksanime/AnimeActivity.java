@@ -21,15 +21,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.daose.ksanime.adapter.EpisodeAdapter;
+import com.daose.ksanime.api.KA;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
-import com.daose.ksanime.web.HtmlListener;
-import com.daose.ksanime.web.JSONListener;
-import com.daose.ksanime.web.Selector;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.cast.MediaInfo;
@@ -40,12 +37,9 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.images.WebImage;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -76,6 +70,7 @@ public class AnimeActivity extends AppCompatActivity {
 
     private Realm realm;
     private Anime anime;
+    private String animeTitle;
 
     private boolean inDownloadMode;
 
@@ -94,7 +89,7 @@ public class AnimeActivity extends AppCompatActivity {
 
         setupDatabase();
         initUI();
-        setupAnime(getIntent().getStringExtra("anime"));
+        setupAnime();
 
         castContext = CastContext.getSharedInstance(getApplicationContext());
         castSession = castContext.getSessionManager().getCurrentCastSession();
@@ -103,16 +98,13 @@ public class AnimeActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        realm.close();
+        if(realm != null) {
+            realm.close();
+        }
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        Browser.getInstance(this).reset();
-    }
-
-    private void setupAnime(String animeTitle) {
+    private void setupAnime() {
+        animeTitle = getIntent().getStringExtra("anime");
         this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
         setupBackground(Transformation.BLUR);
         if (anime.isStarred) {
@@ -126,88 +118,68 @@ public class AnimeActivity extends AppCompatActivity {
         updateEpisodes();
     }
 
+    private void handleFail(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                preloadIndicator.setVisibility(View.GONE);
+                if(loadDialog.isShowing()) loadDialog.dismiss();
+                Toast.makeText(AnimeActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void updateEpisodes() {
         if (!anime.episodes.isEmpty()) {
             preloadIndicator.setVisibility(View.GONE);
         }
-        Browser.getInstance(this).load(anime.summaryURL, new HtmlListener() {
+
+        KA.getAnime(this, anime.summaryURL, new KA.OnPageLoaded() {
             @Override
-            public void onPageLoaded(String html) {
-                final Document doc = Jsoup.parse(html);
-                if (doc.title().isEmpty()) {
-                    preloadIndicator.setVisibility(View.GONE);
-                    Toast.makeText(AnimeActivity.this, getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            public void onSuccess(final JSONObject json) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         realm.executeTransaction(new Realm.Transaction() {
                             @Override
                             public void execute(Realm realm) {
-                                Elements elements = doc.select(Selector.EPISODE_LIST);
-                                for (Element episodeElement : elements) {
-                                    String name = episodeElement.text();
-                                    String url = Browser.BASE_URL + episodeElement.attributes().get("href");
-
-                                    Episode episode = realm.where(Episode.class).equalTo("url", url).findFirst();
-                                    if (episode == null) {
-                                        episode = realm.createObject(Episode.class);
-                                        episode.name = name;
-                                        episode.url = url;
-                                        anime.episodes.add(episode);
+                                try {
+                                    final Anime anime = realm.where(Anime.class).equalTo(Anime.TITLE, animeTitle).findFirst();
+                                    final JSONArray episodeList = json.getJSONArray(Anime.EPISODES);
+                                    final RealmList<Episode> episodeRealmList = new RealmList<Episode>();
+                                    for (int i = 0; i < episodeList.length(); i++) {
+                                        final JSONObject obj = episodeList.getJSONObject(i);
+                                        final Episode episode = realm.createOrUpdateObjectFromJson(Episode.class, obj);
+                                        episodeRealmList.add(episode);
                                     }
-                                }
+                                    anime.episodes = episodeRealmList;
 
-                                elements = doc.select(Selector.ANIME_DESCRIPTION);
-                                if (elements.size() > 0) {
-                                    anime.description = elements.get(0).html();
-                                } else if (anime.description == null || anime.description.isEmpty()) {
-                                    anime.description = "";
-                                }
-
-                                elements = doc.select(Selector.RELATED_ANIME_LIST);
-                                if (elements.size() > 0) {
-                                    anime.relatedAnimeList = new RealmList<Anime>();
-                                    for (Element relatedAnimeElement : elements) {
-                                        Uri uri = Uri.parse(Browser.BASE_URL + relatedAnimeElement.attr("href"));
-                                        if (uri.getPathSegments().size() > 2) {
-                                            //Not an anime, ex: /Anime/Anime_Name/Future_Episode
-                                            continue;
-                                        }
-                                        String title = relatedAnimeElement.text();
-                                        String summaryURL = uri.toString();
-                                        Anime relatedAnime = realm.where(Anime.class).equalTo("title", title).findFirst();
-                                        if (relatedAnime == null) {
-                                            relatedAnime = realm.createObject(Anime.class);
-                                            relatedAnime.title = title;
-                                            relatedAnime.summaryURL = summaryURL;
-                                            relatedAnime.relatedAnimeList.add(anime);
-                                        }
-                                        anime.relatedAnimeList.add(relatedAnime);
+                                    final JSONArray relatedList = json.getJSONArray(Anime.RELATED_LIST);
+                                    final RealmList<Anime> relatedRealmList = new RealmList<Anime>();
+                                    for(int i = 0; i < relatedList.length(); i++) {
+                                        final JSONObject obj = relatedList.getJSONObject(i);
+                                        final Anime relatedAnime = realm.createOrUpdateObjectFromJson(Anime.class, obj);
+                                        relatedAnime.relatedAnimeList.add(anime);
+                                        relatedRealmList.add(relatedAnime);
                                     }
+                                    anime.relatedAnimeList = relatedRealmList;
+                                    anime.description = json.getString(Anime.DESCRIPTION);
 
+                                    preloadIndicator.setVisibility(View.GONE);
+                                    rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
+                                } catch (JSONException e) {
+                                    Log.e(TAG, "updateEpisodes json error", e);
+                                    handleFail(getString(R.string.update_failed));
                                 }
                             }
                         });
-                        rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
-                        preloadIndicator.setVisibility(View.GONE);
                     }
                 });
             }
-
             @Override
-            public void onPageFailed() {
-                Log.e(TAG, "onPageFailed: updateEpisodes");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Browser.getInstance(AnimeActivity.this).reset();
-                        preloadIndicator.setVisibility(View.GONE);
-                        if (loadDialog.isShowing()) loadDialog.dismiss();
-                        Toast.makeText(AnimeActivity.this, getString(R.string.update_failed), Toast.LENGTH_SHORT).show();
-                    }
-                });
+            public void onError(final String error) {
+                Log.e(TAG, error);
+                handleFail(error);
             }
         });
     }
@@ -443,10 +415,9 @@ public class AnimeActivity extends AppCompatActivity {
     //TODO:: clicking this soon after entering this screen results in fail first time around
     public void requestVideo(final Episode episode) {
         loadDialog.show();
-        Browser.getInstance(this).addJSONListener(new JSONListener() {
+        KA.getVideo(this, episode.url, new KA.OnPageLoaded() {
             @Override
-            public void onJSONReceived(final JSONObject json) {
-                Browser.getInstance(AnimeActivity.this).reset();
+            public void onSuccess(JSONObject json) {
                 if (inDownloadMode) {
                     showSelectQualityDialog(episode, json);
                 } else {
@@ -472,19 +443,11 @@ public class AnimeActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onPageFailed() {
-                Log.e(TAG, "requestVideo: onPageFailed");
-                Browser.getInstance(AnimeActivity.this).reset();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (loadDialog.isShowing()) loadDialog.dismiss();
-                        Toast.makeText(AnimeActivity.this, getString(R.string.fail_message), Toast.LENGTH_SHORT).show();
-                    }
-                });
+            public void onError(String error) {
+                if(loadDialog.isShowing()) loadDialog.dismiss();
+                handleFail(error);
             }
         });
-        Browser.getInstance(this).loadUrl(episode.url);
     }
 
     private void downloadVideo(final Episode episode, final String downloadURL) {

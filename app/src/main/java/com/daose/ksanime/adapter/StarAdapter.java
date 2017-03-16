@@ -12,7 +12,7 @@ import io.realm.OrderedRealmCollection;
 
 public class StarAdapter extends AnimeAdapter {
     public StarAdapter(AnimeListFragment activity, OrderedRealmCollection<Anime> animeList) {
-        super(activity, animeList, null);
+        super(activity, animeList);
     }
 
     @Override

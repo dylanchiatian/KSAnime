@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.applovin.nativeAds.AppLovinNativeAd;
 import com.daose.ksanime.R;
 import com.daose.ksanime.fragment.HomeFragment;
 import com.daose.ksanime.model.Anime;
@@ -23,91 +22,39 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
     private OrderedRealmCollection<Anime> animeList;
     private HomeFragment fragment;
     private Context ctx;
-    private AppLovinNativeAd nativeAd;
 
     private static final String TAG = AnimeAdapter.class.getSimpleName();
-    private int offset;
-
-    private class Type {
-        public static final int ANIME = 0;
-        public static final int AD = 1;
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return (position == 0 && nativeAd != null) ? Type.AD : Type.ANIME;
-    }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v;
-        switch (viewType) {
-            case Type.ANIME:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_horizontal_item, parent, false);
-                return new ViewHolder(v);
-            default:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_horizontal_ad, parent, false);
-                return new AdViewHolder(v);
-        }
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_horizontal_item, parent, false);
+        return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof AdViewHolder) {
-            AdViewHolder vh = (AdViewHolder) holder;
-            vh.title.setText(nativeAd.getTitle());
-            vh.card.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    fragment.onNativeAdClick(v, nativeAd);
-                }
-            });
-            if (nativeAd.getIconUrl().isEmpty()) {
-                Picasso.with(ctx).load(nativeAd.getImageUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
-            } else {
-                Picasso.with(ctx).load(nativeAd.getIconUrl()).placeholder(R.drawable.ad_placeholder).into(vh.iconImg);
+        final Anime anime = animeList.get(position);
+        ViewHolder vh = (ViewHolder) holder;
+        vh.title.setText(anime.title);
+        vh.card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragment.onAnimeClick(v, anime.title);
             }
+        });
+        if (anime.coverURL == null || anime.coverURL.isEmpty()) {
+            Picasso.with(ctx).load(R.drawable.placeholder).into(vh.imageView);
         } else {
-            int offsetPosition = position - offset;
-            final Anime anime = animeList.get(offsetPosition);
-            ViewHolder vh = (ViewHolder) holder;
-            vh.title.setText(anime.title);
-            vh.card.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    fragment.onAnimeClick(v, anime.title);
-                }
-            });
-            if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-                Picasso.with(ctx).load(R.drawable.placeholder).into(vh.imageView);
-            } else {
-                Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).transform(new RoundedCornersTransformation(4, 2, RoundedCornersTransformation.CornerType.ALL)).into(vh.imageView);
-            }
+            Picasso.with(ctx).load(anime.coverURL).placeholder(R.drawable.placeholder).transform(new RoundedCornersTransformation(4, 2, RoundedCornersTransformation.CornerType.ALL)).into(vh.imageView);
         }
     }
 
     @Override
     public int getItemCount() {
-        return animeList.size() + offset;
-    }
-
-
-    public class AdViewHolder extends RecyclerView.ViewHolder {
-
-        private TextView title;
-        private ImageView iconImg;
-        private View card;
-
-        public AdViewHolder(View itemView) {
-            super(itemView);
-            title = (TextView) itemView.findViewById(R.id.title);
-            iconImg = (ImageView) itemView.findViewById(R.id.image_view);
-            card = itemView.findViewById(R.id.card);
-        }
+        return animeList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         private TextView title;
         private ImageView imageView;
         private View card;
@@ -118,20 +65,12 @@ public class HorizontalAdapter extends RealmRecyclerViewAdapter<Anime, RecyclerV
             imageView = (ImageView) itemView.findViewById(R.id.image_view);
             card = itemView.findViewById(R.id.card);
         }
-
     }
 
-    public HorizontalAdapter(HomeFragment fragment, OrderedRealmCollection<Anime> animeList, AppLovinNativeAd nativeAds) {
+    public HorizontalAdapter(HomeFragment fragment, OrderedRealmCollection<Anime> animeList) {
         super(fragment.getContext(), animeList, true);
         this.fragment = fragment;
         this.ctx = fragment.getContext();
         this.animeList = animeList;
-        this.nativeAd = nativeAds;
-        if (nativeAds == null) {
-            offset = 0;
-        } else {
-            fragment.onNativeAdImpression(nativeAd);
-            offset = 1;
-        }
     }
 }

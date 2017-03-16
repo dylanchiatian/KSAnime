@@ -1,25 +1,15 @@
 package com.daose.ksanime.web;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Handler;
-import android.util.Log;
 import android.webkit.WebView;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Browser {
 
     private static final String TAG = Browser.class.getSimpleName();
 
     private static Browser ourInstance;
-    public static final String BASE_URL = "http://kissanime.ru/";
-    public static final String SEARCH_URL = BASE_URL + "Search/Anime/";
     public static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
-    public static final String MOST_POPULAR = "AnimeList/MostPopular";
-    public static final String NEW_AND_HOT = "AnimeList/NewAndHot";
 
     private WebView webView;
     private CustomWebClient client;
@@ -32,7 +22,7 @@ public class Browser {
 
     public static Browser getInstance(Context ctx) {
         if(ourInstance == null){
-            ourInstance = new Browser(ctx);
+            ourInstance = new Browser(ctx.getApplicationContext());
         }
         return ourInstance;
     }
@@ -53,13 +43,11 @@ public class Browser {
         loadUrl(url);
     }
 
-    public void addHtmlListener(HtmlListener listener){
-        htmlHandler.addHtmlListener(listener);
+    public void load(String url, JSONListener listener) {
+        htmlHandler.addJSONListener(listener);
+        loadUrl(url);
     }
 
-    public void addJSONListener(JSONListener listener){
-        htmlHandler.addJSONListener(listener);
-    }
     public void removeListeners(){
         htmlHandler.removeListeners();
     }
@@ -77,27 +65,5 @@ public class Browser {
         client = new CustomWebClient();
         webView.setWebViewClient(client);
         webView.addJavascriptInterface(htmlHandler, "HtmlHandler");
-    }
-
-    public boolean isNetworkAvailable() {
-        ConnectivityManager connectivity = (ConnectivityManager) ctx
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivity == null) {
-            return false;
-        }
-
-        NetworkInfo[] info = connectivity.getAllNetworkInfo();
-
-        // make sure that there is at least one interface to test against
-        if (info != null) {
-            // iterate through the interfaces
-            for (int i = 0; i < info.length; i++) {
-                // check this interface for a connected state
-                if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

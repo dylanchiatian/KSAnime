@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
@@ -24,6 +25,17 @@ public class Anime extends RealmObject implements Serializable {
 
     @Index
     public boolean isStarred;
+
+    @Ignore
+    public static final String TITLE = "title";
+    @Ignore
+    public static final String SUMMARY_URL = "summaryURL";
+    @Ignore
+    public static final String DESCRIPTION = "description";
+    @Ignore
+    public static final String RELATED_LIST = "relatedAnimeList";
+    @Ignore
+    public static final String EPISODES = "episodes";
 
     public Anime(){
         episodes = new RealmList<Episode>();
