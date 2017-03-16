@@ -25,6 +25,7 @@ import com.daose.ksanime.adapter.SearchAdapter;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.fragment.DownloadFragment;
 import com.daose.ksanime.fragment.HomeFragment;
+import com.daose.ksanime.fragment.NewsFragment;
 import com.daose.ksanime.fragment.SearchFragment;
 import com.daose.ksanime.fragment.SettingsFragment;
 import com.daose.ksanime.model.Anime;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements
         SearchFragment.OnFragmentInteractionListener,
         DownloadFragment.OnFragmentInteractionListener,
         HomeFragment.OnFragmentInteractionListener,
+        NewsFragment.OnFragmentInteractionListener,
         DrawerLayout.DrawerListener,
         SearchView.OnQueryTextListener,
         SearchView.OnOpenCloseListener {
@@ -204,6 +206,9 @@ public class MainActivity extends AppCompatActivity implements
                 case "Home":
                     fragment = HomeFragment.newInstance();
                     break;
+                case "News":
+                    fragment = NewsFragment.newInstance();
+                    break;
                 default:
                     fragment = AnimeListFragment.newInstance(title);
                     break;
@@ -277,6 +282,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onAnimeClick(String anime) {
         Intent intent = new Intent(this, AnimeActivity.class);
         intent.putExtra("anime", anime);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onNewsItemClick(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(intent);
     }
 

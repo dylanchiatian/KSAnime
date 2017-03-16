@@ -5,19 +5,19 @@
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_home_black_24dp"
-            android:title="Home"/>
+            android:title="@string/home" />
         <item
             android:id="@+id/nav_popular"
             android:icon="@drawable/ic_whatshot_black_24dp"
-            android:title="Popular" />
+            android:title="@string/popular" />
         <item
             android:id="@+id/nav_trending"
             android:icon="@drawable/ic_trending_up_black_24dp"
-            android:title="Trending" />
+            android:title="@string/trending" />
         <item
             android:id="@+id/nav_starred"
             android:icon="@drawable/ic_folder_special_black_24dp"
-            android:title="Starred" />
+            android:title="@string/starred" />
 
         <item
             android:id="@+id/nav_downloaded"
@@ -25,9 +25,14 @@
             android:title="Downloaded" />
 
         <item
+            android:id="@+id/nav_news"
+            android:icon="@drawable/ic_news"
+            android:title="@string/news" />
+
+        <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="Settings" />
+            android:title="@string/settings" />
 
     </group>
 
