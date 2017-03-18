@@ -36,6 +36,8 @@ public class Anime extends RealmObject implements Serializable {
     public static final String RELATED_LIST = "relatedAnimeList";
     @Ignore
     public static final String EPISODES = "episodes";
+    @Ignore
+    public static final String IS_STARRED = "isStarred";
 
     public Anime(){
         episodes = new RealmList<Episode>();

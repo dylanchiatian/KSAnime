@@ -21,8 +21,6 @@
             android:label="@string/title_activity_video"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name="com.applovin.adview.AppLovinInterstitialActivity" />
-        <activity android:name="com.applovin.adview.AppLovinConfirmationActivity" />
 
         <meta-data
             android:name="applovin.sdk.key"
@@ -48,12 +46,18 @@
             android:launchMode="singleTask"
             android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.daose.ksanime.MainActivity"/>
+                android:value="com.daose.ksanime.MainActivity" />
         </activity>
+
+        <service
+            android:name=".service.KAService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>

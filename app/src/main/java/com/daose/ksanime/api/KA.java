@@ -25,7 +25,6 @@ public class KA {
 
     private static final String BASE_URL = "http://kissanime.ru/";
     private static final String SEARCH_URL = BASE_URL + "/Search/Anime/";
-    private static final String IMAGE_URL = "http://myanimelist.net/anime.php?q=";
     private static final String MOST_POPULAR = "/AnimeList/MostPopular";
     private static final String NEW_AND_HOT = "/AnimeList/NewAndHot";
 
@@ -36,11 +35,8 @@ public class KA {
     private static final String TRENDING_IMAGE = "div#tab-trending img";
     private static final String TRENDING = TRENDING_IMAGE + "," + TRENDING_TITLE;
     private static final String UPDATED = "div.barContent";
-    private static final String MAL_IMAGE = "div.picSurround img";
-    private static final String MAL_IMAGE_ATTR = "data-src";
     private static final String EPISODE_LIST = "table.listing tbody tr td a";
     private static final String ANIME_DESCRIPTION = "div.barContent p:not(:has(span.info))";
-    private static final String VIDEO = "div#divContentVideo video";
     private static final String RELATED_ANIME_LIST = "div.rightBox a:not([title])";
     private static final String ANIME_LIST = "table.listing td:eq(0) a";
     private static final String SEARCH_CHECK = ".bigChar";

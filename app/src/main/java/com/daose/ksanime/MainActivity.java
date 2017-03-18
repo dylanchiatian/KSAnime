@@ -138,7 +138,12 @@ public class MainActivity extends AppCompatActivity implements
 
     private void mountView() {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
+        if(getIntent().getAction().equals(AnimeListFragment.Type.Starred.name())) {
+            ft.replace(R.id.fragment_placeholder, AnimeListFragment.newInstance(getIntent().getAction()));
+            setTitle(getIntent().getAction());
+        } else {
+            ft.replace(R.id.fragment_placeholder, HomeFragment.newInstance());
+        }
         ft.commit();
     }
 
