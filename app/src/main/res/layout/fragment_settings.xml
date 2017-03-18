@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="@dimen/activity_horizontal_margin"
+    android:layout_margin="@dimen/layout_margin"
     android:orientation="vertical"
     tools:context="com.daose.ksanime.fragment.SettingsFragment">
 
@@ -20,6 +20,8 @@
 
         <RadioGroup
             android:id="@+id/qualities"
+            android:paddingTop="@dimen/item_margin"
+            android:paddingBottom="@dimen/item_margin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/title">
@@ -50,30 +52,18 @@
 
         </RadioGroup>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/colorAccent"/>
-
         <TextView
             android:text="Video Player"
             android:textSize="24sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <CheckBox
+            android:paddingTop="@dimen/item_margin"
+            android:paddingBottom="@dimen/item_margin"
             android:id="@+id/check_video_player"
             android:text="Use KSAnime video player"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="@color/colorAccent"/>
 
         <Button
             android:id="@+id/reset"

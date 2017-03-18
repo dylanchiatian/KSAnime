@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_margin="@dimen/activity_horizontal_margin"
+    android:layout_margin="@dimen/layout_margin"
     android:gravity="top"
     android:layout_height="match_parent">
 
@@ -18,7 +18,7 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:text="Anime!"
+            android:text="@string/star_list_default_title"
             android:textStyle="bold"
             android:textSize="24sp"
             android:layout_width="wrap_content"
@@ -27,7 +27,7 @@
 
     <TextView
         android:gravity="center"
-        android:text="Star animes to save them here"
+        android:text="@string/star_list_default_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

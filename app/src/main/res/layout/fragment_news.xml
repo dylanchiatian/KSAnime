@@ -1,7 +1,24 @@
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/recycler_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:context="com.daose.ksanime.fragment.NewsFragment">
-</android.support.v7.widget.RecyclerView>
+    <TextView
+        android:layout_marginTop="@dimen/item_margin"
+        android:layout_marginBottom="@dimen/item_margin"
+        android:textColor="@color/caption"
+        android:textSize="@dimen/caption"
+        android:paddingLeft="@dimen/layout_margin"
+        android:paddingRight="@dimen/layout_margin"
+        android:text="@string/news_source"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.daose.ksanime.fragment.NewsFragment">
+    </android.support.v7.widget.RecyclerView>
+</LinearLayout>

@@ -253,8 +253,10 @@ public class AnimeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (anime.isStarred) {
+                    // Unstar
                     fabStar.setImageResource(R.drawable.ic_star_border_black_24dp);
                 } else {
+                    // Star
                     fabStar.setImageResource(R.drawable.ic_star_black_24dp);
                 }
                 realm.executeTransaction(new Realm.Transaction() {
