@@ -52,7 +52,7 @@ import io.realm.RealmList;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
-public class AnimeActivity extends AppCompatActivity {
+public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.OnClickListener {
 
     private enum Transformation {
         BLUR, BW
@@ -65,6 +65,7 @@ public class AnimeActivity extends AppCompatActivity {
     private ImageView cover;
     private SpotsDialog loadDialog;
     private RecyclerView rv;
+    private EpisodeAdapter adapter;
     private LinearLayout preloadIndicator;
     private FloatingActionButton fabDownload, fabStar, fabRelated;
     private FloatingActionMenu fabMenu;
@@ -106,14 +107,14 @@ public class AnimeActivity extends AppCompatActivity {
 
     private void setupAnime() {
         animeTitle = getIntent().getStringExtra("anime");
-        this.anime = realm.where(Anime.class).equalTo("title", animeTitle).findFirst();
+        this.anime = realm.where(Anime.class).equalTo(Anime.TITLE, animeTitle).findFirst();
+        adapter = new EpisodeAdapter(anime, this);
+        rv.setAdapter(adapter);
         setupBackground(Transformation.BLUR);
         if (anime.isStarred) {
             fabStar.setImageResource(R.drawable.ic_star_black_24dp);
         }
-        if (!anime.episodes.isEmpty()) {
-            rv.setAdapter(new EpisodeAdapter(this, anime));
-        } else {
+        if (anime.episodes.isEmpty()) {
             preloadIndicator.setVisibility(View.VISIBLE);
         }
         updateEpisodes();
@@ -123,6 +124,7 @@ public class AnimeActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                adapter.setIsUpdating(false);
                 preloadIndicator.setVisibility(View.GONE);
                 if(loadDialog.isShowing()) loadDialog.dismiss();
                 Toast.makeText(AnimeActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -166,7 +168,8 @@ public class AnimeActivity extends AppCompatActivity {
                                     anime.relatedAnimeList = relatedRealmList;
                                     anime.description = json.getString(Anime.DESCRIPTION);
 
-                                    rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
+                                    adapter.notifyDataSetChanged();
+                                    adapter.setIsUpdating(false);
                                     preloadIndicator.setVisibility(View.GONE);
                                 } catch (JSONException e) {
                                     Log.e(TAG, "updateEpisodes json error", e);
@@ -300,6 +303,21 @@ public class AnimeActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onDescriptionClick(String description) {
+        new AlertDialog.Builder(this)
+                .setTitle("Description")
+                .setMessage(Html.fromHtml(description))
+                .setPositiveButton("Back", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
+    }
+
     public void onArrowClick() {
         //TODO:: smooth scroll to last watched position?
         if (rv.getAdapter().getItemCount() > 5) {
@@ -307,6 +325,45 @@ public class AnimeActivity extends AppCompatActivity {
         } else if (rv.getAdapter().getItemCount() > 0) {
             rv.smoothScrollToPosition(rv.getAdapter().getItemCount() - 1);
         }
+    }
+
+    @Override
+    public void onEpisodeClick(final Episode episode, final int position) {
+        loadDialog.show();
+        KA.getVideo(this, episode.url, new KA.OnPageLoaded() {
+            @Override
+            public void onSuccess(JSONObject json) {
+                if (inDownloadMode) {
+                    showSelectQualityDialog(episode, json);
+                } else {
+                    try {
+                        SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
+                        String resolution = prefs.getString(Utils.SELECT_QUALITY_KEY, Utils.DEFAULT_QUALITY);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                realm.executeTransaction(new Realm.Transaction() {
+                                    @Override
+                                    public void execute(Realm realm) {
+                                        episode.hasWatched = true;
+                                        rv.getAdapter().notifyItemChanged(position);
+                                    }
+                                });
+                            }
+                        });
+                        startVideo(json.getString(resolution));
+                    } catch (JSONException e) {
+                        showSelectQualityDialog(episode, json);
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if(loadDialog.isShowing()) loadDialog.dismiss();
+                handleFail(error);
+            }
+        });
     }
 
     private void showRelatedDialog() {
@@ -415,44 +472,6 @@ public class AnimeActivity extends AppCompatActivity {
                 .show();
     }
 
-    //TODO:: clicking this soon after entering this screen results in fail first time around
-    public void requestVideo(final Episode episode) {
-        loadDialog.show();
-        KA.getVideo(this, episode.url, new KA.OnPageLoaded() {
-            @Override
-            public void onSuccess(JSONObject json) {
-                if (inDownloadMode) {
-                    showSelectQualityDialog(episode, json);
-                } else {
-                    try {
-                        SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
-                        String resolution = prefs.getString(Utils.SELECT_QUALITY_KEY, Utils.DEFAULT_QUALITY);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                realm.executeTransaction(new Realm.Transaction() {
-                                    @Override
-                                    public void execute(Realm realm) {
-                                        episode.hasWatched = true;
-                                    }
-                                });
-                            }
-                        });
-                        startVideo(json.getString(resolution));
-                    } catch (JSONException e) {
-                        showSelectQualityDialog(episode, json);
-                    }
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                if(loadDialog.isShowing()) loadDialog.dismiss();
-                handleFail(error);
-            }
-        });
-    }
-
     private void downloadVideo(final Episode episode, final String downloadURL) {
         runOnUiThread(new Runnable() {
             @Override
@@ -555,20 +574,6 @@ public class AnimeActivity extends AppCompatActivity {
             public void onSendingRemoteMediaRequest() {}
         });
         mediaClient.load(animeInfo, true, 0);
-    }
-
-    public void onDescriptionClick() {
-        new AlertDialog.Builder(this)
-                .setTitle("Description")
-                .setMessage(Html.fromHtml(anime.description))
-                .setPositiveButton("Back", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .create()
-                .show();
     }
 
     private class GetHeaderURL extends Utils.GetCoverURL {

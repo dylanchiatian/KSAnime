@@ -1,12 +1,14 @@
 package com.daose.ksanime.adapter;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.daose.ksanime.AnimeActivity;
@@ -18,54 +20,46 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 
 public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final String TAG = EpisodeAdapter.class.getSimpleName();
+
+    private static final int HEADER = 0;
+    private static final int EPISODE = 1;
 
     private Anime anime;
     private RealmResults<Episode> episodeList;
-    private Context ctx;
-    private AnimeActivity activity;
+    private boolean isUpdating;
+    private OnClickListener mListener;
 
-    private static final String TAG = EpisodeAdapter.class.getSimpleName();
-
-    private class Type {
-        public static final int HEADER = 0;
-        public static final int EPISODE = 1;
+    public interface OnClickListener {
+        void onDescriptionClick(String description);
+        void onArrowClick();
+        void onEpisodeClick(Episode episode, int position);
     }
 
     @Override
     public int getItemViewType(int position) {
-        return position == 0 ? Type.HEADER : Type.EPISODE;
+        return position == 0 ? HEADER : EPISODE;
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v;
-        switch (viewType) {
-            case Type.HEADER:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_header, parent, false);
-                return new HeaderViewHolder(v);
-            default:
-                v = LayoutInflater.from(parent.getContext()).inflate(R.layout.episode_item, parent, false);
-                return new ViewHolder(v);
+        if(viewType == HEADER) {
+            return new HeaderViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.anime_header, parent, false), mListener);
+        } else {
+            return new EpisodeViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.episode_item, parent, false), mListener);
         }
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HeaderViewHolder) {
-            HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
-            headerViewHolder.title.setText(anime.title);
-            headerViewHolder.description.setText(Html.fromHtml(anime.description));
+            final HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
+            headerViewHolder.bind(anime, isUpdating);
         } else {
             int offsetPosition = position - 1;
             Episode episode = episodeList.get(offsetPosition);
-            if (episode.hasWatched) {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
-                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text_inactive));
-            } else {
-                ((ViewHolder) holder).title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4));
-                ((ViewHolder) holder).title.setTextColor(ctx.getResources().getColor(R.color.text));
-            }
-            ((ViewHolder) holder).title.setText(episode.name.replace(anime.title, ""));
+            final EpisodeViewHolder episodeViewHolder = (EpisodeViewHolder) holder;
+            episodeViewHolder.bind(episode, episode.name.replace(anime.title, ""), position);
         }
     }
 
@@ -74,57 +68,94 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return episodeList.size() + 1;
     }
 
-    public class HeaderViewHolder extends RecyclerView.ViewHolder {
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
 
+        private View rootView;
         private TextView title;
         private ImageView arrowButton;
         private TextView description;
+        private ProgressBar updateProgress;
 
-        public HeaderViewHolder(View itemView) {
+        private OnClickListener mListener;
+
+        public HeaderViewHolder(View itemView, OnClickListener listener) {
             super(itemView);
+            rootView = itemView;
+            this.mListener = listener;
             title = (TextView) itemView.findViewById(R.id.title);
             arrowButton = (ImageView) itemView.findViewById(R.id.arrow);
             description = (TextView) itemView.findViewById(R.id.description);
+            updateProgress = (ProgressBar) itemView.findViewById(R.id.update_progress);
+        }
+
+        public void bind(final Anime anime, final boolean isUpdating) {
+            if(anime.description == null) {
+                rootView.setVisibility(View.GONE);
+                return;
+            }
+
+            rootView.setVisibility(View.VISIBLE);
+            title.setText(anime.title);
+            description.setText(Html.fromHtml(anime.description));
 
             arrowButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.onArrowClick();
+                    mListener.onArrowClick();
                 }
             });
 
             description.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.onDescriptionClick();
+                    mListener.onDescriptionClick(anime.description);
+                }
+            });
+
+            updateProgress.setVisibility(isUpdating ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
+    public static class EpisodeViewHolder extends RecyclerView.ViewHolder {
+
+        private TextView textView;
+        private OnClickListener mListener;
+
+        public EpisodeViewHolder(View itemView, OnClickListener listener) {
+            super(itemView);
+            mListener = listener;
+            textView = (TextView) itemView.findViewById(R.id.episode);
+        }
+
+        public void bind(final Episode episode, final String displayText, final int position) {
+            if(episode.hasWatched) {
+                textView.setBackgroundColor(ContextCompat.getColor(textView.getContext(), R.color.trans_base4_inactive));
+                textView.setTextColor(ContextCompat.getColor(textView.getContext(), R.color.text_inactive));
+            } else {
+                textView.setBackgroundColor(ContextCompat.getColor(textView.getContext(), R.color.trans_base4));
+                textView.setTextColor(ContextCompat.getColor(textView.getContext(), R.color.text));
+            }
+            textView.setText(displayText);
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    textView.setBackgroundColor(ContextCompat.getColor(textView.getContext(), R.color.trans_base4_inactive));
+                    textView.setTextColor(ContextCompat.getColor(textView.getContext(), R.color.text_inactive));
+                    mListener.onEpisodeClick(episode, position);
                 }
             });
         }
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        private TextView title;
-
-        public ViewHolder(View itemView) {
-            super(itemView);
-            title = (TextView) itemView.findViewById(R.id.episode);
-            title.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            int num = getLayoutPosition() - 1;
-            title.setBackgroundColor(ctx.getResources().getColor(R.color.trans_base4_inactive));
-            title.setTextColor(ctx.getResources().getColor(R.color.text_inactive));
-            activity.requestVideo(episodeList.get(num));
-        }
+    public void setIsUpdating(final boolean isUpdating) {
+        this.isUpdating = isUpdating;
+        notifyItemChanged(HEADER);
     }
 
-    public EpisodeAdapter(AnimeActivity activity, Anime anime) {
-        this.activity = activity;
-        this.ctx = activity.getBaseContext();
+    public EpisodeAdapter(Anime anime, OnClickListener listener) {
         this.anime = anime;
+        this.mListener = listener;
+        this.isUpdating = true;
         this.episodeList = anime.episodes.sort("name", Sort.DESCENDING);
     }
 }

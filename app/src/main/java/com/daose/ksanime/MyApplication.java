@@ -21,7 +21,7 @@ public class MyApplication extends Application {
     public void onCreate(){
         super.onCreate();
 
-        SharedPreferences settings = getSharedPreferences("daose", 0);
+        SharedPreferences settings = getSharedPreferences("daose", MODE_PRIVATE);
 
         if (settings.getBoolean("first_install", true)) {
             SharedPreferences.Editor editor = settings.edit();
