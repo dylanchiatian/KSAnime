@@ -19,6 +19,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.daose.ksanime.adapter.EpisodeAdapter;
@@ -165,8 +166,8 @@ public class AnimeActivity extends AppCompatActivity {
                                     anime.relatedAnimeList = relatedRealmList;
                                     anime.description = json.getString(Anime.DESCRIPTION);
 
-                                    preloadIndicator.setVisibility(View.GONE);
                                     rv.swapAdapter(new EpisodeAdapter(AnimeActivity.this, anime), false);
+                                    preloadIndicator.setVisibility(View.GONE);
                                 } catch (JSONException e) {
                                     Log.e(TAG, "updateEpisodes json error", e);
                                     handleFail(getString(R.string.update_failed));

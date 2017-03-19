@@ -19,7 +19,6 @@ public class MAL {
     private static final String BASE_URL = "https://myanimelist.net";
     private static final String NEWS_ENDPOINT = "/rss/news.xml";
 
-    // TODO:: check that we have network first
     public static void getNews(Listener listener) {
         new FetchNews(listener).execute();
     }

@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 public class KA {
     private static final String TAG = KA.class.getSimpleName();
 
-    private static final String BASE_URL = "http://kissanime.ru/";
+    public static final String BASE_URL = "http://kissanime.ru/";
     private static final String SEARCH_URL = BASE_URL + "/Search/Anime/";
     private static final String MOST_POPULAR = "/AnimeList/MostPopular";
     private static final String NEW_AND_HOT = "/AnimeList/NewAndHot";

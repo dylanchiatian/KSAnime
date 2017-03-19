@@ -1,5 +1,6 @@
 package com.daose.ksanime.service;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -7,12 +8,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.webkit.WebView;
 
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
+import com.daose.ksanime.api.KA;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
@@ -38,6 +41,7 @@ public class KAService extends Service {
     private static final String TAG = KAService.class.getSimpleName();
     private static final String LIST = "list";
     private static final String INDEX = "index";
+    private static final String MESSAGES = "messages";
     private static final int NOTIFICATION_ID = 2;
 
     private WebView webView;
@@ -45,6 +49,7 @@ public class KAService extends Service {
     private HtmlHandler htmlHandler;
 
     private ArrayList<String> list;
+    private ArrayList<String> messages;
     private int index;
 
     public KAService() {}
@@ -56,6 +61,7 @@ public class KAService extends Service {
             Intent intent = new Intent(this, KAService.class);
             intent.putExtra(LIST, list);
             intent.putExtra(INDEX, index);
+            intent.putExtra(MESSAGES, messages);
             startService(intent);
         }
     }
@@ -69,6 +75,11 @@ public class KAService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         list = intent.getStringArrayListExtra(LIST);
         index = intent.getIntExtra(INDEX, 0);
+        messages = intent.getStringArrayListExtra(MESSAGES);
+        if(messages == null) {
+            messages = new ArrayList<String>();
+        }
+
         if(list == null) {
             Realm realm = Realm.getDefaultInstance();
             final List<Anime> fullList = realm.copyFromRealm(realm.where(Anime.class).equalTo(Anime.IS_STARRED, true).findAll(), 0);
@@ -110,13 +121,10 @@ public class KAService extends Service {
 
         final Realm realm = Realm.getDefaultInstance();
         final Anime anime = realm.where(Anime.class).equalTo(Anime.TITLE, title).findFirst();
-        final Episode lastEpisode = anime.episodes.sort(Episode.NAME, Sort.DESCENDING).first();
-
-        final String lastEpisodeUrl = lastEpisode != null ? lastEpisode.url : null;
-        final String checkUrl = anime.summaryURL.startsWith("http") ? anime.summaryURL : "http://kissanime.ru/" + anime.summaryURL;
+        final int numOfEpisodes = anime.episodes.size();
+        final String checkUrl = anime.summaryURL.startsWith("http") ? anime.summaryURL : KA.BASE_URL + anime.summaryURL;
         realm.close();
 
-        webView.loadUrl(checkUrl, client.getHeaders());
         htmlHandler.addHtmlListener(new HtmlListener() {
             @Override
             public void onPageLoaded(String html, String url) {
@@ -125,8 +133,7 @@ public class KAService extends Service {
                     return;
                 }
 
-                final Element element = doc.select(EPISODE_LIST).first();
-                if (element != null && (lastEpisodeUrl == null || !lastEpisodeUrl.equals(element.attributes().get("href")))) {
+                if(doc.select(EPISODE_LIST).size() > numOfEpisodes) {
                     sendNotification(title);
                 }
                 stopSelf();
@@ -137,13 +144,16 @@ public class KAService extends Service {
                 Log.e(TAG, "onPageFailed");
             }
         });
+        webView.loadUrl(checkUrl, client.getHeaders());
     }
 
     private String getOneLiner(final String title) {
-        return index > 1 ? String.format(Locale.US, "%s and %d more", title, index - 1) : title;
+        return messages.size() > 1 ? String.format(Locale.US, "%s and %d more", title, messages.size() - 1) : title;
     }
 
     private void sendNotification(final String title) {
+        messages.add(title);
+
         final Intent intent = new Intent(KAService.this, MainActivity.class);
         intent.setAction(AnimeListFragment.Type.Starred.name());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -155,19 +165,22 @@ public class KAService extends Service {
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                         .setAutoCancel(true)
-                        .setNumber(index)
+                        .setNumber(messages.size())
+                        .setPriority(Notification.PRIORITY_HIGH)
                         .setStyle(getNotificationList())
                         .setColor(0x0)
                         .setContentIntent(pendingIntent);
+        Notification notification = builder.build();
+        notification.defaults |= Notification.DEFAULT_ALL;
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(NOTIFICATION_ID, builder.build());
+        manager.notify(NOTIFICATION_ID, notification);
     }
 
     private NotificationCompat.InboxStyle getNotificationList() {
         NotificationCompat.InboxStyle notifications = new NotificationCompat.InboxStyle();
         notifications.setBigContentTitle(getString(R.string.notification_summary));
-        for(int i = 0; i < index; i++) {
-            notifications.addLine(list.get(i));
+        for(int i = 0; i < messages.size(); i++) {
+            notifications.addLine(messages.get(i));
         }
         return notifications;
     }

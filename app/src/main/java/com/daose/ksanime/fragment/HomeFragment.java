@@ -198,6 +198,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle(getString(R.string.home));
         setupRecentView();
     }
 
