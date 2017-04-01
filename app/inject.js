@@ -21,6 +21,21 @@ if(document.documentElement === null) {
                 dictionary[qualities[i].text] = ovelWrap(qualities[i].value);
             }
             HtmlHandler.handleJSON(JSON.stringify(dictionary));
+        } else if(document.getElementById('selectServer') !== null) {
+            var serverSelector = document.getElementById('selectServer');
+            var server = serverSelector.options[serverSelector.selectedIndex].text;
+            if(server === 'Openload') {
+                var openload = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
+                window.location = openload;
+            } else {
+                HtmlHandler.handleError('No server available');
+            }
+        } else if(document.getElementById('streamurl') !== null) {
+            var id = document.getELementById('streamurl').innerHTML;
+            var link = {
+                Openload: ('https://openload.co/stream/' + id + '?mime=true')
+            };
+            HtmlHandler.handleJSON(JSON.stringify(link));
         } else if(window.location.href === currentUrl) {
             HtmlHandler.handleHtml(document.documentElement.innerHTML, window.location.href);
         }
