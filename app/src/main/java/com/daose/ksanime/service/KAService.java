@@ -73,9 +73,16 @@ public class KAService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        list = intent.getStringArrayListExtra(LIST);
-        index = intent.getIntExtra(INDEX, 0);
-        messages = intent.getStringArrayListExtra(MESSAGES);
+        if(intent == null) {
+            list = null;
+            index = 0;
+            messages = null;
+        } else {
+            list = intent.getStringArrayListExtra(LIST);
+            index = intent.getIntExtra(INDEX, 0);
+            messages = intent.getStringArrayListExtra(MESSAGES);
+        }
+
         if(messages == null) {
             messages = new ArrayList<String>();
         }
