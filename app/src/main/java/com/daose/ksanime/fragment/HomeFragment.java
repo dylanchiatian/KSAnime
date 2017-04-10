@@ -125,6 +125,7 @@ public class HomeFragment extends Fragment {
         moreTrending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(refreshBar.isShown()) refreshBar.dismiss();
                 mListener.onShowMore(AnimeList.MORE_TRENDING);
             }
         });
@@ -132,6 +133,7 @@ public class HomeFragment extends Fragment {
         morePopular.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(refreshBar.isShown()) refreshBar.dismiss();
                 mListener.onShowMore(AnimeList.MORE_POPULAR);
             }
         });
@@ -258,6 +260,8 @@ public class HomeFragment extends Fragment {
     }
 
     public void onAnimeClick(View v, final String animeTitle) {
+        if(refreshBar.isShown()) refreshBar.dismiss();
+
         ViewCompat.animate(v)
                 .setDuration(200)
                 .scaleX(0.9f)
