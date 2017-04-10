@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.util.Utils;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.google.android.gms.cast.MediaInfo;
@@ -22,7 +23,7 @@ import com.google.android.gms.common.images.WebImage;
 
 import io.realm.Realm;
 
-public class VideoActivity extends AppCompatActivity {
+public class VideoActivity extends AppCompatActivity implements OnCompletionListener {
 
     private final static String TAG = VideoActivity.class.getSimpleName();
 
@@ -91,6 +92,7 @@ public class VideoActivity extends AppCompatActivity {
 
         uri = Uri.parse(getIntent().getStringExtra("url"));
         video.setVideoURI(uri);
+        video.setOnCompletionListener(this);
     }
 
     private void setupDatabase() {
@@ -116,5 +118,10 @@ public class VideoActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         video.pause();
+    }
+
+    @Override
+    public void onCompletion() {
+        finish();
     }
 }
