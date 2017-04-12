@@ -64,6 +64,7 @@ public class KA {
                         return;
                     }
 
+                    // TODO:: redundant?
                     final Elements trendingElements = doc.select(TRENDING);
                     if(trendingElements.size() == 0) {
                         callback.onError(context.getString(R.string.fail_message));
