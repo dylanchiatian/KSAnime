@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 public class KA {
     private static final String TAG = KA.class.getSimpleName();
 
-    public static final String BASE_URL = "http://kissanime.ru/";
+    public static final String BASE_URL = "http://kissasian.com/";
     private static final String SEARCH_URL = BASE_URL + "/Search/Anime/";
     private static final String MOST_POPULAR = "/AnimeList/MostPopular";
     private static final String NEW_AND_HOT = "/AnimeList/NewAndHot";
@@ -31,8 +31,8 @@ public class KA {
     private static final String POPULAR_TITLE = "div#tab-mostview span.title";
     private static final String POPULAR_IMAGE = "div#tab-mostview img";
     private static final String POPULAR = POPULAR_IMAGE + "," + POPULAR_TITLE;
-    private static final String TRENDING_TITLE = "div#tab-trending span.title";
-    private static final String TRENDING_IMAGE = "div#tab-trending img";
+    private static final String TRENDING_TITLE = "div#tab-top-month span.title";
+    private static final String TRENDING_IMAGE = "div#tab-top-month img";
     private static final String TRENDING = TRENDING_IMAGE + "," + TRENDING_TITLE;
     private static final String UPDATED = "div.barContent";
     private static final String EPISODE_LIST = "table.listing tbody tr td a";
@@ -64,19 +64,6 @@ public class KA {
                         return;
                     }
 
-                    // TODO:: redundant?
-                    final Elements trendingElements = doc.select(TRENDING);
-                    if(trendingElements.size() == 0) {
-                        callback.onError(context.getString(R.string.fail_message));
-                        return;
-                    }
-
-                    final Elements popularElements = doc.select(POPULAR);
-                    if(popularElements.size() == 0) {
-                        callback.onError(context.getString(R.string.fail_message));
-                        return;
-                    }
-
                     final JSONArray updatedList = new JSONArray();
                     for (int i = 0; i < updatedElements.size(); i += 2) {
                         final Element element = updatedElements.get(i);
@@ -97,7 +84,7 @@ public class KA {
                     Log.e(TAG, "Failed getting home page", e);
                     callback.onError(context.getString(R.string.fail_message));
                 } catch (Exception e) {
-                    Log.d(TAG, "Failed getting home page", e);
+                    Log.e(TAG, "Failed getting home page", e);
                     callback.onError(context.getString(R.string.fail_message));
                 }
             }
