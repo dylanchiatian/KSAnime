@@ -12,7 +12,7 @@ if(document.documentElement === null) {
     HtmlHandler.handleError('null document');
 } else if (document.title !== 'Please wait 5 seconds...') {
     if(document.documentElement.innerHTML.length < 150) {
-        HtmlHandler.handleError(document.documentElement.innerHTML);
+        //HtmlHandler.handleError(document.documentElement.innerHTML);
     } else if(typeof playerInstance !== 'undefined') {
         var rapidVideo = playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;
         var link = {
@@ -46,6 +46,6 @@ if(document.documentElement === null) {
             HtmlHandler.handleHtml(document.documentElement.innerHTML, window.location.href);
         }
     } else {
-        HtmlHandler.handleError(document.documentElement.innerHTML);
+        //HtmlHandler.handleError(document.documentElement.innerHTML);
     }
 }
