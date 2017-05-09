@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
 import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.KitsuApi;
 import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
@@ -159,7 +160,7 @@ public class HomeFragment extends Fragment {
     private void fetchThumbnails(RealmList<Anime> list) {
         for(Anime anime : list) {
             if(anime.coverURL == null || anime.coverURL.isEmpty()) {
-                new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                KitsuApi.getInstance().fetchCoverUrl(anime.title);
             }
         }
     }
@@ -210,7 +211,7 @@ public class HomeFragment extends Fragment {
         if (recentAnime != null) {
             final ImageView cover = (ImageView) recentView.findViewById(R.id.recent_anime_cover);
             if (recentAnime.coverURL == null || recentAnime.coverURL.isEmpty()) {
-                new Utils.GetCoverURL().execute(recentAnime.title);
+                KitsuApi.getInstance().fetchCoverUrl(recentAnime.title);
             } else {
                 Picasso.with(getContext()).load(recentAnime.coverURL).placeholder(R.drawable.placeholder).into(cover);
             }
