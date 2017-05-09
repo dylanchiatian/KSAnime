@@ -15,7 +15,13 @@ public class CustomWebClient extends WebViewClient {
     private static HashSet<String> ignoreUrls;
     private static Map<String, String> headers;
     private static final String[] ignoreKeys = {"/images/", ".png", ".css", ".jpeg", ".jpg", "/ads/", "disqus", "facebook", "video.js"};
-    private static final String javascript = "if(document.documentElement===null){HtmlHandler.handleError('null document')}else if(document.title!=='Please wait 5 seconds...'){if(document.documentElement.innerHTML.length<150){HtmlHandler.handleError(document.documentElement.innerHTML)}else if(document.documentElement.innerHTML.length>10000){if(document.getElementById('slcQualix')!==null){var qualities=document.getElementById('slcQualix').options;var dictionary={};for(var i=0;i<qualities.length;i+=1){dictionary[qualities[i].text]=ovelWrap(qualities[i].value)}HtmlHandler.handleJSON(JSON.stringify(dictionary))}else if(document.getElementById('selectServer')!==null){var serverSelector=document.getElementById('selectServer');var server=serverSelector.options[serverSelector.selectedIndex].text;if(server==='Openload'){var openload=document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src;window.location=openload}}else if(document.getElementById('streamurl')!==null){var id=document.getElementById('streamurl').innerHTML;var link={Openload:('https://openload.co/stream/'+id+'?mime=true')};HtmlHandler.handleJSON(JSON.stringify(link))}else if(window.location.href===currentUrl){HtmlHandler.handleHtml(document.documentElement.innerHTML,window.location.href)}}}";
+    private static final String[] whiteKeys = {
+            "answer", // cloudflare
+            "openload",
+            "rapidvideo",
+            "jwpcdn" // JW Player required for rapidvideo
+    };
+    private static final String javascript = "if(document.documentElement===null){HtmlHandler.handleError('null document')}else if(document.title!=='Please wait 5 seconds...'){if(document.documentElement.innerHTML.length<150){HtmlHandler.handleError(document.documentElement.innerHTML)}else if(typeof playerInstance!=='undefined'){var rapidVideo=playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;var link={RapidVideo:rapidVideo};HtmlHandler.handleJSON(JSON.stringify(link))}else if(document.documentElement.innerHTML.length>10000){if(document.getElementById('slcQualix')!==null){var qualities=document.getElementById('slcQualix').options;var dictionary={};for(var i=0;i<qualities.length;i+=1){dictionary[qualities[i].text]=ovelWrap(qualities[i].value)}HtmlHandler.handleJSON(JSON.stringify(dictionary))}else if(document.getElementById('selectServer')!==null){var serverSelector=document.getElementById('selectServer');var server=serverSelector.options[serverSelector.selectedIndex].text;if(server==='Openload'||server==='RapidVideo'){var redirect=document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src;window.location=redirect}else{HtmlHandler.handleError('No server available')}}else if(document.getElementById('streamurl')!==null){var id=document.getElementById('streamurl').innerHTML;var link={Openload:('https://openload.co/stream/'+id+'?mime=true')};HtmlHandler.handleJSON(JSON.stringify(link))}else if(window.location.href===currentUrl){HtmlHandler.handleHtml(document.documentElement.innerHTML,window.location.href)}}else{HtmlHandler.handleError(document.documentElement.innerHTML)}}";
 
     public CustomWebClient() {
         super();
@@ -43,16 +49,17 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+        //Log.d(TAG, "PASS?: " + url);
         if (ignoreUrls.contains(url)) {
             //Log.d(TAG, "FAIL: " + url);
             return new WebResourceResponse(null, null, null);
         }
 
-        //cloudflare, pass
-        if (url.contains("answer")) return null;
-
-        //openload, pass
-        if (url.contains("openload")) return null;
+        for (String key : whiteKeys) {
+            if (url.contains(key)) {
+                return null;
+            }
+        }
 
         if (url.contains("kissanime") || url.contains("video")) {
             for (String key : ignoreKeys) {
@@ -62,7 +69,6 @@ public class CustomWebClient extends WebViewClient {
                     return new WebResourceResponse(null, null, null);
                 }
             }
-            //Log.d(TAG, "PASS: " + url);
             return null;
         } else {
             ignoreUrls.add(url);

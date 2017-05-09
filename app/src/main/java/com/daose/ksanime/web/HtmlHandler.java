@@ -39,6 +39,7 @@ public class HtmlHandler {
             } else {
                 listener.onPageLoaded(html, url);
             }
+            listener = null;
         }
     }
 
@@ -47,9 +48,11 @@ public class HtmlHandler {
         Log.e(TAG, "page failed to load: " + error);
         if(listener != null){
             listener.onPageFailed();
+            listener = null;
         }
         if(JSONListener != null){
             JSONListener.onPageFailed();
+            JSONListener = null;
         }
     }
 
@@ -61,6 +64,7 @@ public class HtmlHandler {
             } catch (JSONException e){
                 e.printStackTrace();
             }
+            JSONListener = null;
         }
     }
 }

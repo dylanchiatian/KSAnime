@@ -4,7 +4,7 @@ var HtmlHandler = {
     handleError: (msg) => console.log('handle error', msg),
     handleJSON: (json) => console.log('handle json', json),
     handleHtml: (html, url) => console.log(url, html)
-}
+};
 
 var currentUrl = encodeURI('http://kissanime.ru/');
 
@@ -13,6 +13,12 @@ if(document.documentElement === null) {
 } else if (document.title !== 'Please wait 5 seconds...') {
     if(document.documentElement.innerHTML.length < 150) {
         HtmlHandler.handleError(document.documentElement.innerHTML);
+    } else if(typeof playerInstance !== 'undefined') {
+        var rapidVideo = playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;
+        var link = {
+          RapidVideo: rapidVideo
+        };
+        HtmlHandler.handleJSON(JSON.stringify(link));
     } else if(document.documentElement.innerHTML.length > 10000) {
         if(document.getElementById('slcQualix') !== null) {
             var qualities = document.getElementById('slcQualix').options;
@@ -24,14 +30,14 @@ if(document.documentElement === null) {
         } else if(document.getElementById('selectServer') !== null) {
             var serverSelector = document.getElementById('selectServer');
             var server = serverSelector.options[serverSelector.selectedIndex].text;
-            if(server === 'Openload') {
-                var openload = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
-                window.location = openload;
+            if(server === 'Openload' || server === 'RapidVideo') {
+                var redirect = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
+                window.location = redirect;
             } else {
                 HtmlHandler.handleError('No server available');
             }
         } else if(document.getElementById('streamurl') !== null) {
-            var id = document.getELementById('streamurl').innerHTML;
+            var id = document.getElementById('streamurl').innerHTML;
             var link = {
                 Openload: ('https://openload.co/stream/' + id + '?mime=true')
             };
@@ -39,5 +45,7 @@ if(document.documentElement === null) {
         } else if(window.location.href === currentUrl) {
             HtmlHandler.handleHtml(document.documentElement.innerHTML, window.location.href);
         }
+    } else {
+        HtmlHandler.handleError(document.documentElement.innerHTML);
     }
 }
