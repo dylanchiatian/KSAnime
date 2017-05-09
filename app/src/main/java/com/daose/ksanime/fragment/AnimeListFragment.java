@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.AnimeAdapter;
 import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.KitsuApi;
 import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;
@@ -132,7 +133,7 @@ public class AnimeListFragment extends Fragment implements KA.OnPageLoaded {
                     final AnimeList list = realm.where(AnimeList.class).equalTo(AnimeList.KEY, type.name()).findFirst();
                     for(final Anime anime : list.animeList) {
                         if(anime.coverURL == null || anime.coverURL.isEmpty()) {
-                            new Utils.GetCoverURL().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, anime.title);
+                            KitsuApi.getInstance().fetchCoverUrl(anime.title);
                         }
                     }
                 }

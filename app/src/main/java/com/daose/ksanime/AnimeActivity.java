@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.daose.ksanime.adapter.EpisodeAdapter;
 import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.KitsuApi;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
@@ -48,7 +49,9 @@ import java.util.regex.Pattern;
 
 import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmList;
+import io.realm.RealmModel;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
@@ -73,6 +76,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
     private Realm realm;
     private Anime anime;
     private String animeTitle;
+    private RealmChangeListener<Anime> animeListener;
 
     private boolean inDownloadMode;
 
@@ -101,6 +105,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
     public void onDestroy() {
         super.onDestroy();
         if(realm != null) {
+            anime.removeChangeListener(animeListener);
             realm.close();
         }
     }
@@ -108,9 +113,21 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
     private void setupAnime() {
         animeTitle = getIntent().getStringExtra("anime");
         this.anime = realm.where(Anime.class).equalTo(Anime.TITLE, animeTitle).findFirst();
+
         adapter = new EpisodeAdapter(anime, this);
         rv.setAdapter(adapter);
+
         setupBackground(Transformation.BLUR);
+        animeListener = new RealmChangeListener<Anime>() {
+            @Override
+            public void onChange(Anime element) {
+                if (element.coverURL != null) {
+                    setupBackground(Transformation.BLUR);
+                }
+            }
+        };
+        anime.addChangeListener(animeListener);
+
         if (anime.isStarred) {
             fabStar.setImageResource(R.drawable.ic_star_black_24dp);
         }
@@ -284,7 +301,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
 
     private void setupBackground(Transformation type) {
         if (anime.coverURL == null || anime.coverURL.isEmpty()) {
-            new GetHeaderURL().execute(anime.title);
+            KitsuApi.getInstance().fetchCoverUrl(anime.title);
         } else {
             if (type.equals(Transformation.BW)) {
                 Picasso.with(this).load(anime.coverURL)
@@ -574,20 +591,5 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
             public void onSendingRemoteMediaRequest() {}
         });
         mediaClient.load(animeInfo, true, 0);
-    }
-
-    private class GetHeaderURL extends Utils.GetCoverURL {
-        @Override
-        public void onPostExecute(String URL) {
-            super.onPostExecute(URL);
-            if (cover != null && !URL.isEmpty()) {
-                Picasso.with(AnimeActivity.this).
-                        load(URL)
-                        .fit()
-                        .centerCrop()
-                        .transform(new BlurTransformation(AnimeActivity.this))
-                        .into(cover);
-            }
-        }
     }
 }
