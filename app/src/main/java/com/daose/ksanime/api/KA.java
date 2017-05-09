@@ -64,23 +64,10 @@ public class KA {
                         return;
                     }
 
-                    final Elements trendingElements = doc.select(TRENDING);
-                    if(trendingElements.size() == 0) {
-                        callback.onError(context.getString(R.string.fail_message));
-                        return;
-                    }
-
-                    final Elements popularElements = doc.select(POPULAR);
-                    if(popularElements.size() == 0) {
-                        callback.onError(context.getString(R.string.fail_message));
-                        return;
-                    }
-
                     final JSONArray updatedList = new JSONArray();
                     for (int i = 0; i < updatedElements.size(); i += 2) {
                         final Element element = updatedElements.get(i);
                         final String title = element.text();
-                        final String summaryURL = element.attr("href");
                         if (title.equals("More...")) {
                             break;
                         }
