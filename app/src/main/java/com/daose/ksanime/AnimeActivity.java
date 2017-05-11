@@ -19,11 +19,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.daose.ksanime.adapter.EpisodeAdapter;
-import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.api.KitsuApi;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
@@ -51,7 +50,6 @@ import dmax.dialog.SpotsDialog;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
-import io.realm.RealmModel;
 import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.GrayscaleTransformation;
 
@@ -147,6 +145,24 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                 Toast.makeText(AnimeActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void handleCaptchaError(final String url) {
+        handleFail(getString(R.string.captcha));
+        KA.openCaptcha(AnimeActivity.this, url);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == KA.CAPTCHA_CODE && resultCode == KA.CAPTCHA_CODE) {
+            final String url = data.getStringExtra(Episode.URL);
+            Realm r = Realm.getDefaultInstance();
+            Episode episode = r.where(Episode.class).equalTo(Episode.URL, url).findFirst();
+            getVideo(episode);
+            if (loadDialog != null && !loadDialog.isShowing()) loadDialog.show();
+            r.close();
+        }
     }
 
     private void updateEpisodes() {
@@ -344,9 +360,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
         }
     }
 
-    @Override
-    public void onEpisodeClick(final Episode episode, final int position) {
-        loadDialog.show();
+    public void getVideo(final Episode episode) {
         KA.getVideo(this, episode.url, new KA.OnPageLoaded() {
             @Override
             public void onSuccess(JSONObject json) {
@@ -363,7 +377,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                                     @Override
                                     public void execute(Realm realm) {
                                         episode.hasWatched = true;
-                                        rv.getAdapter().notifyItemChanged(position);
+                                        rv.getAdapter().notifyDataSetChanged();
                                     }
                                 });
                             }
@@ -377,10 +391,24 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
 
             @Override
             public void onError(String error) {
-                if(loadDialog.isShowing()) loadDialog.dismiss();
-                handleFail(error);
+                if (KA.CAPTCHA_ERROR.equals(error)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleCaptchaError(episode.url);
+                        }
+                    });
+                } else {
+                    handleFail(error);
+                }
             }
         });
+    }
+
+    @Override
+    public void onEpisodeClick(final Episode episode, final int position) {
+        loadDialog.show();
+        getVideo(episode);
     }
 
     private void showRelatedDialog() {

@@ -46,7 +46,9 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
+    compile(project(':searchview-3.5')) {
+        exclude group: 'com.android.support'
+    }
     compile 'org.jsoup:jsoup:1.9.2'
     compile 'com.devbrackets.android:exomedia:3.0.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
@@ -64,7 +66,6 @@ dependencies {
     compile 'com.android.support:mediarouter-v7:23.4.0'
     compile 'com.google.android.gms:play-services-ads:9.4.0'
     compile 'com.google.android.gms:play-services-cast-framework:9.4.0'
-    compile(project(':searchview-3.5')) {
-        exclude group: 'com.android.support'
-    }
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'junit:junit:4.12'
 }

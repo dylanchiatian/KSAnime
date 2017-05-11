@@ -11,6 +11,7 @@ public class HtmlHandler {
 
     private HtmlListener listener;
     private JSONListener JSONListener;
+    private CaptchaListener captchaListener;
     private static final String BLANK_HTML = "<head></head><body></body>";
 
     public HtmlHandler() {}
@@ -22,6 +23,8 @@ public class HtmlHandler {
     public void addJSONListener(JSONListener listener){
         this.JSONListener = listener;
     }
+
+    public void addCaptchaListener(CaptchaListener listener) { this.captchaListener = listener; }
 
     public void removeListeners() {
         this.listener = null;
@@ -35,7 +38,7 @@ public class HtmlHandler {
         }
         if (listener != null) {
             if (html.equals(BLANK_HTML)) {
-                listener.onPageFailed();
+                listener.onPageFailed(null);
             } else {
                 listener.onPageLoaded(html, url);
             }
@@ -44,14 +47,19 @@ public class HtmlHandler {
     }
 
     @JavascriptInterface
+    public void finish() {
+        captchaListener.onSubmit();
+    }
+
+    @JavascriptInterface
     public void handleError(String error) {
         Log.e(TAG, "page failed to load: " + error);
         if(listener != null){
-            listener.onPageFailed();
+            listener.onPageFailed(null);
             listener = null;
         }
         if(JSONListener != null){
-            JSONListener.onPageFailed();
+            JSONListener.onPageFailed(error);
             JSONListener = null;
         }
     }
