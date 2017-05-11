@@ -14,7 +14,7 @@ import android.widget.Toast;
 
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.FullSearchAdapter;
-import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.AnimeList;

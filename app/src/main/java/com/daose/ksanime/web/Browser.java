@@ -48,6 +48,10 @@ public class Browser {
         loadUrl(url);
     }
 
+    public void answerCaptcha(CaptchaListener listener) {
+        htmlHandler.addCaptchaListener(listener);
+    }
+
     public void removeListeners(){
         htmlHandler.removeListeners();
     }

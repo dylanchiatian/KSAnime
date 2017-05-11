@@ -1,7 +1,6 @@
 package com.daose.ksanime.fragment;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,7 +21,7 @@ import android.widget.Toast;
 
 import com.daose.ksanime.R;
 import com.daose.ksanime.adapter.HorizontalAdapter;
-import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.api.KitsuApi;
 import com.daose.ksanime.helper.ApiHelper;
 import com.daose.ksanime.model.Anime;

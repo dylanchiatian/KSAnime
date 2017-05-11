@@ -1,6 +1,9 @@
-package com.daose.ksanime.api;
+package com.daose.ksanime.api.ka;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.daose.ksanime.R;
@@ -9,6 +12,7 @@ import com.daose.ksanime.model.AnimeList;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
 import com.daose.ksanime.web.Browser;
+import com.daose.ksanime.web.CaptchaListener;
 import com.daose.ksanime.web.HtmlListener;
 import com.daose.ksanime.web.JSONListener;
 
@@ -43,6 +47,10 @@ public class KA {
 
     public static final String REDIRECTED = "redirected";
     public static final String ANIME = "anime";
+
+    public static final String CAPTCHA_ERROR = "captcha";
+    public static final int CAPTCHA_CODE = 3;
+    public static final String CAPTCHA_ENDPOINT = "http://kissanime.ru/Special/AreYouHuman";
 
     //TODO:: get application context
     public static void getHomePage(final Context context, final OnPageLoaded callback) {
@@ -83,13 +91,13 @@ public class KA {
                     Log.e(TAG, "Failed getting home page", e);
                     callback.onError(context.getString(R.string.fail_message));
                 } catch (Exception e) {
-                    Log.d(TAG, "Failed getting home page", e);
+                    Log.e(TAG, "Failed getting home page", e);
                     callback.onError(context.getString(R.string.fail_message));
                 }
             }
 
             @Override
-            public void onPageFailed() {
+            public void onPageFailed(String error) {
                 callback.onError(context.getString(R.string.fail_message));
             }
         });
@@ -149,7 +157,7 @@ public class KA {
             }
 
             @Override
-            public void onPageFailed() {
+            public void onPageFailed(String error) {
                 callback.onError(context.getString(R.string.update_failed));
             }
         });
@@ -170,9 +178,13 @@ public class KA {
             }
 
             @Override
-            public void onPageFailed() {
-                Browser.getInstance(context).reset();
-                callback.onError(context.getString(R.string.fail_message));
+            public void onPageFailed(String error) {
+                if (KA.CAPTCHA_ERROR.equals(error)) {
+                    callback.onError(error);
+                } else {
+                    Browser.getInstance(context).reset();
+                    callback.onError(context.getString(R.string.fail_message));
+                }
             }
         });
     }
@@ -220,10 +232,16 @@ public class KA {
             }
 
             @Override
-            public void onPageFailed() {
+            public void onPageFailed(String error) {
                 callback.onError(context.getString(R.string.fail_message));
             }
         });
+    }
+
+    public static void openCaptcha(final AppCompatActivity activity, final String episodeUrl) {
+        Intent intent = new Intent(activity, CaptchaActivity.class);
+        intent.putExtra(Episode.URL, episodeUrl);
+        activity.startActivityForResult(intent, KA.CAPTCHA_CODE);
     }
 
     private static void getList(final Context context, final String url, final OnPageLoaded callback) {
@@ -248,7 +266,7 @@ public class KA {
             }
 
             @Override
-            public void onPageFailed() {
+            public void onPageFailed(String error) {
                 callback.onError(context.getString(R.string.fail_message));
             }
         });
