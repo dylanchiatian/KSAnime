@@ -8,31 +8,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.webkit.WebView;
 
 import com.daose.ksanime.MainActivity;
 import com.daose.ksanime.R;
-import com.daose.ksanime.api.KA;
+import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.fragment.AnimeListFragment;
 import com.daose.ksanime.model.Anime;
-import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.web.CustomWebClient;
 import com.daose.ksanime.web.HtmlHandler;
 import com.daose.ksanime.web.HtmlListener;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import io.realm.Realm;
-import io.realm.Sort;
 
 import static com.daose.ksanime.web.Selector.EPISODE_LIST;
 
@@ -147,7 +143,7 @@ public class KAService extends Service {
             }
 
             @Override
-            public void onPageFailed() {
+            public void onPageFailed(String error) {
                 Log.e(TAG, "onPageFailed");
             }
         });

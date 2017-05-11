@@ -55,4 +55,9 @@
 
     <string name="star_list_default_description">Get notified when new episodes come out</string>
     <string name="star_list_default_title">Anime!</string>
+
+    <string name="captcha">Solve the captcha</string>
+    <string name="captcha_title">Captcha</string>
+    <string name="captcha_message">AFTER the page redirects, click the button below</string>
+    <string name="captcha_button">Play</string>
 </resources>

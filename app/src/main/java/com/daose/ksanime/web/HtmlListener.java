@@ -2,5 +2,5 @@ package com.daose.ksanime.web;
 
 public interface HtmlListener {
     void onPageLoaded(String html, String url);
-    void onPageFailed();
+    void onPageFailed(String error);
 }

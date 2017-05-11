@@ -20,7 +20,9 @@ if(document.documentElement === null) {
         };
         HtmlHandler.handleJSON(JSON.stringify(link));
     } else if(document.documentElement.innerHTML.length > 10000) {
-        if(document.getElementById('slcQualix') !== null) {
+        if(~window.location.href.indexOf('AreYouHuman')) {
+            HtmlHandler.handleError('captcha');
+        } else if(document.getElementById('slcQualix') !== null) {
             var qualities = document.getElementById('slcQualix').options;
             var dictionary = {};
             for(var i = 0; i < qualities.length; i++) {

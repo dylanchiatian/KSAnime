@@ -59,6 +59,8 @@
             android:name=".service.KAService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity android:name=".api.ka.CaptchaActivity"></activity>
     </application>
 
 </manifest>
