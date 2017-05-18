@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 import static com.daose.ksanime.web.Selector.EPISODE_LIST;
 
@@ -84,6 +85,8 @@ public class KAService extends Service {
         }
 
         if(list == null) {
+            RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build();
+            Realm.setDefaultConfiguration(realmConfiguration);
             Realm realm = Realm.getDefaultInstance();
             final List<Anime> fullList = realm.copyFromRealm(realm.where(Anime.class).equalTo(Anime.IS_STARRED, true).findAll(), 0);
             list = new ArrayList<String>();
