@@ -106,9 +106,6 @@ public class NewsFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(snackbar.isShown()) {
-            snackbar.dismiss();
-        }
     }
 
     public interface OnFragmentInteractionListener {

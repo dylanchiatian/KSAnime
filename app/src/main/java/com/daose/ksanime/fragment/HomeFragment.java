@@ -231,7 +231,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        if(refreshBar.isShown()) refreshBar.dismiss();
         mListener = null;
         if(realm != null) {
             realm.close();
