@@ -125,6 +125,8 @@ public class KAService extends Service {
             return;
         }
 
+        final RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build();
+        Realm.setDefaultConfiguration(realmConfiguration);
         final Realm realm = Realm.getDefaultInstance();
         final Anime anime = realm.where(Anime.class).equalTo(Anime.TITLE, title).findFirst();
         final int numOfEpisodes = anime.episodes.size();
