@@ -2,6 +2,7 @@ package com.daose.ksanime.web;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -85,8 +86,12 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-        if(url.contains(KA.CAPTCHA_ENDPOINT)) {
-            view.loadUrl("javascript:HtmlHandler.finish()");
+        Uri uri = Uri.parse(url);
+        if(uri.getLastPathSegment() != null) {
+            if(uri.getLastPathSegment().contains(KA.CAPTCHA_ENDPOINT) &&
+                    uri.getQueryParameterNames().size() == 0) {
+                view.loadUrl("javascript:HtmlHandler.finish()");
+            }
         }
     }
 
