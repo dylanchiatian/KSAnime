@@ -85,7 +85,7 @@ public class CustomWebClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-        if(url.equals(KA.CAPTCHA_ENDPOINT)) {
+        if(url.contains(KA.CAPTCHA_ENDPOINT)) {
             view.loadUrl("javascript:HtmlHandler.finish()");
         }
     }

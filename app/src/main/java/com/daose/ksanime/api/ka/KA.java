@@ -50,7 +50,7 @@ public class KA {
 
     public static final String CAPTCHA_ERROR = "captcha";
     public static final int CAPTCHA_CODE = 3;
-    public static final String CAPTCHA_ENDPOINT = "http://kissanime.ru/Special/AreYouHuman";
+    public static final String CAPTCHA_ENDPOINT = "/Special/AreYouHuman";
 
     //TODO:: get application context
     public static void getHomePage(final Context context, final OnPageLoaded callback) {
