@@ -134,7 +134,14 @@ public class MainActivity extends AppCompatActivity implements
     /**
      * Alerts that need to display on start can be shown here
      */
-    private void displayAlert() {}
+    private void displayAlert() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.disclaimer_title))
+                .setMessage(R.string.disclaimer_message)
+                .setPositiveButton(getString(R.string.disclaimer_button), null)
+                .create();
+        Utils.showOneTimeDialog("disclaimer_v1.1", dialog);
+    }
 
     private void mountView() {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

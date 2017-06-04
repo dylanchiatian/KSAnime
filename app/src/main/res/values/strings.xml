@@ -60,4 +60,8 @@
     <string name="captcha_title">Captcha</string>
     <string name="captcha_message">AFTER the page redirects, click the button below</string>
     <string name="captcha_button">Play</string>
+
+    <string name="disclaimer_title">Disclaimer</string>
+    <string name="disclaimer_message">This app is only a themed web browser that browses public websites hosted on third-party servers which are freely available for all internet users. Any legal issues should be taken up with the actual file hosts, as this app is not affiliated with them. Copyrights and trademarks and other promotional materials are held by their respective owners and their use is allowed under the fair use clause of the Copyright Law.</string>
+    <string name="disclaimer_button">Ok</string>
 </resources>

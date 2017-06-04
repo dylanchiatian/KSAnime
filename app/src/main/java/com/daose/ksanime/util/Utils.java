@@ -1,11 +1,15 @@
 package com.daose.ksanime.util;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.v7.app.AlertDialog;
 
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.web.Browser;
@@ -19,6 +23,8 @@ import java.io.IOException;
 import java.util.List;
 
 import io.realm.Realm;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class Utils {
 
@@ -58,6 +64,20 @@ public class Utils {
         }
 
         return false;
+    }
+
+    public static void showOneTimeDialog(String key, AlertDialog dialog) {
+        SharedPreferences settings = dialog.getContext().getSharedPreferences("daose", MODE_PRIVATE);
+        if(!settings.getBoolean(key, false)) {
+            dialog.show();
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(key, true);
+            editor.apply();
+        }
+    }
+
+    public static void dismissDialog(Dialog dialog) {
+        if(dialog != null && dialog.isShowing()) dialog.dismiss();
     }
 
     public static class CycleInterpolator implements android.view.animation.Interpolator {

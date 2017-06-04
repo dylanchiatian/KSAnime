@@ -141,7 +141,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
             public void run() {
                 adapter.setIsUpdating(false);
                 preloadIndicator.setVisibility(View.GONE);
-                if(loadDialog.isShowing()) loadDialog.dismiss();
+                Utils.dismissDialog(loadDialog);
                 Toast.makeText(AnimeActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
@@ -438,7 +438,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
     }
 
     private void showSelectQualityDialog(final Episode episode, final JSONObject json) {
-        if (loadDialog.isShowing()) loadDialog.dismiss();
+        Utils.dismissDialog(loadDialog);
         Iterator<String> it = json.keys();
         final ArrayList<String> qualities = new ArrayList<String>();
         while (it.hasNext()) {
@@ -521,9 +521,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loadDialog.isShowing()) {
-                    loadDialog.dismiss();
-                }
+                Utils.dismissDialog(loadDialog);
                 if (!Utils.isExternalStorageAvailable()) {
                     Log.e(TAG, "External Storage unavailable");
                     Toast.makeText(AnimeActivity.this, getString(R.string.storage_unavailable), Toast.LENGTH_SHORT).show();
@@ -553,7 +551,7 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loadDialog.isShowing()) loadDialog.dismiss();
+                Utils.dismissDialog(loadDialog);
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
