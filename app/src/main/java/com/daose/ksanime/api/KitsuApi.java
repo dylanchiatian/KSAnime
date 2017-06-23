@@ -51,7 +51,7 @@ public class KitsuApi {
         list.enqueue(new Callback<KitsuDataWrapper<KitsuData>>() {
             @Override
             public void onResponse(Call<KitsuDataWrapper<KitsuData>> call, Response<KitsuDataWrapper<KitsuData>> response) {
-                if(response.body().data.size() > 0) {
+                if(response.body() != null && response.body().data.size() > 0) {
                     final KitsuData data = response.body().data.get(0);
 
                     Realm realm = Realm.getDefaultInstance();
