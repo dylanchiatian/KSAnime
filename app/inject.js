@@ -13,12 +13,21 @@ if(document.documentElement === null) {
 } else if (document.title !== 'Please wait 5 seconds...') {
     if(document.documentElement.innerHTML.length < 150) {
         //HtmlHandler.handleError(document.documentElement.innerHTML);
-    } else if(typeof playerInstance !== 'undefined') {
-        var rapidVideo = playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;
-        var link = {
-          RapidVideo: rapidVideo
-        };
-        HtmlHandler.handleJSON(JSON.stringify(link));
+    } else if(window.location.host.includes('rapidvideo')) {
+        var rapidVideoV2 = document.getElementsByTagName('VIDEO')[0];
+        if(rapidVideoV2) {
+            HtmlHandler.handleJSON(JSON.stringify({
+                RapidVideo: rapidVideoV2.currentSrc
+            }));
+        } else if(typeof playerInstance !== 'undefined') {
+            var rapidVideo = playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;
+            var link = {
+              RapidVideo: rapidVideo
+            };
+            HtmlHandler.handleJSON(JSON.stringify(link));
+        } else {
+            HtmlHandler.handleError('RapidVideo failed')
+        }
     } else if(document.documentElement.innerHTML.length > 10000) {
         if(~window.location.href.indexOf('AreYouHuman')) {
             HtmlHandler.handleError('captcha');
