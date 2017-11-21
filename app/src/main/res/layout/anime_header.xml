@@ -36,7 +36,7 @@
             android:shadowDx="4"
             android:shadowDy="4"
             android:shadowRadius="8"
-            android:padding="@dimen/activity_horizontal_margin"
+            android:padding="@dimen/layout_margin"
             android:textColor="@android:color/white"
             android:textSize="@dimen/title"
             android:textStyle="bold" />
