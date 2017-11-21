@@ -75,7 +75,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:padding="@dimen/activity_horizontal_margin"
+                android:padding="@dimen/layout_margin"
                 android:text="@string/trending"
                 android:textColor="@color/text"
                 android:textSize="@dimen/title" />
