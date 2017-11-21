@@ -13,7 +13,7 @@ if(document.documentElement === null) {
 } else if (document.title !== 'Please wait 5 seconds...') {
     if(document.documentElement.innerHTML.length < 150) {
         //HtmlHandler.handleError(document.documentElement.innerHTML);
-    } else if(window.location.host.includes('rapidvideo')) {
+    } else if(window.location.host.indexOf('rapidvideo') !== -1) {
         var rapidVideoV2 = document.getElementsByTagName('VIDEO')[0];
         if(rapidVideoV2) {
             HtmlHandler.handleJSON(JSON.stringify({
