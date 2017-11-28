@@ -17,6 +17,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -531,10 +532,11 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
 
                 //TODO:: broadcast manager for deeplink into download fragment
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                if (dm == null) {
+                if (dm == null || !URLUtil.isNetworkUrl(downloadURL)) {
                     Toast.makeText(AnimeActivity.this, getString(R.string.download_unavailable), Toast.LENGTH_SHORT).show();
                     return;
                 }
+
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadURL));
                 request.setDestinationInExternalFilesDir(AnimeActivity.this, Environment.DIRECTORY_MOVIES, filePath);
                 request.allowScanningByMediaScanner();
@@ -552,6 +554,13 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
             @Override
             public void run() {
                 Utils.dismissDialog(loadDialog);
+
+                if (!URLUtil.isNetworkUrl(url)) {
+                    Log.e(TAG, url);
+                    Toast.makeText(AnimeActivity.this, "Bad video link", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
