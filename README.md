@@ -4,7 +4,7 @@ Android port of a popular anime website.
 
 [160,000+ downloads, 4.5 stars from 7,551 ratings](https://www.appbrain.com/app/ksanime/com.daose.ksanime)
 
-[Youtube Review #1](https://www.youtube.com/watch?v=W-h5qCTBch0)
+[YouTube Review #1](https://www.youtube.com/watch?v=W-h5qCTBch0)
 
 [YouTube Review #2](https://www.youtube.com/watch?v=eyi5KoziqXI)
 
