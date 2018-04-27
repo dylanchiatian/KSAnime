@@ -23,8 +23,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.daose.ksanime.adapter.EpisodeAdapter;
-import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.api.KitsuApi;
+import com.daose.ksanime.api.ka.KA;
 import com.daose.ksanime.model.Anime;
 import com.daose.ksanime.model.Episode;
 import com.daose.ksanime.util.Utils;
@@ -177,40 +177,45 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        realm.executeTransaction(new Realm.Transaction() {
-                            @Override
-                            public void execute(Realm realm) {
-                                try {
-                                    final Anime anime = realm.where(Anime.class).equalTo(Anime.TITLE, animeTitle).findFirst();
-                                    final JSONArray episodeList = json.getJSONArray(Anime.EPISODES);
-                                    final RealmList<Episode> episodeRealmList = new RealmList<Episode>();
-                                    for (int i = 0; i < episodeList.length(); i++) {
-                                        final JSONObject obj = episodeList.getJSONObject(i);
-                                        final Episode episode = realm.createOrUpdateObjectFromJson(Episode.class, obj);
-                                        episodeRealmList.add(episode);
-                                    }
-                                    anime.episodes = episodeRealmList;
+                        try {
+                            realm.executeTransaction(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    try {
+                                        final Anime anime = realm.where(Anime.class).equalTo(Anime.TITLE, animeTitle).findFirst();
+                                        final JSONArray episodeList = json.getJSONArray(Anime.EPISODES);
+                                        final RealmList<Episode> episodeRealmList = new RealmList<Episode>();
+                                        for (int i = 0; i < episodeList.length(); i++) {
+                                            final JSONObject obj = episodeList.getJSONObject(i);
+                                            final Episode episode = realm.createOrUpdateObjectFromJson(Episode.class, obj);
+                                            episodeRealmList.add(episode);
+                                        }
+                                        anime.episodes = episodeRealmList;
 
-                                    final JSONArray relatedList = json.getJSONArray(Anime.RELATED_LIST);
-                                    final RealmList<Anime> relatedRealmList = new RealmList<Anime>();
-                                    for(int i = 0; i < relatedList.length(); i++) {
-                                        final JSONObject obj = relatedList.getJSONObject(i);
-                                        final Anime relatedAnime = realm.createOrUpdateObjectFromJson(Anime.class, obj);
-                                        relatedAnime.relatedAnimeList.add(anime);
-                                        relatedRealmList.add(relatedAnime);
-                                    }
-                                    anime.relatedAnimeList = relatedRealmList;
-                                    anime.description = json.getString(Anime.DESCRIPTION);
+                                        final JSONArray relatedList = json.getJSONArray(Anime.RELATED_LIST);
+                                        final RealmList<Anime> relatedRealmList = new RealmList<Anime>();
+                                        for (int i = 0; i < relatedList.length(); i++) {
+                                            final JSONObject obj = relatedList.getJSONObject(i);
+                                            final Anime relatedAnime = realm.createOrUpdateObjectFromJson(Anime.class, obj);
+                                            relatedAnime.relatedAnimeList.add(anime);
+                                            relatedRealmList.add(relatedAnime);
+                                        }
+                                        anime.relatedAnimeList = relatedRealmList;
+                                        anime.description = json.getString(Anime.DESCRIPTION);
 
-                                    adapter.notifyDataSetChanged();
-                                    adapter.setIsUpdating(false);
-                                    preloadIndicator.setVisibility(View.GONE);
-                                } catch (JSONException e) {
-                                    Log.e(TAG, "updateEpisodes json error", e);
-                                    handleFail(getString(R.string.update_failed));
+                                        adapter.notifyDataSetChanged();
+                                        adapter.setIsUpdating(false);
+                                        preloadIndicator.setVisibility(View.GONE);
+                                    } catch (JSONException e) {
+                                        Log.e(TAG, "updateEpisodes json error", e);
+                                        handleFail(getString(R.string.update_failed));
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } catch (Exception e) {
+                            Log.e(TAG, "realm error", e);
+                            handleFail(getString(R.string.update_failed));
+                        }
                     }
                 });
             }

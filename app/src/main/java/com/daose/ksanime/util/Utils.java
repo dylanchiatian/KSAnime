@@ -1,28 +1,12 @@
 package com.daose.ksanime.util;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
-
-import com.daose.ksanime.model.Anime;
-import com.daose.ksanime.web.Browser;
-import com.daose.ksanime.web.Selector;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
-import java.io.IOException;
-import java.util.List;
-
-import io.realm.Realm;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -77,7 +61,11 @@ public class Utils {
     }
 
     public static void dismissDialog(Dialog dialog) {
-        if(dialog != null && dialog.isShowing()) dialog.dismiss();
+        try {
+            if (dialog != null && dialog.isShowing()) dialog.dismiss();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static class CycleInterpolator implements android.view.animation.Interpolator {
