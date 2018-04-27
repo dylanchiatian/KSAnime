@@ -36,7 +36,6 @@ public class CaptchaActivity extends AppCompatActivity {
                                 .setPositiveButton(getString(R.string.captcha_button), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        Browser.getInstance(getApplicationContext()).reset();
                                         Intent intent = new Intent();
                                         intent.putExtra(Episode.URL, getIntent().getStringExtra(Episode.URL));
                                         setResult(KA.CAPTCHA_CODE, intent);
