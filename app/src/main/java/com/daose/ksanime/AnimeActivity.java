@@ -374,8 +374,6 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                     showSelectQualityDialog(episode, json);
                 } else {
                     try {
-                        SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
-                        String resolution = prefs.getString(Utils.SELECT_QUALITY_KEY, Utils.DEFAULT_QUALITY);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -388,7 +386,15 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                                 });
                             }
                         });
-                        startVideo(json.getString(resolution));
+
+                        if (json.length() == 1) {
+                            startVideo(json.getString(json.keys().next()));
+                        } else {
+                            SharedPreferences prefs = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
+                            String resolution = prefs.getString(Utils.SELECT_QUALITY_KEY, Utils.DEFAULT_QUALITY);
+
+                            startVideo(json.getString(resolution));
+                        }
                     } catch (JSONException e) {
                         showSelectQualityDialog(episode, json);
                     }
