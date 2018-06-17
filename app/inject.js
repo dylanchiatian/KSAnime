@@ -19,12 +19,6 @@ if(document.documentElement === null) {
             HtmlHandler.handleJSON(JSON.stringify({
                 RapidVideo: rapidVideoV2.currentSrc
             }));
-        } else if(typeof playerInstance !== 'undefined') {
-            var rapidVideo = playerInstance.getConfig().sources[playerInstance.getCurrentQuality()].file;
-            var link = {
-              RapidVideo: rapidVideo
-            };
-            HtmlHandler.handleJSON(JSON.stringify(link));
         } else {
             HtmlHandler.handleError('RapidVideo failed')
         }
@@ -41,7 +35,11 @@ if(document.documentElement === null) {
         } else if(document.getElementById('selectServer') !== null) {
             var serverSelector = document.getElementById('selectServer');
             var server = serverSelector.options[serverSelector.selectedIndex].text;
-            if(server === 'Openload' || server === 'RapidVideo') {
+            if(server === 'RapidVideo') {
+                var redirect = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
+                HtmlHandler.handleJSON(JSON.stringify({RapidVideo: redirect}));
+            }
+            if(server === 'Openload') {
                 var redirect = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
                 window.location = redirect;
             } else {

@@ -3,6 +3,7 @@ package com.daose.ksanime.api.ka;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -23,6 +24,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.io.IOException;
 
 public class KA {
     private static final String TAG = KA.class.getSimpleName();
@@ -163,6 +166,17 @@ public class KA {
         });
     }
 
+    private static String scrapeRapidVideo(final String url) throws IOException, RuntimeException {
+        Document doc = Jsoup.connect(url).get();
+        Elements sources = doc.select("source");
+        if (sources.size() < 1) throw new RuntimeException("No video sources");
+
+        String videoUrl = sources.get(0).attr("src");
+        if (videoUrl.isEmpty()) throw new RuntimeException("Video source was empty");
+
+        return videoUrl;
+    }
+
     public static void getVideo(final Context context, final String path, final OnPageLoaded callback) {
         if(!Utils.isNetworkAvailable(context)) {
             callback.onError(context.getString(R.string.fail_internet));
@@ -170,11 +184,23 @@ public class KA {
         }
 
         final String url = path.startsWith("http") ? path : BASE_URL + path;
-        Browser.getInstance(context).load(url, new JSONListener() {
+        // Bypass captcha
+        final Uri uri = Uri.parse(url).buildUpon().appendQueryParameter("s", "rapidvideo").build();
+
+        Browser.getInstance(context).load(uri.toString(), new JSONListener() {
             @Override
             public void onJSONReceived(JSONObject json) {
                 Browser.getInstance(context).reset();
-                callback.onSuccess(json);
+                try {
+                    if (json.has("RapidVideo")) {
+                        // Overwrite redirect url with video url
+                        json.put("RapidVideo", KA.scrapeRapidVideo(json.optString("RapidVideo")));
+                    }
+                    callback.onSuccess(json);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    callback.onError("Try again later");
+                }
             }
 
             @Override
