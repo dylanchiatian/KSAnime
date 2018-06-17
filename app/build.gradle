@@ -25,9 +25,9 @@ android {
     defaultConfig {
         applicationId "com.daose.ksanime"
         minSdkVersion 16
-        targetSdkVersion 23
-        versionCode 25
-        versionName "3.9.2"
+        targetSdkVersion 26
+        versionCode 27
+        versionName "4.0.0"
     }
     buildTypes {
         debug {
