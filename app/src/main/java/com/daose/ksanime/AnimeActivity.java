@@ -475,9 +475,6 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                             }
                         });
                         if (inDownloadMode) {
-                            if (isFirstDownload()) {
-                                showRatingDialog();
-                            }
                             downloadVideo(episode, json.optString(qualities.get(which)));
                         } else {
                             startVideo(json.optString(qualities.get(which)));
@@ -493,36 +490,6 @@ public class AnimeActivity extends AppCompatActivity implements EpisodeAdapter.O
                                 rv.getAdapter().notifyDataSetChanged();
                             }
                         });
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    public boolean isFirstDownload() {
-        SharedPreferences pref = getSharedPreferences(Utils.PREFS_FILE, MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        if (pref.getBoolean(Utils.FIRST_DOWNLOAD_KEY, true)) {
-            editor.putBoolean(Utils.FIRST_DOWNLOAD_KEY, false);
-            editor.apply();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public void showRatingDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.rating_title))
-                .setMessage(getString(R.string.rating_message))
-                .setPositiveButton(getString(R.string.okay), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.MARKET_DEEPLINK)));
-                        } catch (android.content.ActivityNotFoundException exception) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.MARKET_URL)));
-                        }
                     }
                 })
                 .create()
