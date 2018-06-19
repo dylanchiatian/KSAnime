@@ -8,6 +8,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
@@ -32,12 +33,15 @@ import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.lapism.searchview.SearchView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
+
+import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -305,9 +309,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onVideoClick(String path) {
-        Uri uri = Uri.parse("file://" + path);
+        Uri uri = FileProvider.getUriForFile(
+                this,
+                "com.daose.ksanime.fileprovider",
+                new File(path));
+
         Intent extIntent = new Intent(Intent.ACTION_VIEW, uri);
         extIntent.setDataAndType(uri, "video/mp4");
+        extIntent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
         if(extIntent.resolveActivity(getPackageManager()) != null &&
                 !getSharedPreferences(getString(R.string.shared_preferences_key), Context.MODE_PRIVATE).getBoolean(getString(R.string.use_internal_player), false)) {
