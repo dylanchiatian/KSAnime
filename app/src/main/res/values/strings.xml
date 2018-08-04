@@ -53,7 +53,7 @@
 
     <string name="notification_summary">New episodes available</string>
 
-    <string name="star_list_default_description">Get notified when new episodes come out</string>
+    <string name="star_list_default_description">Star animes to find them here</string>
     <string name="star_list_default_title">Anime!</string>
 
     <string name="captcha">Solve the captcha</string>

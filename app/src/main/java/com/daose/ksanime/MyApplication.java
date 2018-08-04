@@ -31,8 +31,6 @@ public class MyApplication extends Application {
 
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).deleteRealmIfMigrationNeeded().build();
         Realm.setDefaultConfiguration(realmConfiguration);
-
-        startKAService();
     }
 
     private void startKAService() {
