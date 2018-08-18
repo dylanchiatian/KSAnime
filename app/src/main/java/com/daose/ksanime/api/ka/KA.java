@@ -190,17 +190,13 @@ public class KA {
         Browser.getInstance(context).load(uri.toString(), new JSONListener() {
             @Override
             public void onJSONReceived(JSONObject json) {
-                Browser.getInstance(context).reset();
                 try {
-                    if (json.has("RapidVideo")) {
-                        // Overwrite redirect url with video url
-                        json.put("RapidVideo", KA.scrapeRapidVideo(json.optString("RapidVideo")));
-                    }
                     callback.onSuccess(json);
                 } catch (Exception e) {
                     e.printStackTrace();
                     callback.onError("Try again later");
                 }
+                Browser.getInstance(context).reset();
             }
 
             @Override

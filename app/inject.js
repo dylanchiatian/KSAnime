@@ -8,19 +8,24 @@ var HtmlHandler = {
 
 var currentUrl = encodeURI('http://kissanime.ru/');
 
+//console.log("NAVIGATING TO: " + window.location.href);
 if(document.documentElement === null) {
   HtmlHandler.handleError('null document');
 } else if (document.title !== 'Please wait 5 seconds...') {
   if(document.documentElement.innerHTML.length < 150) {
     //HtmlHandler.handleError(document.documentElement.innerHTML);
   } else if(window.location.host.indexOf('rapidvideo') !== -1) {
+    var form = document.getElementsByTagName('form')[0];
     var rapidVideoV2 = document.getElementsByTagName('VIDEO')[0];
-    if(rapidVideoV2) {
+    if (rapidVideoV2) {
       HtmlHandler.handleJSON(JSON.stringify({
         RapidVideo: rapidVideoV2.currentSrc
       }));
+    } else if (form) {
+      // TODO:: Could be captcha
+      form.submit();
     } else {
-      HtmlHandler.handleError('RapidVideo failed')
+      HtmlHandler.handleError('RapidVideo failed');
     }
   } else if(document.documentElement.innerHTML.length > 10000) {
     if(~window.location.href.indexOf('AreYouHuman')) {
@@ -40,12 +45,10 @@ if(document.documentElement === null) {
         for(var i = 0; i < iframes.length; i++) {
           link = iframes[i].src;
           if (link.indexOf('rapidvideo') !== -1) {
-            HtmlHandler.handleJSON(JSON.stringify({RapidVideo: link}));
-            break;
+            window.location = link;
           }
         }
-      }
-      if(server === 'Openload') {
+      } else if(server === 'Openload') {
         var redirect = document.getElementById('divContentVideo').getElementsByTagName('iframe')[0].src
         window.location = redirect;
       } else {
